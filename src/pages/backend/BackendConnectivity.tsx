@@ -1,0 +1,47 @@
+import Modal from './BackendFormModal';
+import BackendMonitorRules from './BackendMonitorRules';
+import BackendNetworkDiagnostics from './BackendNetworkDiagnostics';
+import BackendPlatformMetrics from './BackendPlatformMetrics';
+import {useState} from 'react';
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {Alert,Button,Checkbox,Form,Input,InputNumber,Select,Space,Table,Tabs,Tag,Typography} from 'antd';
+import requests from '@/api/core/requests';
+type Item={id:string;name:string;enabled:boolean;version:number;members?:{kind:string;id:string}[];scheme?:string;host?:string;port?:number;credentialId?:string};
+export default function BackendConnectivity({kind}:{kind:'group'|'proxy'}){
+ const base=kind==='group'?'/admin/gateway-groups':'/admin/network-proxies',client=useQueryClient(),[form]=Form.useForm();
+ const [editing,setEditing]=useState<Item|null|undefined>(),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const list=useQuery({queryKey:[base],queryFn:()=>requests.get<Item[]>(base,{errorMode:'local'})});
+ const agents=useQuery({queryKey:['agent-devices'],queryFn:()=>requests.get<Item[]>('/admin/agent-gateways',{errorMode:'local'}),enabled:kind==='group'});
+ const jumps=useQuery({queryKey:['ssh-jumps'],queryFn:()=>requests.get<Item[]>('/admin/ssh-jumps',{errorMode:'local'}),enabled:kind==='group'});
+ const creds=useQuery({queryKey:['proxy-credentials'],queryFn:()=>requests.get<(Item&{kind:string})[]>('/admin/credentials',{errorMode:'local'}),enabled:kind==='proxy'});
+ const options=[...(agents.data??[]).map(v=>({value:'agent:'+v.id,label:'Agent · '+v.name})),...(jumps.data??[]).map(v=>({value:'jump:'+v.id,label:'SSH · '+v.name}))];
+ const edit=(v:Item|null)=>{setError('');setEditing(v);form.resetFields();form.setFieldsValue(v?{...v,memberKeys:v.members?.map(m=>m.kind+':'+m.id)}:{enabled:true,scheme:'http',port:3128,credentialId:'',memberKeys:[]})};
+ const save=async(values:Record<string,unknown>)=>{setBusy(true);setError('');try{const {memberKeys,...fields}=values;const body={...fields,version:editing?.version??0,...(kind==='group'?{members:(memberKeys as string[]).map(v=>{const [kind,id]=v.split(':');return {kind,id}})}:{})};if(editing)await requests.put(base+'/'+editing.id,body,{errorMode:'local'});else await requests.post(base,body,{errorMode:'local'});await client.invalidateQueries({queryKey:[base]});setEditing(undefined)}catch(e){setError((e as Error).message)}finally{setBusy(false)}};
+ return <Space orientation="vertical" style={{width:'100%'}} size={16}>
+ <Alert type="info" showIcon title={kind==='group'?'网关组 · 按成员顺序尝试':'网络代理 · HTTP CONNECT / SOCKS5'} description={kind==='group'?'创建组后在资产连接路径中选择。仅新建连接时按顺序尝试成员，不重放已建立会话；停用或修改组会关闭其会话。成员按选择顺序保存，可移除后重新选择调整顺序。':'凭据从加密凭据库引用，使用密码类型。SOCKS5 在后端解析目标，SOCKS5H 和 HTTP CONNECT 在代理解析目标。停用代理或更新凭据会断开其会话。'}/>
+ {(error||list.error||agents.error||jumps.error||creds.error)&&<Alert type="error" title={error||list.error?.message||agents.error?.message||jumps.error?.message||creds.error?.message}/>}
+ <Space><Button type="primary" onClick={()=>edit(null)}>新建{kind==='group'?'网关组':'网络代理'}</Button><Button onClick={()=>void list.refetch()}>刷新</Button></Space>
+ <Table<Item> rowKey="id" loading={list.isFetching} dataSource={list.data} columns={[{title:'名称',dataIndex:'name'},{title:kind==='group'?'成员顺序':'代理地址',render:(_,v)=>kind==='group'?v.members?.map(m=>options.find(o=>o.value===m.kind+':'+m.id)?.label??m.id).join(' → '):`${v.scheme}://${v.host}:${v.port}`},{title:'状态',render:(_,v)=><Tag>{v.enabled?'启用':'停用'}</Tag>},{title:'操作',render:(_,v)=><Button onClick={()=>edit(v)}>编辑</Button>}]}/>
+ <Modal open={editing!==undefined} title={kind==='group'?'网关组配置':'网络代理配置'} confirmLoading={busy} onCancel={()=>setEditing(undefined)} onOk={()=>form.submit()} forceRender>{error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical" onFinish={v=>void save(v)}>
+ <Form.Item name="name" label="名称" rules={[{required:true,max:100}]}><Input/></Form.Item>
+ {kind==='group'?<Form.Item name="memberKeys" label="网关成员（最多 32 个）" rules={[{required:true}]}><Select mode="multiple" options={options}/></Form.Item>:<>
+ <Form.Item name="scheme" label="协议" rules={[{required:true}]}><Select options={['http','https','socks5','socks5h'].map(value=>({value,label:value.toUpperCase()}))}/></Form.Item>
+ <Form.Item name="host" label="主机" rules={[{required:true}]}><Input/></Form.Item><Form.Item name="port" label="端口" rules={[{required:true}]}><InputNumber min={1} max={65535}/></Form.Item>
+ <Form.Item name="credentialId" label="代理认证凭据"><Select options={[{value:'',label:'无需认证'},...(creds.data??[]).filter(c=>c.kind==='password').map(c=>({value:c.id,label:c.name}))]}/></Form.Item>
+ </>}<Form.Item name="enabled" valuePropName="checked"><Checkbox>启用</Checkbox></Form.Item></Form></Modal>
+ </Space>;
+}
+type Observation={updateRequest:string;updateCapable:boolean;id:string;name:string;version:string;online:boolean;stale:boolean;streams:number;receivedAt?:string;rotationRequested:boolean;credentialVersion:number;metrics?:{update?:{state:string;version:string;error?:string;checkedAt:string};cpu:number|null;memoryTotal:number;memoryUsed:number;disks:{path:string;total:number;used:number}[];networks:{name:string;sent:number;received:number}[];errors:string[]}};
+export function BackendMonitoring(){return <Tabs destroyOnHidden items={[{key:'platform',label:'平台指标',children:<BackendPlatformMetrics/>},{key:'agents',label:'Agent 指标',children:<BackendAgentMonitoring/>},{key:'alerts',label:'告警与系统事件',children:<BackendMonitorRules/>}]}/>}
+function BackendAgentMonitoring(){
+ const [error,setError]=useState('');const list=useQuery({queryKey:['agent-observations'],queryFn:()=>requests.get<Observation[]>('/admin/agent-observations',{errorMode:'local'}),refetchInterval:5000});
+ return <Space orientation="vertical" style={{width:'100%'}} size={16}><Alert type="info" title="Agent 实时采集" description="指标来自 Agent 所在操作系统命名空间，容器内数据不等于容器配额。默认 5 秒采集；离线或超过 3 个采集周期未收到数据标为失效，不以 0 代替缺失值。轮换会重连设备并中断其现有会话。"/>{(error||list.error)&&<Alert type="error" title={error||list.error?.message}/>}
+ <Table<Observation> rowKey="id" dataSource={list.data} expandable={{expandedRowRender:v=><><Typography.Paragraph>磁盘：{v.metrics?.disks.map(d=>`${d.path} ${(d.used/1024**3).toFixed(2)} / ${(d.total/1024**3).toFixed(2)} GiB`).join('；')||'无数据'}</Typography.Paragraph><Typography.Paragraph>网卡累计字节：{v.metrics?.networks.map(n=>`${n.name} 发送 ${n.sent} / 接收 ${n.received}`).join('；')||'无数据'}</Typography.Paragraph>{v.metrics?.errors.join('；')}<Typography.Paragraph>更新：{v.updateRequest?`请求已排队：${v.updateRequest}`:v.metrics?.update?`${({available:'可更新',installed:'已安装',rolled_back:'失败已回滚',draining:'等待连接排空',check_failed:'检查失败',up_to_date:'已是最新'} as Record<string,string>)[v.metrics.update.state]??v.metrics.update.state} · ${v.metrics.update.version} · ${v.metrics.update.error??''}`:'未配置受管更新或尚无检查结果'}</Typography.Paragraph><Space>{['check','install'].map(action=><Button key={action} disabled={!v.updateCapable||!!v.updateRequest} onClick={()=>{setError('');void requests.post(`/admin/agent-gateways/${v.id}/update`,{action},{errorMode:'local'}).catch(e=>setError(e.message))}}>{action==='check'?'检查签名更新':'排空连接并升级'}</Button>)}</Space></>}} columns={[{title:'设备',dataIndex:'name'},{title:'版本',dataIndex:'version'},{title:'状态',render:(_,v)=><Tag color={v.stale?'orange':'green'}>{!v.online?'离线':v.stale?'数据失效':'在线'}</Tag>},{title:'CPU',render:(_,v)=>v.stale||v.metrics?.cpu==null?'—':`${v.metrics.cpu.toFixed(1)}%`},{title:'内存',render:(_,v)=>!v.stale&&v.metrics?.memoryTotal?`${(v.metrics.memoryUsed/v.metrics.memoryTotal*100).toFixed(1)}%`:'—'},{title:'连接数',dataIndex:'streams'},{title:'最后采集接收',render:(_,v)=>v.receivedAt?new Date(v.receivedAt).toLocaleString():'—'},{title:'设备密钥',render:(_,v)=><Space>v{v.credentialVersion}<Button disabled={v.rotationRequested||!v.online||!v.metrics} onClick={()=>{setError('');void requests.post(`/admin/agent-gateways/${v.id}/rotate`,undefined,{errorMode:'local'}).then(()=>list.refetch()).catch(e=>setError(e.message))}}>{v.rotationRequested?'待设备轮换':'请求轮换'}</Button></Space>}]}/></Space>;
+}
+export function BackendDiagnostics(){
+ return <Tabs destroyOnHidden items={[{key:'network',label:'网络与来源 IP',children:<BackendNetworkDiagnostics/>},{key:'ssh',label:'SSH 握手与指纹',children:<BackendSSHDiagnostics/>}]}/>;
+}
+function BackendSSHDiagnostics(){
+ const assets=useQuery({queryKey:['diagnostic-assets'],queryFn:()=>requests.get<{items:{id:string;name:string}[]}>('/admin/assets/paging?pageSize=100',{errorMode:'local'})});const [id,setID]=useState<string>(),[result,setResult]=useState(''),[busy,setBusy]=useState(false);
+ return <Space orientation="vertical" size={16}><Alert type="info" title="SSH 链路诊断" description="按资产真实连接路径探测目标 SSH 握手与指纹；不会自动信任密钥，不登录目标、不执行命令。最多列出前 100 个资产，完整资产页也可逐项探测。"/><Select style={{width:400}} showSearch optionFilterProp="label" placeholder="选择资产" options={assets.data?.items.map(v=>({value:v.id,label:v.name}))} onChange={setID}/><Button loading={busy} disabled={!id} onClick={async()=>{setBusy(true);const start=performance.now();try{const v=await requests.post<{observed:{fingerprint:string}}>(`/admin/assets/${id}/host-key/discover`,undefined,{errorMode:'local'});setResult(`成功 · ${Math.round(performance.now()-start)} ms · ${v.observed.fingerprint}`)}catch(e){setResult(`失败 · ${(e as Error).message}`)}finally{setBusy(false)}}}>开始诊断</Button>{assets.error&&<Alert type="error" title={assets.error.message}/>}<Typography.Paragraph>{result}</Typography.Paragraph></Space>;
+}

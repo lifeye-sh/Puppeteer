@@ -1,0 +1,955 @@
+openapi: 3.1.0
+info:
+  title: Backup and isolated restore administration
+  version: r16-schema99
+  description: 'Contracts audited from R11 handlers and backup domain. No public restore
+    mutation exists: staged restore and activation use the local CLI. Required permissions
+    are stated per operation. Cookie mutations require allowed Origin.'
+security:
+- session: []
+paths:
+  /api/admin/backup/status:
+    get:
+      summary: Backup runtime readiness
+      description: 'Requires backup.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available: &id001
+                    type: boolean
+                  maintenance: *id001
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/admin/backup/config:
+    get:
+      summary: Read backup schedule and recipient
+      description: 'Requires backup.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    put:
+      summary: Save backup configuration
+      description: Requires backup.manage. Password and fresh bound MFA recheck. Revision
+        conflict returns409. Changed recipient requires decrypting the one-time challenge
+        locally; unchanged recipient retains prior proof. Schedule requires configured
+        runtime.
+      responses:
+        '204':
+          description: Success
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigWrite'
+  /api/admin/backup/tasks:
+    get:
+      summary: Recent backup tasks
+      description: 'Requires backup.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+                maxItems: 100
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Request a backup
+      description: Requires backup.manage. Explicitly confirms closing active sessions
+        and entering maintenance. Actor/requestKey idempotent. One backup job may
+        be queued/running. Snapshots configuration and destinations.
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id002
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                requestKey: *id002
+                drainConfirmed:
+                  type: boolean
+                  const: true
+              required:
+              - requestKey
+              - drainConfirmed
+  /api/admin/backup/tasks/{id}/retry:
+    post:
+      summary: Retry failed remote copies
+      description: Requires backup.manage. Retries remote copies; does not rerun an
+        unknown backup or overwrite restore history.
+      responses:
+        '204':
+          description: Success
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id002
+  /api/admin/backup/files:
+    get:
+      summary: Available local archives
+      description: Requires backup.manage. Newest first. Storage path is not exposed.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+                maxItems: 100
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/admin/backup/files/{id}/export-ticket:
+    post:
+      summary: Authorize one archive download
+      description: Requires backup.export. Password and fresh bound MFA. Ticket valid
+        one minute, single use and bound to login session and file.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket: &id004
+                    type: string
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: &id013
+                  type: string
+                  format: password
+                  maxLength: 1024
+                  writeOnly: true
+                totp: &id014
+                  type: string
+                  writeOnly: true
+                  description: Fresh code required when MFA is bound
+              required:
+              - password
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id002
+  /api/admin/backup/files/{id}/download:
+    get:
+      summary: Download encrypted archive
+      description: Requires backup.export. Consumes a one-minute session/file-bound
+        ticket before streaming. Verifies regular file, size and SHA256. Holds shared
+        lock against retention deletion. Attachment is .ntbackup.age; Cache-Control:no-store
+        and Referrer-Policy:no-referrer. Range requests need a fresh ticket.
+      responses:
+        '200': &id003
+          description: Encrypted archive
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '206': *id003
+        '416':
+          description: Unsatisfiable range
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id002
+      - name: ticket
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 32
+          maxLength: 256
+  /api/admin/backup/destinations:
+    get:
+      summary: Configured remote destinations
+      description: Requires backup.manage. Secret omitted; hasSecret indicates presence.
+        Ordered by name/id.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Destination'
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Create or update remote destination
+      description: Requires backup.manage. Password and fresh bound MFA. Encrypts
+        credential using destination-bound context; revision conflict returns409.
+        Updating connection identity requires resubmitting the secret.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id002
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DestinationWrite'
+  /api/admin/backup/destinations/{id}/test:
+    post:
+      summary: Verify remote destination
+      description: Requires backup.manage. 45-second bounded encrypted probe upload/read/hash
+        verification/delete. Write/read failure or cleanup failure returns422. No
+        request body.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: string
+                    const: verified
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id002
+  /api/admin/backup/copies:
+    get:
+      summary: Remote copy states
+      description: 'Requires backup.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Copy'
+                maxItems: 300
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/admin/backup/recipient-challenge:
+    post:
+      summary: Prove recovery-key possession
+      description: Requires backup.export. Generates age-encrypted random response
+        as standard Base64; decrypt locally. Thirty-minute proof bound to this login
+        session. Previous challenge for the session is replaced. Never submit recovery
+        private key.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id002
+                  challenge: *id004
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipient: *id004
+              required:
+              - recipient
+  /api/admin/backup/restores:
+    get:
+      summary: Read local restore history
+      description: Requires backup.manage. History is read from configured local restore
+        directory outside the restored database. Events contain state and timestamps,
+        not secrets.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeRestoreId: *id004
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RestoreHistory'
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version, state or runtime conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Config:
+      type: object
+      properties:
+        recipient: &id007
+          type: string
+          description: age X25519 public recipient, not the private recovery key
+        retentionDays: &id008
+          type: integer
+          minimum: 1
+          maximum: 3650
+        scheduleEnabled: *id001
+        scheduleTime: &id009
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        timezone: &id010
+          type: string
+          description: IANA time zone
+        scope: &id011
+          type: string
+          enum:
+          - control-plane
+          - full
+        revision: &id012
+          type: integer
+          minimum: 1
+    File:
+      type: object
+      properties:
+        id: *id004
+        size: &id005
+          type: integer
+        sha256: *id004
+        manifest:
+          $ref: '#/components/schemas/Manifest'
+        createdAt: &id006
+          type: string
+          format: date-time
+    Destination:
+      type: object
+      properties:
+        id: *id004
+        name: *id004
+        kind: *id004
+        enabled: *id001
+        revision: *id005
+        endpoint: *id004
+        prefix: *id004
+        bucket: *id004
+        region: *id004
+        username: *id004
+        hostKey: *id004
+        ca: *id004
+        allowHttp: *id001
+        hasSecret: &id015
+          type: boolean
+          readOnly: true
+    Task:
+      type: object
+      properties:
+        id: *id004
+        state: *id004
+        stage: *id004
+        remark: *id004
+        createdAt: *id006
+        config:
+          $ref: '#/components/schemas/Config'
+    Copy:
+      type: object
+      properties:
+        taskId: *id004
+        destinationId: *id004
+        name: *id004
+        kind: *id004
+        remoteKey: *id004
+        state: *id004
+        attempts: *id005
+        reason: *id004
+    RestoreEvent:
+      type: object
+      properties:
+        restoreId: *id004
+        state: *id004
+        at: *id006
+    RestoreHistory:
+      type: object
+      properties:
+        restoreId: *id004
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestoreEvent'
+    Manifest:
+      type: object
+      properties:
+        format: *id004
+        formatVersion: *id005
+        product: *id004
+        backupId: *id004
+        instanceId: *id004
+        createdAt: *id006
+        appVersion: *id004
+        schemaVersion: *id005
+        pgMajor: *id005
+        dumpToolMajor: *id005
+        scope: *id004
+        includes:
+          type: array
+          items: *id004
+        excludes:
+          type: array
+          items: *id004
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entry'
+    Entry:
+      type: object
+      properties:
+        path: *id004
+        size: *id005
+        sha256: *id004
+    ConfigWrite:
+      type: object
+      properties:
+        recipient: *id007
+        retentionDays: *id008
+        scheduleEnabled: *id001
+        scheduleTime: *id009
+        timezone: *id010
+        scope: *id011
+        revision: *id012
+        password: *id013
+        totp: *id014
+        recipientProofId: *id002
+        recipientResponse:
+          type: string
+          maxLength: 128
+          writeOnly: true
+      required:
+      - recipient
+      - retentionDays
+      - scheduleEnabled
+      - scheduleTime
+      - timezone
+      - scope
+      - revision
+      - password
+    DestinationWrite:
+      type: object
+      properties:
+        id: *id004
+        name: *id004
+        kind:
+          type: string
+          enum:
+          - s3
+          - webdav
+          - sftp
+        enabled: *id001
+        revision: *id005
+        endpoint: *id004
+        prefix: *id004
+        bucket: *id004
+        region: *id004
+        username: *id004
+        hostKey: *id004
+        ca: *id004
+        allowHttp: *id001
+        hasSecret: *id015
+        password: *id013
+        totp: *id014
+        secret:
+          type: string
+          maxLength: 65536
+          writeOnly: true
+          description: Required on create. Empty retains old encrypted credential
+            only if endpoint, username, kind and hostKey are unchanged.
+      required:
+      - name
+      - kind
+      - endpoint
+      - password
+      description: Create with empty id/revision0; update with current id/revision.
+        Name <=120 bytes; endpoint<=2048 bytes; CA and secret<=65536 bytes; prefix<=1024
+        bytes without dot segments, backslash, NUL, CR/LF. SFTP requires host:port,
+        username and SHA256 pinned host key. HTTP is accepted only with allowHttp;
+        S3 requires root endpoint, bucket and access key username.
+    Problem:
+      type: object
+      properties:
+        reason: *id004
+        message: *id004

@@ -1,0 +1,14 @@
+CREATE TABLE policy_groups(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),version bigint NOT NULL DEFAULT 1,document jsonb NOT NULL,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE strategies(LIKE policy_groups INCLUDING ALL);
+CREATE TABLE command_filters(LIKE policy_groups INCLUDING ALL);
+CREATE TABLE ip_sets(LIKE policy_groups INCLUDING ALL);
+CREATE TABLE geodata_versions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text NOT NULL,digest text NOT NULL,active boolean NOT NULL DEFAULT false,created_at timestamptz NOT NULL DEFAULT now());
+CREATE UNIQUE INDEX geodata_one_active ON geodata_versions(active) WHERE active;
+CREATE TABLE geodata_entries(version_id uuid NOT NULL REFERENCES geodata_versions(id),prefix cidr NOT NULL,country text NOT NULL,province text NOT NULL DEFAULT '',city text NOT NULL DEFAULT '',PRIMARY KEY(version_id,prefix));
+CREATE INDEX geodata_prefix ON geodata_entries USING gist(prefix inet_ops);
+ALTER TABLE grants ADD COLUMN strategy_id uuid REFERENCES strategies(id),ADD COLUMN command_filter_id uuid REFERENCES command_filters(id);
+ALTER TABLE sessions ADD COLUMN client_ip text NOT NULL DEFAULT '';
+CREATE TABLE policy_revision(singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),revision bigint NOT NULL DEFAULT 1);
+INSERT INTO policy_revision DEFAULT VALUES;
+INSERT INTO permissions VALUES('policy.read','access-policy','访问策略查看'),('approval.review','access-request','临时访问审批'),('approval.read','access-request','申请审批查看');
+UPDATE instance_state SET schema_version=23;

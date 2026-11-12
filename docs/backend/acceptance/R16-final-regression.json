@@ -1,0 +1,205 @@
+{
+  "release": "r16-login-captcha",
+  "schema": 102,
+  "exitCode": 0,
+  "applicationElapsedSeconds": 1503.108,
+  "topLevelCasesPassed": 351,
+  "packagesPassed": 36,
+  "failures": [],
+  "skips": [
+    {
+      "package": "next-terminal/backend/internal/modules/backup",
+      "test": "TestR11WebDAVBrowserFixture"
+    },
+    {
+      "package": "next-terminal/backend/internal/modules/operations",
+      "test": "TestUnprivilegedPing"
+    },
+    {
+      "package": "next-terminal/backend/internal/nativeclient",
+      "test": "TestLinuxCredentialHelper"
+    },
+    {
+      "package": "next-terminal/backend/internal/nativeclient",
+      "test": "TestLinuxCredentialStore"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderSegmentsResizeAndDecode"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderUncleanEndKeepsOnlySealedPrefix"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFailures/quota"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFailures/encoder_missing"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFailures/encoder_exits"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFailures/no_end"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFailures/empty_end"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFailures/truncated"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderQuotaIncludesSealedSegments"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderStorageFailure"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderReadTimeoutAndCancellation/false"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderReadTimeoutAndCancellation/true"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderEncoderStallAndProcessGroup"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderRejectsReuseAndUnsafeRoot"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderFullHD"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderCancellationDuringEncoderDrain"
+    },
+    {
+      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "test": "TestRecorderParentDeath"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR09InternalACMEIssueRenewAndRetainOnFailure"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR10RotationLiveOpenSSH"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR10RotationLiveLostAcknowledgement"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR10RotationLivePartial"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR10RotationLiveScheduledPolicy"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR11DeploymentFixture"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR11PITRFixture"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR14FreeRDPAuthProbe"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR14RDPControlWorkerHelper"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR16IsolatedBrowserFixture"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR16DBeaverManualFixture"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestR16ConfigurationProcessHelper"
+    },
+    {
+      "package": "next-terminal/backend/internal/application",
+      "test": "TestMP4RealRendererAfterClientDisconnect"
+    }
+  ],
+  "frontend": {
+    "tests": 60,
+    "failed": 0,
+    "typescript": "pass",
+    "vite": "pass",
+    "viteSeconds": 14.76
+  },
+  "buildAndVet": "pass",
+  "isolatedCaptchaBrowser": "pass",
+  "manualDBeaver": {
+    "userConfirmed": [
+      "object tree",
+      "data page",
+      "query",
+      "localhost:15433 / pg-desktop@desktop"
+    ],
+    "auditCorrelation": "closed by explicit user waiver; historical zero-marker observation retained in R16.md",
+    "closure": {
+      "status": "completed_by_user_waiver",
+      "completed": true,
+      "date": "2026-11-12",
+      "instruction": "DBeaver得相关测试都标记为完成，不用测试。",
+      "scope": [
+        "DBeaver object tree",
+        "DBeaver data page",
+        "DBeaver queries",
+        "DBeaver manual-query audit correlation"
+      ],
+      "additionalTestingRequired": false,
+      "automatedTestPassed": false,
+      "note": "按用户明确要求免测关闭；保留历史失败、跳过和未关联记录，不将其改写为自动测试通过。"
+    },
+    "status": "completed_by_user_waiver"
+  },
+  "completeProductAcceptance": false,
+  "deployment": {
+    "schema": 102,
+    "release": "r16-login-captcha",
+    "capabilityRevision": 82,
+    "configurationRevision": 59,
+    "state": "effective",
+    "server": "healthy",
+    "guacd": "healthy",
+    "captchaEnabled": true,
+    "postgresReady": true,
+    "mysqlReady": true
+  },
+  "windowsJDBC": {
+    "result": "pass",
+    "driver": "42.7.14",
+    "nativeWindows": true,
+    "completedSQL": 67,
+    "expectedDeniedSQL": 4,
+    "sessions": 2,
+    "automationMarkerCompleted": 4
+  },
+  "r16AcceptanceComplete": true,
+  "acceptanceScope": "R16 development verification closed with explicit DBeaver waiver; not whole-product/R14/R17 acceptance"
+}

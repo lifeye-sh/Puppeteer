@@ -1,6 +1,8 @@
 import {ApiError, getErrorMessage, isAccessControlError, isApiError} from "@/api/core/api-error";
 import eventEmitter from "@/api/core/event-emitter";
 import {parseResponse} from "@/api/core/parse-response";
+import {readEventStream} from '@/api/core/event-stream';
+import type {EventStreamOptions} from '@/api/core/event-stream';
 
 export const baseUrl = () => {
     return '/api';
@@ -128,6 +130,11 @@ const execute = async <T>(url: string, init: RequestInit, options: RequestOption
 };
 
 class Request {
+    async postStream(url: string, body: unknown, onEvent: (event: string, value: unknown) => void, signal?: AbortSignal, streamOptions?: EventStreamOptions): Promise<void> {
+        const response = await fetch(baseUrl() + url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), signal});
+        if (!response.ok) throw await createHttpError(response);
+        await readEventStream(response, onEvent, streamOptions);
+    }
     async get<T = any>(url: string, options?: RequestOptions): Promise<T> {
         return await execute<T>(url, {
             method: "GET",

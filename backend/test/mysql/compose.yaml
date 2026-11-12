@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.4.7
+    container_name: nt-r12-mysql-fixture
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /fixture/root-password
+    entrypoint:
+      - /bin/bash
+      - -ec
+      - |
+        install -d -o mysql -g mysql -m 700 /fixture
+        install -o mysql -g mysql -m 600 /fixture-source/server.pem /fixture-source/server-key.pem /fixture-source/root-password /fixture/
+        install -o mysql -g mysql -m 600 /fixture-source/init.sql /docker-entrypoint-initdb.d/01-init.sql
+        exec /usr/local/bin/docker-entrypoint.sh "$$@"
+      - --
+    command: ["--ssl-ca=/fixture/server.pem", "--ssl-cert=/fixture/server.pem", "--ssl-key=/fixture/server-key.pem", "--require-secure-transport=ON", "--tls-version=TLSv1.2,TLSv1.3"]
+    volumes:
+      - ../../.local/r12-mysql:/fixture-source:ro
+      - mysql-data:/var/lib/mysql
+    networks: [acceptance]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--host=127.0.0.1", "--silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 50
+networks:
+  acceptance:
+    external: true
+    name: nt-backend-r01_default
+volumes:
+  mysql-data:
+    name: nt-r12-mysql-fixture-data

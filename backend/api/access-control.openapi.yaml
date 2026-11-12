@@ -1,0 +1,1209 @@
+openapi: 3.1.0
+info:
+  title: Access approval and policy management
+  version: r16-remote-access-mfa
+  description: Contracts checked against r08_approval.go, r08_policy.go and their
+    domain validators. Cookie mutations require allowed Origin. Route coverage is
+    not full functional acceptance.
+security:
+- session: []
+paths:
+  /api/admin/approval-scopes:
+    get:
+      summary: List approval scopes
+      description: Requires approval.read.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Scope'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+    post:
+      summary: Create approval scope
+      description: Requires identity.manage; changes and audit commit atomically.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Scope'
+  /api/admin/approval-scopes/{id}:
+    put:
+      summary: Update approval scope
+      description: Requires identity.manage and matching version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Scope'
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/portal/requestable-assets:
+    get:
+      summary: List eligible request targets
+      description: Authenticated user. Matches enabled approval scopes and enabled
+        assets; currently scans at most 1000 assets. One asset may appear once per
+        matching scope.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    name:
+                      type: string
+                    protocol:
+                      type: string
+                    scopeId:
+                      type: string
+                      format: uuid
+                    scopeName:
+                      type: string
+                    maxMinutes:
+                      type: integer
+                  required: []
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+  /api/access-requests:
+    get:
+      summary: List visible access requests
+      description: Own requests, configured reviewer requests, or all for an administrator.
+        Fixed page size 50; invalid page values fall back to 1.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Request'
+                  total:
+                    type: integer
+                required:
+                - items
+                - total
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+          default: 1
+    post:
+      summary: Submit temporary access request
+      description: Requester identity comes from the session. Scope membership, enabled
+        asset and maximum duration rechecked; notification queued in the same transaction.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestWrite'
+  /api/access-requests/{id}/decision:
+    post:
+      summary: Approve, reject or cancel request
+      description: Matching version required. Approval/rejection requires a configured
+        reviewer with approval.review and forbids self-review. Only pending requests
+        can be reviewed. Request owner or administrator may cancel pending/approved
+        requests. Approval atomically creates a time-bounded grant; cancellation revokes
+        that grant. Duration may only shorten. Notifications and audit share the transaction.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required:
+                - ok
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionWrite'
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/admin/policies/access-policy:
+    get:
+      summary: List access-policy
+      description: Requires policy.read. Returns complete stored documents with current
+        IDs and versions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+    post:
+      summary: Create access-policy
+      description: Requires identity.manage. Type-specific validation and policy revision
+        increment are atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+  /api/admin/policies/access-policy/{id}:
+    put:
+      summary: Update access-policy
+      description: Requires identity.manage and current document version; policy revision
+        increment is atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Delete access-policy
+      description: Requires identity.manage and current version query parameter. Reference
+        or stale-version failures return conflict.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: version
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+  /api/admin/policies/strategy:
+    get:
+      summary: List strategy
+      description: Requires policy.read. Returns complete stored documents with current
+        IDs and versions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+    post:
+      summary: Create strategy
+      description: Requires identity.manage. Type-specific validation and policy revision
+        increment are atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+  /api/admin/policies/strategy/{id}:
+    put:
+      summary: Update strategy
+      description: Requires identity.manage and current document version; policy revision
+        increment is atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Delete strategy
+      description: Requires identity.manage and current version query parameter. Reference
+        or stale-version failures return conflict.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: version
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+  /api/admin/policies/command-filter:
+    get:
+      summary: List command-filter
+      description: Requires policy.read. Returns complete stored documents with current
+        IDs and versions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+    post:
+      summary: Create command-filter
+      description: Requires identity.manage. Type-specific validation and policy revision
+        increment are atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+  /api/admin/policies/command-filter/{id}:
+    put:
+      summary: Update command-filter
+      description: Requires identity.manage and current document version; policy revision
+        increment is atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Delete command-filter
+      description: Requires identity.manage and current version query parameter. Reference
+        or stale-version failures return conflict.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: version
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+  /api/admin/policies/ip-set:
+    get:
+      summary: List ip-set
+      description: Requires policy.read. Returns complete stored documents with current
+        IDs and versions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+    post:
+      summary: Create ip-set
+      description: Requires identity.manage. Type-specific validation and policy revision
+        increment are atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+  /api/admin/policies/ip-set/{id}:
+    put:
+      summary: Update ip-set
+      description: Requires identity.manage and current document version; policy revision
+        increment is atomic with audit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Delete ip-set
+      description: Requires identity.manage and current version query parameter. Reference
+        or stale-version failures return conflict.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: version
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+  /api/admin/policies/explain:
+    post:
+      summary: Explain effective access decision
+      description: Requires identity.manage and an enabled subject. Evaluates current
+        resource scope and forced grant policies without creating a session.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDecision'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                resourceId:
+                  type: string
+                  format: uuid
+                ip:
+                  type: string
+                action:
+                  type: string
+                  enum:
+                  - connect
+                  - upload
+                  - download
+                  - createFile
+                  - createDir
+                  - edit
+                  - delete
+                  - rename
+                  - chmod
+                  - copy
+                  - paste
+                  - execute
+                  - observe
+                  - share
+                command:
+                  type: string
+              required:
+              - userId
+              - resourceId
+              - ip
+              - action
+  /api/admin/geodata:
+    get:
+      summary: List geodata versions
+      description: Requires policy.read.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeoVersion'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+    post:
+      summary: Import and activate geodata
+      description: Requires identity.manage. JSON body bounded to 32 MiB. Invalid
+        input does not replace the active dataset; canonical data digest is recorded.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ID'
+        '401':
+          description: Authentication required
+        '403':
+          description: Permission or browser Origin denied
+        '409':
+          description: Version, state or reference conflict
+        '422':
+          description: Invalid fields or relations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: UTF-8 byte limit 100
+                entries:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/GeoEntry'
+                  minItems: 1
+                  maxItems: 100000
+              required:
+              - name
+              - entries
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    ID:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+      - id
+    Scope:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: UTF-8 byte limit 100
+        requesterIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+        departmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+        resourceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+          minItems: 1
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+          minItems: 1
+        maxMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+        enabled:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+      required:
+      - name
+      - resourceIds
+      - reviewerIds
+      - maxMinutes
+      description: At least one requester or department. Combined ID arrays at most
+        1000. Reviewers must be enabled and have approval.review. Existing record
+        version required for updates.
+    RequestWrite:
+      type: object
+      properties:
+        scopeId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: UTF-8 byte limit 2000
+        durationMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+        requestedStart:
+          type: string
+          format: date-time
+          description: Omitted means now; otherwise within one minute in the past
+            and seven days in the future
+      required:
+      - scopeId
+      - resourceId
+      - reason
+      - durationMinutes
+    Request:
+      type: object
+      properties:
+        scopeId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: UTF-8 byte limit 2000
+        durationMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+        requestedStart:
+          type: string
+          format: date-time
+          description: Omitted means now; otherwise within one minute in the past
+            and seven days in the future
+        id:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - pending
+          - approved
+          - rejected
+          - cancelled
+          - expired
+        reviewerId:
+          type: string
+        decisionReason:
+          type: string
+        grantId:
+          type: string
+        startsAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        expiresAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        decidedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required: []
+    DecisionWrite:
+      type: object
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        action:
+          type: string
+          enum:
+          - approve
+          - reject
+          - cancel
+        reason:
+          type: string
+          maxLength: 2000
+          description: UTF-8 byte limit 2000
+        durationMinutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+          description: 0 inherits requested duration; approval may shorten, not extend
+        strategyId:
+          type: string
+          description: Optional strategy UUID
+        commandFilterId:
+          type: string
+          description: Optional command filter UUID
+      required:
+      - version
+      - action
+    Period:
+      type: object
+      properties:
+        days:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 6
+          minItems: 1
+        start:
+          type: string
+          pattern: ^[0-9]{2}:[0-9]{2}$
+        end:
+          type: string
+          pattern: ^[0-9]{2}:[0-9]{2}$
+      required:
+      - days
+      - start
+      - end
+      description: Local clock in policy timezone; Sunday=0. Valid hours/minutes required.
+    Rule:
+      type: object
+      properties:
+        name:
+          type: string
+        enabled:
+          type: boolean
+        priority:
+          type: integer
+        action:
+          type: string
+          enum:
+          - allow
+          - reject
+        ips:
+          type: array
+          items:
+            type: string
+          maxItems: 1000
+        ipSetIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+        countries:
+          type: array
+          items:
+            type: string
+        provinces:
+          type: array
+          items:
+            type: string
+        cities:
+          type: array
+          items:
+            type: string
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/Period'
+          maxItems: 50
+        expiresAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - action
+      description: Combined countries/provinces/cities at most 1000. IP accepts a
+        literal, prefix, or address range.
+    Policy:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        version:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        enabled:
+          type: boolean
+        global:
+          type: boolean
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+        departmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+        resourceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+        mode:
+          type: string
+          enum:
+          - whitelist
+          - blacklist
+          - ''
+        timezone:
+          type: string
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rule'
+          maxItems: 100
+        actions:
+          type: object
+          properties:
+            connect:
+              type: boolean
+            upload:
+              type: boolean
+            download:
+              type: boolean
+            createFile:
+              type: boolean
+            createDir:
+              type: boolean
+            edit:
+              type: boolean
+            delete:
+              type: boolean
+            rename:
+              type: boolean
+            chmod:
+              type: boolean
+            copy:
+              type: boolean
+            paste:
+              type: boolean
+            execute:
+              type: boolean
+            observe:
+              type: boolean
+            share:
+              type: boolean
+          required: []
+          additionalProperties: false
+        patterns:
+          type: array
+          items:
+            type: object
+            properties:
+              pattern:
+                type: string
+                minLength: 1
+                maxLength: 1024
+                description: Go regular expression; UTF-8 byte limit 1024
+              action:
+                type: string
+                enum:
+                - allow
+                - reject
+            required:
+            - pattern
+            - action
+          maxItems: 100
+        entries:
+          type: array
+          items:
+            type: string
+          maxItems: 10000
+      required:
+      - name
+      description: Combined user/department/resource IDs at most 1000. access-policy
+        and command-filter require whitelist/blacklist mode; access-policy requires
+        a loadable IANA timezone; ip-set requires at least one valid address, prefix
+        or range. Updates require current version.
+    PolicyDecision:
+      type: object
+      properties:
+        allowed:
+          type: boolean
+        reason:
+          type: string
+        policyId:
+          type: string
+        revision:
+          type: integer
+        filtered:
+          type: boolean
+      required:
+      - allowed
+      - reason
+      - policyId
+      - revision
+      - filtered
+    GeoEntry:
+      type: object
+      properties:
+        prefix:
+          type: string
+        country:
+          type: string
+          minLength: 1
+        province:
+          type: string
+        city:
+          type: string
+      required:
+      - prefix
+      - country
+      description: Prefix parsed and masked to canonical CIDR; duplicate canonical
+        prefixes rejected. Combined location UTF-8 bytes at most 500.
+    GeoVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        digest:
+          type: string
+        active:
+          type: boolean
+        entries:
+          type: integer
+      required: []

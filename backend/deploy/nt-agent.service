@@ -1,0 +1,24 @@
+[Unit]
+Description=Next Terminal managed Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nt-agent
+Group=nt-agent
+WorkingDirectory=/var/lib/next-terminal-agent
+ExecStart=/opt/next-terminal-agent/nt-agent --supervise --config /var/lib/next-terminal-agent/agent.json
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=20
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/next-terminal-agent /opt/next-terminal-agent
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

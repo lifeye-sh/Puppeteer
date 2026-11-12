@@ -7,6 +7,7 @@ import brandingApi from "@/api/branding-api";
 import userApi from "@/api/user-api";
 import { StyleProvider } from '@ant-design/cssinjs';
 import strings from "@/utils/strings";
+import {isNewBackend} from '@/hook/BackendRuntimeContext';
 type ValidateStatus = FormItemProps['validateStatus'];
 const {
   Title
@@ -100,12 +101,12 @@ const SetupPage = () => {
             <Form onFinish={handleSubmit} form={form} layout="vertical">
                 <Form.Item name={'username'} label={t('audit.operation.account')} rules={[{
           required: true
-        }]}>
+        }, ...(isNewBackend ? [{pattern: /^[a-zA-Z0-9][a-zA-Z0-9_.-]{2,63}$/, message: '账号需3–64位字母、数字或_.-'}] : [])]}>
     <Input />
         </Form.Item>
                 <Form.Item name={'password'} label={t('assets.password')} rules={[{
           required: true
-        }]}>
+        }, ...(isNewBackend ? [{min: 12, message: '新后端密码至少12个字符'}] : [])]}>
     <Input.Password
             onChange={onNewPasswordChange} />
         </Form.Item>

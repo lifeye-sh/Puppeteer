@@ -1,0 +1,45 @@
+--- a/server/proxy/channels/pf_channel_rdpdr.c
++++ b/server/proxy/channels/pf_channel_rdpdr.c
+@@ -35,6 +35,12 @@
+ #include <freerdp/channels/channels.h>
+ #include <freerdp/utils/rdpdr_utils.h>
+ 
++/* Platform client-drive policy hooks, provided by the platform worker binary.
++ * Declared weak with a null check so the proxy library links and behaves
++ * unchanged without them. */
++extern int nt_rdpdr_back_gate(const BYTE* io, size_t len) __attribute__((weak));
++extern int nt_rdpdr_front_gate(BYTE* io, size_t len, size_t* outLen) __attribute__((weak));
++
+ #define RTAG PROXY_TAG("channel.rdpdr")
+ 
+ #define SCARD_DEVICE_ID UINT32_MAX
+@@ -1334,6 +1340,20 @@
+ 			continue;
+ 
+ 		size_t len = Stream_Length(s);
++		size_t gated = len;
++		if (nt_rdpdr_front_gate && !nt_rdpdr_front_gate(Stream_Buffer(s), len, &gated))
++		{
++			/* Policy dropped this PDU entirely. */
++			Stream_Free(s, TRUE);
++			continue;
++		}
++		if (gated < len)
++		{
++			/* Announcement filter shortened the PDU in place. */
++			Stream_SetPosition(s, gated);
++			Stream_SealLength(s);
++		}
++		len = Stream_Length(s);
+ 		if (!Stream_SetPosition(s, len))
+ 		{
+ 			Stream_Free(s, TRUE);
+@@ -1521,6 +1541,8 @@
+ 			}
+ 			break;
+ #else
++			if (nt_rdpdr_back_gate && !nt_rdpdr_back_gate(Stream_Buffer(s), Stream_Length(s)))
++				return TRUE;
+ 			return pf_channel_rdpdr_client_send_to_server(rdpdr, ps, s);
+ #endif
+ 		default:

@@ -1,0 +1,68 @@
+{
+  "format": 1,
+  "product": "Puppeteer",
+  "round": "R17",
+  "createdAt": "2026-11-12T11:08:35.080Z",
+  "scope": "Docker simulated production; fresh install; no legacy data",
+  "images": [
+    {
+      "tag": "puppeteer/server:r17-final-preview",
+      "imageId": "sha256:3b9ae1c21e44ca200a578e1c7dc0ae808a8d6efece0c55dde57f45c7b7c4f969"
+    },
+    {
+      "tag": "puppeteer/web:r17-core-preview",
+      "imageId": "sha256:a629cfa3667811fa2f2a032153e45ebe6d56aa7dd0a4f84336d8b5a00cdc8a94"
+    },
+    {
+      "tag": "puppeteer/graphics:r17-services-preview",
+      "imageId": "sha256:c20c63352bd1cf8764ba9b47857d82957ac3785e9a21ab07a73eb79e20ceea22"
+    },
+    {
+      "tag": "puppeteer/renderer:r17-capacity-preview",
+      "imageId": "sha256:497fdacf02e3b7131cd7c6b9d0376ed2d267547a9f1439e8c1485981d785784e"
+    },
+    {
+      "tag": "puppeteer/postgres:r17-wal-preview",
+      "imageId": "sha256:26ce2af32e119a8fdcfaa9217534ea13afc92f31e3e0cf5ad9b014ae9c4c3009"
+    }
+  ],
+  "files": [
+    {
+      "path": "dist/production/release-manifest.json",
+      "sha256": "2094e4ec36d92d9558f28474b8f63a2e6e6fa920f89078a771d00e1f98ed3a1d"
+    },
+    {
+      "path": "backend/production.Dockerfile",
+      "sha256": "d0dc4ac8d35107a992f2b335a8bd80265199b88d7bae73fb5f050d9dc4f1f0f4"
+    },
+    {
+      "path": "deploy/production/compose.yaml",
+      "sha256": "664ad526cf1caf5c18588cc7ba5239d425cbe8ccbd59837fd326430178cd4ba2"
+    },
+    {
+      "path": "deploy/production/services.yaml",
+      "sha256": "6e3e68dae78c9a979a16477ff5b31be2222ea83f86bb14705f7b99f1696f400b"
+    },
+    {
+      "path": "deploy/production/protocols.yaml",
+      "sha256": "9b9f6c7d806612d1de04b7dde26809046b464f41f5b169ae1e6ef1664baaca25"
+    },
+    {
+      "path": "deploy/production/agents.yaml",
+      "sha256": "a9096906ccb1f0ba675179239bf3b06a4e401db5fc027655b862f489f113a687"
+    },
+    {
+      "path": "deploy/production/agent-updates.conf",
+      "sha256": "027efdd18dc835f961bae99a1fcf1b27b4003c231097df87d26f15668064ec08"
+    },
+    {
+      "path": "deploy/production/nginx.conf",
+      "sha256": "a4c795dad323256010639ea57cbc2c3ef68b1c011fee95b45a554da83f18a92e"
+    },
+    {
+      "path": "deploy/production/wal.yaml",
+      "sha256": "4026910f78d059e735d4974de142d3a006989673875ce935ae2bfa48e95bb221"
+    }
+  ],
+  "note": "Image IDs identify local image content, not registry RepoDigests. Transfer with docker save/load or use registry digest after push; do not rebuild under these accepted tags."
+}

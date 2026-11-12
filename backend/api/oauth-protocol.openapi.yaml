@@ -1,0 +1,1026 @@
+openapi: 3.1.0
+info:
+  title: OAuth protocol and consent API
+  version: r16-federation-default-departments
+  description: Contracts derived from registered handlers and tested protocol flows.
+    This file does not claim all R16 or deferred R14 features are accepted. Cookie
+    mutations require allowed Origin. Credential-only token/control calls with no
+    platform cookie may omit Origin.
+security:
+- session: []
+paths:
+  /.well-known/openid-configuration:
+    get:
+      summary: OIDC discovery
+      description: Public; returns temporarily_unavailable when both server entries
+        are disabled. HTTPS issuer is fixed by administrator configuration.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issuer:
+                    type: string
+                    format: uri
+                  authorization_endpoint:
+                    type: string
+                    format: uri
+                  token_endpoint:
+                    type: string
+                    format: uri
+                  userinfo_endpoint:
+                    type: string
+                    format: uri
+                  jwks_uri:
+                    type: string
+                    format: uri
+                  revocation_endpoint:
+                    type: string
+                    format: uri
+                  introspection_endpoint:
+                    type: string
+                    format: uri
+                  response_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  response_modes_supported:
+                    type: array
+                    items:
+                      type: string
+                  grant_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  subject_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  id_token_signing_alg_values_supported:
+                    type: array
+                    items:
+                      type: string
+                  token_endpoint_auth_methods_supported:
+                    type: array
+                    items:
+                      type: string
+                  code_challenge_methods_supported:
+                    type: array
+                    items:
+                      type: string
+                  scopes_supported:
+                    type: array
+                    items:
+                      type: string
+        '503':
+          description: Entry disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security: []
+  /api/oidc/server/.well-known/openid-configuration:
+    get:
+      summary: OIDC discovery
+      description: Public; returns temporarily_unavailable when both server entries
+        are disabled. HTTPS issuer is fixed by administrator configuration.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issuer:
+                    type: string
+                    format: uri
+                  authorization_endpoint:
+                    type: string
+                    format: uri
+                  token_endpoint:
+                    type: string
+                    format: uri
+                  userinfo_endpoint:
+                    type: string
+                    format: uri
+                  jwks_uri:
+                    type: string
+                    format: uri
+                  revocation_endpoint:
+                    type: string
+                    format: uri
+                  introspection_endpoint:
+                    type: string
+                    format: uri
+                  response_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  response_modes_supported:
+                    type: array
+                    items:
+                      type: string
+                  grant_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  subject_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  id_token_signing_alg_values_supported:
+                    type: array
+                    items:
+                      type: string
+                  token_endpoint_auth_methods_supported:
+                    type: array
+                    items:
+                      type: string
+                  code_challenge_methods_supported:
+                    type: array
+                    items:
+                      type: string
+                  scopes_supported:
+                    type: array
+                    items:
+                      type: string
+        '503':
+          description: Entry disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security: []
+  /api/oidc/server/jwks:
+    get:
+      summary: Public RSA signing keys
+      description: Public keys only. Includes retired verification keys during the
+        3660-second grace period.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        kty:
+                          type: string
+                        use:
+                          type: string
+                        alg:
+                          type: string
+                        kid:
+                          type: string
+                        n:
+                          type: string
+                        e:
+                          type: string
+      security: []
+  /api/oidc/server/authorize:
+    get:
+      summary: Start authorization-code flow
+      description: Optional browser session; unauthenticated users redirect to platform
+        login. Always requires S256 PKCE and explicit consent. Third-party clients
+        require openid and nonce. Native client ID is nt-native-v1 with validated
+        loopback redirect. Reject duplicate parameters, request/request_uri/max_age,
+        unauthorized users and unregistered redirects.
+      responses:
+        '303':
+          description: Login, consent page, or registered redirect with consent_required
+            for prompt=none
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Invalid request, client or scope
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: User not allowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '503':
+          description: Client entry disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security: []
+      parameters:
+      - name: client_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: redirect_uri
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: response_type
+        in: query
+        required: true
+        schema:
+          const: code
+      - name: scope
+        in: query
+        required: true
+        schema:
+          type: string
+          description: Space-separated client-approved scopes; 1..6 entries; service
+            forbidden
+      - name: state
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 2048
+      - name: nonce
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 255
+      - name: code_challenge
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{43}$
+      - name: code_challenge_method
+        in: query
+        required: true
+        schema:
+          const: S256
+      - name: prompt
+        in: query
+        required: false
+        schema:
+          enum:
+          - consent
+          - none
+      - name: response_mode
+        in: query
+        required: false
+        schema:
+          const: query
+  /api/oidc/server/consent:
+    get:
+      summary: Preview browser-bound consent
+      description: Authenticated user only; pending capability is bound to this browser
+        session and expires in five minutes.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  redirectUri:
+                    type: string
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+      parameters:
+      - name: request
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 64
+          maxLength: 64
+    post:
+      summary: Approve or deny consent
+      description: Authenticated user and allowed Origin. Consumes pending capability
+        once; redirectUrl contains a code or access_denied, preserving state.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redirectUrl:
+                    type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  type: string
+                  minLength: 64
+                  maxLength: 64
+                approve:
+                  type: boolean
+              required:
+              - request
+              - approve
+  /api/oidc/server/token:
+    post:
+      summary: Exchange code, refresh or service grant
+      description: Confidential clients use HTTP Basic; client_secret in the body
+        is rejected. Public native client sends client_id=nt-native-v1, no Authorization
+        header, and S256 proof. Body <=16384 bytes, duplicate fields rejected. Refresh
+        rotates one-use tokens, replay revokes the family; downscoping is permanent
+        and family expiry does not extend. Native tokens are capped at 300 seconds
+        and families at 7 days. client_credentials supports only service scope and
+        has no user identity. Metadata is a client-supplied display hint, not proof
+        of device identity.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    const: Bearer
+                  expires_in:
+                    type: integer
+                  scope:
+                    type: string
+                  refresh_token:
+                    type: string
+                  id_token:
+                    type: string
+                  device_id:
+                    type: string
+                required:
+                - access_token
+                - token_type
+                - expires_in
+                - scope
+        '400':
+          description: Invalid or consumed grant, scope, verifier or request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '401':
+          description: Invalid client authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security:
+      - clientBasic: []
+      - {}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  enum:
+                  - authorization_code
+                  - refresh_token
+                  - client_credentials
+                client_id:
+                  type: string
+                code:
+                  type: string
+                redirect_uri:
+                  type: string
+                code_verifier:
+                  type: string
+                  minLength: 43
+                  maxLength: 128
+                  pattern: ^[A-Za-z0-9._~-]+$
+                refresh_token:
+                  type: string
+                scope:
+                  type: string
+                device_name:
+                  type: string
+                  maxLength: 80
+                device_os:
+                  type: string
+                  pattern: ^[a-zA-Z0-9_.+\-]{1,40}$
+                device_arch:
+                  type: string
+                  pattern: ^[a-zA-Z0-9_.+\-]{1,40}$
+                client_version:
+                  type: string
+                  pattern: ^[a-zA-Z0-9_.+\-]{1,40}$
+              required:
+              - grant_type
+  /api/oidc/server/userinfo:
+    get:
+      summary: Read OIDC claims
+      description: Valid user access token with openid required. Claims depend on
+        scopes, mappings and verified contacts; service grants do not identify users.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sub:
+                    type: string
+                  name:
+                    type: string
+                  preferred_username:
+                    type: string
+                  email:
+                    type: string
+                  email_verified:
+                    type: boolean
+                  phone_number:
+                    type: string
+                  phone_number_verified:
+                    type: boolean
+                  groups:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: Invalid, revoked or insufficient token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security:
+      - bearer: []
+  /api/oidc/server/revoke:
+    post:
+      summary: Revoke token family
+      description: Client can act only on its own tokens. Unknown, expired or foreign
+        tokens do not disclose ownership. Native public clients may revoke, but cannot
+        introspect. Form <=16384 bytes; duplicate fields rejected; rate limited.
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid form
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '401':
+          description: Client authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: Native introspection denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security:
+      - clientBasic: []
+      - {}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                client_id:
+                  type: string
+              required:
+              - token
+  /api/oidc/server/introspect:
+    post:
+      summary: Introspect own access token
+      description: Client can act only on its own tokens. Unknown, expired or foreign
+        tokens do not disclose ownership. Native public clients may revoke, but cannot
+        introspect. Form <=16384 bytes; duplicate fields rejected; rate limited.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active:
+                    type: boolean
+                  client_id:
+                    type: string
+                  scope:
+                    type: string
+                  sub:
+                    type: string
+                required:
+                - active
+        '400':
+          description: Invalid form
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '401':
+          description: Client authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: Native introspection denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+      security:
+      - clientBasic: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                client_id:
+                  type: string
+              required:
+              - token
+  /api/account/oauth-consents:
+    get:
+      summary: List own active consents
+      description: ''
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        scopes:
+                          type: array
+                          items:
+                            type: string
+  /api/account/oauth-consents/{id}:
+    delete:
+      summary: Revoke own consent
+      description: Current password and fresh bound MFA required; revokes associated
+        authorization through consent version. Allowed Origin required.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+                  maxLength: 1024
+                totp:
+                  type: string
+                  writeOnly: true
+                  pattern: ^[0-9]{6}$
+              required:
+              - password
+  /api/admin/oauth-clients:
+    get:
+      summary: List confidential OIDC clients
+      description: identity.manage required; excludes fixed native client and never
+        returns secrets.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 100
+                        redirectUris:
+                          type: array
+                          items:
+                            type: string
+                            format: uri
+                          maxItems: 20
+                        scopes:
+                          type: array
+                          items:
+                            enum:
+                            - openid
+                            - profile
+                            - email
+                            - phone
+                            - groups
+                            - offline_access
+                            - service
+                          minItems: 1
+                          maxItems: 7
+                        allowedUsers:
+                          type: array
+                          items:
+                            type: string
+                            format: uuid
+                          maxItems: 1000
+                        allowedDepartments:
+                          type: array
+                          items:
+                            type: string
+                            format: uuid
+                          maxItems: 1000
+                        allowAllUsers:
+                          type: boolean
+                        clientCredentials:
+                          type: boolean
+                        enabled:
+                          type: boolean
+                        claimMapping:
+                          type: object
+                          additionalProperties:
+                            type: string
+                          maxProperties: 3
+                        version:
+                          type: integer
+    post:
+      summary: Create or update confidential client
+      description: identity.manage, current password and fresh bound MFA. Exact HTTPS
+        redirects without fragments/wildcards. Fixed native client cannot be edited.
+        Existing version required on update; changes invalidate previous grants. Secret
+        returned only on create or explicit rotation, otherwise empty.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  secret:
+                    type: string
+        '400':
+          description: Password/MFA invalid or consumed
+        '403':
+          description: Origin or permission denied
+        '409':
+          description: Version conflict
+        '422':
+          description: Invalid fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                redirectUris:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  maxItems: 20
+                scopes:
+                  type: array
+                  items:
+                    enum:
+                    - openid
+                    - profile
+                    - email
+                    - phone
+                    - groups
+                    - offline_access
+                    - service
+                  minItems: 1
+                  maxItems: 7
+                allowedUsers:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  maxItems: 1000
+                allowedDepartments:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  maxItems: 1000
+                allowAllUsers:
+                  type: boolean
+                clientCredentials:
+                  type: boolean
+                enabled:
+                  type: boolean
+                claimMapping:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  maxProperties: 3
+                version:
+                  type: integer
+                password:
+                  type: string
+                  writeOnly: true
+                  maxLength: 1024
+                totp:
+                  type: string
+                  writeOnly: true
+                  pattern: ^[0-9]{6}$
+                rotateSecret:
+                  type: boolean
+              required:
+              - name
+              - scopes
+              - password
+  /api/admin/oauth-clients/{id}:
+    put:
+      summary: Create or update confidential client
+      description: identity.manage, current password and fresh bound MFA. Exact HTTPS
+        redirects without fragments/wildcards. Fixed native client cannot be edited.
+        Existing version required on update; changes invalidate previous grants. Secret
+        returned only on create or explicit rotation, otherwise empty.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  secret:
+                    type: string
+        '400':
+          description: Password/MFA invalid or consumed
+        '403':
+          description: Origin or permission denied
+        '409':
+          description: Version conflict
+        '422':
+          description: Invalid fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                redirectUris:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  maxItems: 20
+                scopes:
+                  type: array
+                  items:
+                    enum:
+                    - openid
+                    - profile
+                    - email
+                    - phone
+                    - groups
+                    - offline_access
+                    - service
+                  minItems: 1
+                  maxItems: 7
+                allowedUsers:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  maxItems: 1000
+                allowedDepartments:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  maxItems: 1000
+                allowAllUsers:
+                  type: boolean
+                clientCredentials:
+                  type: boolean
+                enabled:
+                  type: boolean
+                claimMapping:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  maxProperties: 3
+                version:
+                  type: integer
+                password:
+                  type: string
+                  writeOnly: true
+                  maxLength: 1024
+                totp:
+                  type: string
+                  writeOnly: true
+                  pattern: ^[0-9]{6}$
+                rotateSecret:
+                  type: boolean
+              required:
+              - name
+              - scopes
+              - password
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+    clientBasic:
+      type: http
+      scheme: basic
+    bearer:
+      type: http
+      scheme: bearer

@@ -1,0 +1,1281 @@
+openapi: 3.1.0
+info:
+  title: Snippets, scheduled tasks and credential rotation
+  version: r16-schema99
+  description: Mutation requests require allowed Origin and a login session. Execution
+    requires current authorization, SSH host trust and applicable entitlement; queue
+    acknowledgement is not execution success. Command text belongs to scoped task/snippet
+    records, not general operation audit.
+security:
+- session: []
+paths:
+  /api/snippets:
+    get:
+      summary: List owned and system snippets
+      description: Requires authenticated session. 30 per page. Case-insensitive literal
+        search on name/description; owner predicate applies to count and rows.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetPage'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - &id003
+        name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 1
+      - name: scope
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - mine
+          - system
+          default: all
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 500
+    post:
+      summary: Save personal snippet
+      description: Requires authenticated owner. URL determines owner scope, never
+        caller-supplied system flag. PUT uses current version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id001
+                    type: string
+                    format: uuid
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetWrite'
+  /api/snippets/{id}:
+    put:
+      summary: Save personal snippet
+      description: Requires authenticated owner. URL determines owner scope, never
+        caller-supplied system flag. PUT uses current version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetWrite'
+    delete:
+      summary: Delete snippet
+      description: Requires authenticated owner. Owner/scope and optimistic version
+        checked together.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - &id002
+        name: version
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+  /api/admin/snippets:
+    post:
+      summary: Save system snippet
+      description: Requires snippet.manage. URL determines owner scope, never caller-supplied
+        system flag. PUT uses current version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetWrite'
+  /api/admin/snippets/{id}:
+    put:
+      summary: Save system snippet
+      description: Requires snippet.manage. URL determines owner scope, never caller-supplied
+        system flag. PUT uses current version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetWrite'
+    delete:
+      summary: Delete snippet
+      description: Requires snippet.manage. Owner/scope and optimistic version checked
+        together.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - *id002
+  /api/tasks:
+    get:
+      summary: List schedules
+      description: Requires task.manage. Owner only, administrator type can list all.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Schedule'
+                    maxItems: 30
+                  total: &id005
+                    type: integer
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id003
+    post:
+      summary: Save schedule
+      description: Requires task.manage. Validates all target permissions and connect/execute
+        policy. PUT retains owner and requires current version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+  /api/tasks/preview:
+    post:
+      summary: Preview next ten scheduled times
+      description: Requires task.manage. Five-field cron, explicit IANA timezone;
+        impossible schedule rejected.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: &id006
+                  type: string
+                  format: date-time
+                minItems: 10
+                maxItems: 10
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cron: &id004
+                  type: string
+                timezone: *id004
+              required:
+              - cron
+              - timezone
+  /api/tasks/{id}:
+    put:
+      summary: Save schedule
+      description: Requires task.manage. Validates all target permissions and connect/execute
+        policy. PUT retains owner and requires current version.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+    delete:
+      summary: Delete owned schedule
+      description: 'Requires task.manage. '
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - *id002
+  /api/tasks/{id}/trigger:
+    post:
+      summary: Trigger owned schedule
+      description: Requires task.manage. Owner required even for administrator. Idempotency
+        key must be UUID. Execution uses request source IP, not the original schedule
+        source.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key: *id001
+                version: *id005
+              required:
+              - key
+              - version
+  /api/task-runs:
+    get:
+      summary: List runs
+      description: Requires task.manage. Owner only, administrator type can list all.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Run'
+                    maxItems: 30
+                  total: *id005
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id003
+      - name: scheduleId
+        in: query
+        schema: *id001
+  /api/task-runs/{id}:
+    get:
+      summary: Read run and target outputs
+      description: Requires task.manage. Actor or administrator. Output is bounded
+        and truncation explicit.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/task-runs/{id}/cancel:
+    post:
+      summary: Request run cancellation
+      description: Requires task.manage. Actor or administrator. Cancellation request
+        does not guarantee rollback or immediate termination; re-read final state.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/rotation-runs:
+    get:
+      summary: List rotations
+      description: Requires credential.rotate. Actor only, administrator type can
+        list all.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RotationRun'
+                  total: *id005
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id003
+    post:
+      summary: Request credential rotation
+      description: Requires credential.rotate. Idempotent actor/key. SSH assets only;
+        current connect/execute permission, pinned target and credential versions.
+        Same pinned host/account is serialized even through aliases. Unknown state
+        is not automatically retried.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key: *id001
+                assetIds:
+                  type: array
+                  items: *id001
+                  minItems: 1
+                  maxItems: 20
+                  uniqueItems: true
+              required:
+              - key
+              - assetIds
+  /api/rotation-runs/{id}:
+    get:
+      summary: Read rotation target outcomes
+      description: Requires credential.rotate. Actor or administrator. No encrypted
+        candidate or plaintext secret is returned.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotationRun'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/rotation-runs/{id}/cancel:
+    post:
+      summary: Request rotation cancellation
+      description: Requires credential.rotate. Actor or administrator; remote changes
+        already applied are not silently rolled back.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/rotation-runs/{id}/targets/{target}/reconcile:
+    post:
+      summary: Reconcile an unknown rotation
+      description: Requires credential.rotate. Actor or administrator,30-second bounded
+        probe under concurrency slots. Rechecks current caller IP and target identity.
+        Tests old/new credentials without changing target; activates verified candidate
+        only with matching asset/credential/trust versions. Uncertain result remains
+        unknown. No secret input required.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    $ref: '#/components/schemas/RotationResult'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or owner denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or execution conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Execution/probe capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: target
+        in: path
+        required: true
+        schema: *id001
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Snippet:
+      type: object
+      properties:
+        id: *id004
+        name: *id004
+        description: *id004
+        content: *id004
+        version: *id005
+        system: &id007
+          type: boolean
+        updatedAt: *id006
+    SnippetPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Snippet'
+        total: *id005
+    Schedule:
+      type: object
+      properties:
+        id: *id004
+        ownerId: *id004
+        name: *id004
+        kind:
+          type: string
+          enum:
+          - ssh.command
+          - credential.rotate
+        command: *id004
+        assetIds:
+          type: array
+          items: *id001
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+        cron: *id004
+        timezone: *id004
+        enabled: *id007
+        misfire:
+          type: string
+          enum:
+          - skip
+          - fire_once
+        timeoutSeconds:
+          type: integer
+          minimum: 1
+          maximum: 600
+        sourceIp: *id004
+        version: *id005
+        pauseReason: *id004
+        nextRun:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      description: Owner/source IP assigned by server. Unique SSH assets1..20. Name1..120
+        characters. Command1..4096 bytes/no NUL; timeout1..600 seconds. credential.rotate
+        forces command credential.rotate and timeout60, and additionally requires
+        credential.rotate permission. Cron is five fields<=200 bytes with explicit
+        IANA zone (not Local); enabled schedule requires cron. Version required to
+        update; only owner can mutate/trigger.
+    Run:
+      type: object
+      properties:
+        id: *id004
+        kind: *id004
+        state: *id004
+        reason: *id004
+        cancelRequested: *id007
+        createdAt: *id006
+        startedAt: &id008
+          type:
+          - string
+          - 'null'
+          format: date-time
+        endedAt: &id009
+          type:
+          - string
+          - 'null'
+          format: date-time
+        scheduleId: *id004
+        actorId: *id004
+        snapshot:
+          $ref: '#/components/schemas/Schedule'
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Target'
+        scheduledAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    Target:
+      type: object
+      properties:
+        assetId: *id004
+        name: *id004
+        state: *id004
+        reason: *id004
+        output: *id004
+        truncated: *id007
+        exitCode:
+          type:
+          - integer
+          - 'null'
+        startedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        endedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    RotationRun:
+      type: object
+      properties:
+        id: *id004
+        kind: *id004
+        state: *id004
+        reason: *id004
+        cancelRequested: *id007
+        createdAt: *id006
+        startedAt: *id008
+        endedAt: *id009
+        actorId: *id004
+        scheduleId: *id004
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/RotationTarget'
+    RotationTarget:
+      type: object
+      properties:
+        id: *id004
+        runId: *id004
+        assetId: *id004
+        assetVersion: *id005
+        credentialId: *id004
+        credentialVersion: *id005
+        kind: *id004
+        publicKey: *id004
+        newCredentialId: *id004
+        state:
+          $ref: '#/components/schemas/RotationResult'
+        reason: *id004
+    RotationResult: *id004
+    SnippetWrite:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        content:
+          type: string
+          minLength: 1
+          description: Nonblank valid UTF-8, no NUL, maximum4096 bytes
+        version: *id005
+      required:
+      - name
+      - content
+    Problem:
+      type: object
+      properties:
+        reason: *id004
+        message: *id004

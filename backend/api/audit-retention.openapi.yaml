@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: Audit retention and legal holds
+  version: r16-recording-retention
+  description: >-
+    Eight policy entries: session payload has a dependent parent access lifecycle. Access defaults to 31 days; session payload inherits existing access days on upgrade. Other categories preserve
+    the existing unlimited behavior (-1) during upgrade. 0 is invalid; finite range 1..3650 days.
+    Changes use PATCH /settings with If-Match. Shortening a category requires an unexpired preview
+    for the same administrator, configuration revision, key and proposed days. Preview is not deletion.
+    Cleanup runs each minute, up to 25 records per category per transaction; holds and cleanup share
+    an advisory transaction lock. Active operations are excluded. Access includes its recordings and
+    commands. Session payload can expire earlier while keeping the access summary; -1 only disables early cleanup. Access holds protect both lifecycles; independent file/SQL/cron records require separate holds. Task identity tombstones remain
+    to prevent replay while payload and output are purged. Audit-backed hold/release requires a reason.
+servers:
+  - url: https://backend.localhost:5174/api
+security:
+  - session: []
+paths:
+  /admin/audit-retention:
+    get:
+      responses:
+        '200': {description: 'settings.read; revision, days keyed by canonical setting, categories with id/key/label'}
+        '403': {description: Missing permission}
+  /admin/audit-retention/preview:
+    post:
+      description: identity.manage and allowed Origin. Records ten-minute preview proof without changing policy or deleting data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [revision, days]
+              properties:
+                revision: {type: integer, minimum: 1}
+                days:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 8
+                  additionalProperties:
+                    oneOf:
+                      - {const: -1}
+                      - {type: integer, minimum: 1, maximum: 3650}
+      responses:
+        '200': {description: 'revision, validForSeconds=600, items with category/key/label/days/eligible/held; counts may change before cleanup'}
+        '409': {description: Stale configuration revision}
+        '422': {description: Invalid or unregistered retention key/days}
+  /admin/audit-holds:
+    get:
+      description: identity.manage; page query (1..10000), fixed page size 50.
+      responses:
+        '200': {description: 'items and total; each item has category, recordId, reason, actorId, createdAt'}
+    post:
+      description: identity.manage and allowed Origin. Sets or releases a hold atomically with operation audit. Missing, purged or wrong-category records cannot acquire a hold.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [category, recordId, reason, held]
+              properties:
+                category: {enum: [access, login, cron, sql, operation, filesystem, event]}
+                recordId: {type: string, format: uuid}
+                reason: {type: string, minLength: 1, maxLength: 500}
+                held: {type: boolean}
+      responses:
+        '204': {description: Hold state and operation audit committed}
+        '404': {description: Record missing or already purged}
+        '422': {description: Invalid input or empty/control-character reason}
+  /admin/access-retention:
+    get:
+      description: Compatibility view; settings.read. Returns days and the global configuration revision.
+      responses:
+        '200': {description: Access retention only}
+    put:
+      description: identity.manage; JSON days/revision. Shares canonical revision and preview rules; stale returns 409. Old clients must refresh the revision and use the new preview endpoint before shortening.
+      responses:
+        '204': {description: Saved}
+        '409': {description: Stale revision or retention_preview_required}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}

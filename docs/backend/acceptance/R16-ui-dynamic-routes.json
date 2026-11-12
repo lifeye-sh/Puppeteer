@@ -1,0 +1,51 @@
+{
+  "scope": "Reviewed source mappings, not runtime acceptance; exact expressions prevent silent reuse after source changes.",
+  "entries": [
+    {
+      "file": "src/pages/backend/BackendAIWorkflows.tsx",
+      "expression": "'/ai/tools/'+v.id+'/decide'",
+      "routes": [
+        "POST /api/ai/tools/{execution}/{action}"
+      ],
+      "review": "Action literal is decide/execute/cancel; checked against r15_ai_tools.go aiToolAction. Dynamic route parameter is not an unconstrained action grant."
+    },
+    {
+      "file": "src/pages/backend/BackendAIWorkflows.tsx",
+      "expression": "'/ai/tools/'+v.id+'/execute'",
+      "routes": [
+        "POST /api/ai/tools/{execution}/{action}"
+      ],
+      "review": "Action literal is decide/execute/cancel; checked against r15_ai_tools.go aiToolAction. Dynamic route parameter is not an unconstrained action grant."
+    },
+    {
+      "file": "src/pages/backend/BackendAIWorkflows.tsx",
+      "expression": "'/ai/tools/'+v.id+'/cancel'",
+      "routes": [
+        "POST /api/ai/tools/{execution}/{action}"
+      ],
+      "review": "Action literal is decide/execute/cancel; checked against r15_ai_tools.go aiToolAction. Dynamic route parameter is not an unconstrained action grant."
+    },
+    {
+      "file": "src/pages/backend/BackendIdentityPage.tsx",
+      "expression": "`/admin/${kind}${kind==='users'?`/paging?current=${page}&pageSize=20&search=${encodeURIComponent(search)}`:''}`",
+      "routes": [
+        "GET /api/admin/users/paging",
+        "GET /api/admin/departments",
+        "GET /api/admin/roles",
+        "GET /api/admin/login-locked"
+      ],
+      "review": "Kind union users/departments/roles/login-locked; only users appends /paging and paging query."
+    },
+    {
+      "file": "src/pages/backend/BackendPersonalCredentials.tsx",
+      "expression": "'/api'+path+(revoking?`/${revoking.id}`:'')",
+      "routes": [
+        "POST /api/account/api-keys",
+        "DELETE /api/account/api-keys/{id}",
+        "POST /api/account/ssh-keys",
+        "DELETE /api/account/ssh-keys/{id}"
+      ],
+      "review": "kind api|ssh, revoking determines DELETE versus POST; creation/revocation require password and bound MFA."
+    }
+  ]
+}

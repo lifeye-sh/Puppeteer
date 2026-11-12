@@ -1,0 +1,81 @@
+openapi: 3.1.0
+info:
+  title: R16 deployment entitlements and admission quotas
+  version: '70'
+paths:
+  /api/admin/entitlements:
+    get:
+      summary: Administrator-only license status, enforced scope and current usage
+      description: Requires authenticated admin and settings.read. Never returns token or trust keys. Essential authentication/recovery remains accessible with an invalid license. Controlled scope includes ai.assistant for inference, model discovery and AI tool execution; workspace/history/configuration/cancel remain available under their original ownership checks.
+      responses:
+        '200':
+          description: Current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401': {description: Login required}
+        '403': {description: Not an administrator}
+    post:
+      summary: Import this instance's Ed25519 license with administrator step-up
+      description: Signed deployment only. Requires admin and identity.manage, password and enabled TOTP. Immutable public keys and provider mode are deployment configuration. Revision is compared atomically; identical token/current revision does not create another revision. Audit contains revision and SHA256 only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token, revision, password]
+              properties:
+                token: {type: string, maxLength: 32768}
+                revision: {type: integer, minimum: 0}
+                password: {type: string, maxLength: 1024, writeOnly: true}
+                totp: {type: string, writeOnly: true}
+      responses:
+        '200':
+          description: Applied or unchanged license revision
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  revision: {type: integer}
+        '400': {description: Invalid proof or body}
+        '403': {description: Wrong role, local mode or expired license}
+        '409': {description: Stale revision}
+        '422': {description: Invalid signature, issuer, instance, claims or not yet valid}
+        '429': {description: Authentication rate or lock limit}
+components:
+  schemas:
+    Quotas:
+      type: object
+      required: [users, resources, sessions]
+      properties:
+        users: {type: [integer, 'null'], minimum: 0, maximum: 1000000000}
+        resources: {type: [integer, 'null'], minimum: 0, maximum: 1000000000}
+        sessions: {type: [integer, 'null'], minimum: 0, maximum: 1000000000}
+    Status:
+      type: object
+      required: [source, state, instanceId, licenseRevision, revision, quotas, used, controlledFeatures, importAllowed]
+      properties:
+        source: {type: string, enum: [local, signed]}
+        state: {type: string, enum: [valid, missing, invalid, expired, not_yet_valid]}
+        instanceId: {type: string, format: uuid}
+        licenseId: {type: string, format: uuid}
+        expiresAt: {type: string, format: date-time}
+        revision: {type: string}
+        licenseRevision: {type: integer}
+        allowImplemented: {type: boolean}
+        features:
+          type: object
+          additionalProperties: {type: boolean}
+        quotas:
+          $ref: '#/components/schemas/Quotas'
+        used:
+          type: object
+          additionalProperties: {type: integer, minimum: 0}
+        controlledFeatures:
+          type: array
+          items: {type: string}
+        importAllowed: {type: boolean}

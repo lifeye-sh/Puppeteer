@@ -1,0 +1,4 @@
+FROM nginx@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3
+COPY . /usr/share/nginx/html/
+USER 101:101
+ENTRYPOINT ["nginx","-g","daemon off;"]

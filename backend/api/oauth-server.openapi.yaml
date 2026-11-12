@@ -1,0 +1,67 @@
+openapi: 3.1.0
+info:
+  title: OIDC server configuration compatibility editor
+  version: r16-oauth-key-configuration
+  description: >-
+    Administrator type and identity.manage are required. Updates require current password
+    and fresh bound TOTP, allowed Origin, and the current domain version. This editor and
+    PATCH /api/settings write the same immutable configuration revision. Disabling is
+    immediate; enabling third-party or native entry independently waits for online node ACKs.
+    Actual and desired changes advance the domain version and invalidate older grants.
+    A signing-key-only rotation keeps grant versions unchanged and retains old verification
+    keys for 3660 seconds. It clears any custom signing-key setting and generates a new automatic RSA3072 key. The fixed issuer is an HTTPS Origin in deployment AllowedOrigins;
+    it cannot change after the first nonempty save. Restore disables both entries.
+security:
+  - session: []
+paths:
+  /api/admin/oauth-server:
+    get:
+      responses:
+        '200':
+          description: Coherent actual and desired state under a configuration-head read lock
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [issuer, enabled, nativeEnabled, version, desiredEnabled, desiredNativeEnabled, configurationRevision, pending]
+                properties:
+                  issuer: {type: string}
+                  enabled: {type: boolean, description: Currently enforced third-party OIDC entry}
+                  nativeEnabled: {type: boolean, description: Currently enforced native PKCE and personal SSH-key entry}
+                  version: {type: integer, minimum: 1}
+                  desiredEnabled: {type: boolean}
+                  desiredNativeEnabled: {type: boolean}
+                  configurationRevision: {type: integer, minimum: 1}
+                  pending: {type: boolean, description: Actual entry switches differ from desired switches}
+        '401': {description: Login required}
+        '403': {description: Administrator and identity.manage required}
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [issuer, version, password]
+              properties:
+                issuer: {type: string, maxLength: 512, format: uri}
+                enabled: {type: boolean, default: false}
+                nativeEnabled: {type: boolean, default: false}
+                version: {type: integer, minimum: 1}
+                rotateKey: {type: boolean, default: false}
+                password: {type: string, writeOnly: true}
+                totp: {type: string, pattern: '^[0-9]{6}$', writeOnly: true}
+      responses:
+        '200':
+          description: Desired settings saved. Read pending state before assuming activation.
+          content:
+            application/json: {schema: {type: object, properties: {ok: {const: true}}}}
+        '400': {description: Password/MFA invalid, consumed or expired}
+        '401': {description: Login required}
+        '403': {description: Origin, administrator or permission denied}
+        '409': {description: Stale domain version or attempted issuer replacement; whole transaction rolled back}
+        '422': {description: Issuer invalid or not a deployment allowed HTTPS Origin}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}

@@ -1,0 +1,64 @@
+name: nt-r11-restore-drill
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+    environment:
+      POSTGRES_USER: nt_drill
+      POSTGRES_PASSWORD: ${R11_DRILL_DB_PASSWORD:?}
+      POSTGRES_DB: nt_restore_pitr_fixture
+    tmpfs: [/var/lib/postgresql:size=512m]
+    volumes:
+      - ${R11_DRILL_TEST_BINARY:?}:/fixtures/r11-application.test:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U nt_drill -d nt_restore_pitr_fixture]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  server:
+    image: ${R11_DRILL_SERVER_IMAGE:-nt-backend-r01-server}
+    environment:
+      NT_DATABASE_URL: postgres://nt_drill:${R11_DRILL_DB_PASSWORD}@postgres:5432/nt_restore_pitr_fixture?sslmode=disable
+      NT_ENV: development
+      NT_MFA_KEY: ${R11_DRILL_MFA_KEY:?}
+      NT_VAULT_KEY: ${R11_DRILL_VAULT_KEY:?}
+      NT_ADDR: :8089
+      NT_ALLOWED_ORIGINS: http://backend.localhost:5174
+      NT_BACKUP_DIRECTORY: /var/lib/next-terminal/backups
+      NT_RESTORE_DIRECTORY: /var/lib/next-terminal/restore
+      NT_RUNTIME_PROFILE: /var/lib/next-terminal/runtime/active.json
+      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+    volumes:
+      - backupdata:/var/lib/next-terminal
+      - storageconfig:/var/lib/next-terminal/storage
+    ports: ['127.0.0.1:${R11_DRILL_PORT:-18091}:8089']
+    healthcheck:
+      test: [CMD, /app/nt, health]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  guacd:
+    image: ${R11_DRILL_GRAPHICS_IMAGE:-nt-backend-rdp-storage}
+    cap_add: [SYS_ADMIN]
+    devices: [/dev/fuse:/dev/fuse]
+    environment:
+      NT_DATABASE_URL: postgres://nt_drill:${R11_DRILL_DB_PASSWORD}@postgres:5432/nt_restore_pitr_fixture?sslmode=disable
+      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+    volumes: [storageconfig:/var/lib/next-terminal/storage:ro]
+    healthcheck:
+      test: [CMD, /usr/local/bin/nt-rdp-storage, health]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  verify:
+    profiles: [test]
+    image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+    entrypoint: [/fixtures/r11-application.test]
+    environment:
+      NT_R11_DEPLOYMENT_VERIFY: '1'
+    volumes:
+      - ${R11_DRILL_TEST_BINARY}:/fixtures/r11-application.test:ro
+      - ${R11_DRILL_OFFLINE_DIRECTORY:?}:/drill/offline:ro
+      - backupdata:/drill/runtime:ro
+volumes:
+  backupdata:
+  storageconfig:

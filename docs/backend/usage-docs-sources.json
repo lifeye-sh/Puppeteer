@@ -1,0 +1,634 @@
+{
+  "retrievedAt": "2026-10-26T14:24:56.587303+00:00",
+  "entryUrl": "https://www.next-terminal.com/zh/docs/usage/readme.html",
+  "scope": "中文使用文档 27 篇及正文直接关联的配置排障资料 4 篇；不递归扩展到全站博客、安装和外部产品。",
+  "sources": [
+    {
+      "id": "access",
+      "category": "usage",
+      "title": "浏览器访问工作区",
+      "url": "https://www.next-terminal.com/zh/docs/usage/access.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/access.html",
+      "textSha256": "4bff4b028db1de9d8c40d98626fa1d7742eee4e267ff8241f03a4e990a6bbc39",
+      "characters": 830,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "agent-gateway-config",
+      "category": "usage",
+      "title": "安全网关配置文件",
+      "url": "https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html",
+      "textSha256": "afedfdb1816ddb68b6d3d1da89a5e0ee06c8440089139d4f5389125e779808be",
+      "characters": 4137,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "agent-gateway",
+      "category": "usage",
+      "title": "安全网关",
+      "url": "https://www.next-terminal.com/zh/docs/usage/agent-gateway.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/agent-gateway.html",
+      "textSha256": "0affe6de38e9270ad956317d928c306a4600136060bb6b7a75ab138df7c4e896",
+      "characters": 1720,
+      "textReviewed": true,
+      "imagesReviewed": 2,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/gateway-agent.DB_mm9oz.png",
+          "alt": "gateway-agent.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/agent-gateway.DAXKy97C.png",
+          "alt": "img_1.png"
+        }
+      ]
+    },
+    {
+      "id": "asset",
+      "category": "usage",
+      "title": "资产管理总览",
+      "url": "https://www.next-terminal.com/zh/docs/usage/asset.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/asset.html",
+      "textSha256": "3d45dd4cb5d03063c49ed96e5a515ba33d0e81b8758282bc50e9728e026ed1e7",
+      "characters": 1344,
+      "textReviewed": true,
+      "imagesReviewed": 2,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/asset-list.Doe2HZZo.png",
+          "alt": "资产列表"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/asset-post.DspxCYCX.png",
+          "alt": "新建资产"
+        }
+      ]
+    },
+    {
+      "id": "audit",
+      "category": "usage",
+      "title": "日志审计",
+      "url": "https://www.next-terminal.com/zh/docs/usage/audit.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/audit.html",
+      "textSha256": "19a4d91bf9137d412f5b51b3b5c1f34f57bf11dc62613bc7dcfbfc29a4cc689a",
+      "characters": 1179,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "authorization",
+      "category": "usage",
+      "title": "资源授权与访问策略",
+      "url": "https://www.next-terminal.com/zh/docs/usage/authorization.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/authorization.html",
+      "textSha256": "431992d10331c35f27f89646d08f78f5d77bbc38d4a8874c7743c160b1da835d",
+      "characters": 790,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "backup",
+      "category": "usage",
+      "title": "系统备份与恢复",
+      "url": "https://www.next-terminal.com/zh/docs/usage/backup.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/backup.html",
+      "textSha256": "c4d592d9b380427df4a78c09ef5c130f80e99a34aca4622522c9bc8cf8e865ca",
+      "characters": 1266,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "cli",
+      "category": "usage",
+      "title": "命令行工具参考",
+      "url": "https://www.next-terminal.com/zh/docs/usage/cli.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/cli.html",
+      "textSha256": "0e1c4330f43a3aa4f6a6c5d5feea5fbdd11c8c48827126e825650ae0f7263729",
+      "characters": 6975,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "credential",
+      "category": "usage",
+      "title": "授权凭证",
+      "url": "https://www.next-terminal.com/zh/docs/usage/credential.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/credential.html",
+      "textSha256": "5e80fba1ce6edca316133ffb56041f9cadb6c697ec32921008f801bff528f16d",
+      "characters": 715,
+      "textReviewed": true,
+      "imagesReviewed": 1,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/credential.DSuwidDK.png",
+          "alt": "授权凭证列表"
+        }
+      ]
+    },
+    {
+      "id": "database",
+      "category": "usage",
+      "title": "数据库审计",
+      "url": "https://www.next-terminal.com/zh/docs/usage/database.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/database.html",
+      "textSha256": "ef37d79190dca3e7a015b2e90983bc987b16a1d4d4385187a2bb54964eaf9461",
+      "characters": 1222,
+      "textReviewed": true,
+      "imagesReviewed": 8,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/config._RAc_37V.png",
+          "alt": "config.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/token.vZw6dwXW.png",
+          "alt": "token.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/asset.DFP5Nyz0.png",
+          "alt": "asset.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/authorised.B7khzvUf.png",
+          "alt": "authorised.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/connect.CcwGzXaw.png",
+          "alt": "connect.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/work-order.emigaKGJ.png",
+          "alt": "work-order.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/work-order-approved.C1y73DGm.png",
+          "alt": "worker-order-approved.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/sql-log.Dme1Ko-J.png",
+          "alt": "sql-log.png"
+        }
+      ]
+    },
+    {
+      "id": "error-codes",
+      "category": "usage",
+      "title": "RDP/VNC 错误码说明",
+      "url": "https://www.next-terminal.com/zh/docs/usage/error-codes.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/error-codes.html",
+      "textSha256": "c09ed33615c5e51df77fbb99fd57dfe070a63edc7953da52f9b9559f98d2dc1a",
+      "characters": 1423,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "file-management",
+      "category": "usage",
+      "title": "文件管理",
+      "url": "https://www.next-terminal.com/zh/docs/usage/file-management.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/file-management.html",
+      "textSha256": "67569b699b01ba923ba317b802cef2085e649af96308cc07ea9a9fd6abdcb0ce",
+      "characters": 1546,
+      "textReviewed": true,
+      "imagesReviewed": 1,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/rdp_fs.BNI99CKJ.png",
+          "alt": "RDP 会话中的映射驱动器"
+        }
+      ]
+    },
+    {
+      "id": "license",
+      "category": "usage",
+      "title": "绑定授权许可",
+      "url": "https://www.next-terminal.com/zh/docs/usage/license.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/license.html",
+      "textSha256": "e26b8dc83aa3d1b80d8b05b1151ef5d391e793a901e39d19d14b6a73239fd1a2",
+      "characters": 128,
+      "textReviewed": true,
+      "imagesReviewed": 2,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/license.BEFBINbj.png",
+          "alt": "img.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/my-license.DBHuSrWj.png",
+          "alt": "img.png"
+        }
+      ]
+    },
+    {
+      "id": "mtls",
+      "category": "usage",
+      "title": "mTLS 双向认证",
+      "url": "https://www.next-terminal.com/zh/docs/usage/mtls.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/mtls.html",
+      "textSha256": "d16b7b0027895c16b28f202bf3a458c37cc6eb659c7f5a35a33c120f50e5d79e",
+      "characters": 1309,
+      "textReviewed": true,
+      "imagesReviewed": 10,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/cert-add.j2ZfVPuu.png",
+          "alt": "cert-add.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/cert-download.BU0KuERZ.png",
+          "alt": "cert-download.png"
+        },
+        {
+          "url": "embedded:data:image/png",
+          "alt": "p12-file.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/revoked-cert.DlAj7b-h.png",
+          "alt": "revoked-cert.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/keychain-access.5CuSi5nC.png",
+          "alt": "钥匙串.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/trust.5wFAT0TB.png",
+          "alt": "trust.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/trusted.xYcF0hdd.png",
+          "alt": "trusted.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/custom-certificate.DTfEKIJf.png",
+          "alt": "自定义证书.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/mtls.Bur2zoYp.png",
+          "alt": "mtls.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/cert-default.DMaH9D7m.png",
+          "alt": "cert-default.png"
+        }
+      ]
+    },
+    {
+      "id": "oidc_server",
+      "category": "usage",
+      "title": "OIDC 单点登录完整配置 — 用 Next Terminal 作 IdP 对接 Proxmox VE",
+      "url": "https://www.next-terminal.com/zh/docs/usage/oidc_server.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/oidc_server.html",
+      "textSha256": "65d72da1591fb763cad7a93a368bf02459d7d2133aaa1f25425b32c26c5abea3",
+      "characters": 2763,
+      "textReviewed": true,
+      "imagesReviewed": 3,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/config.hCF1s5Vr.png",
+          "alt": "config.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/add-client.CEp9dFtn.png",
+          "alt": "add-client.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/client-config.D2c7-Qtn.png",
+          "alt": "client-config.png"
+        }
+      ]
+    },
+    {
+      "id": "otp",
+      "category": "usage",
+      "title": "OTP 一次性密码",
+      "url": "https://www.next-terminal.com/zh/docs/usage/otp.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/otp.html",
+      "textSha256": "47eee8c7b5eda27626449f3af45960d7ee331266569f2df280ed05e6a048ed65",
+      "characters": 1249,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "passkey",
+      "category": "usage",
+      "title": "通行密钥",
+      "url": "https://www.next-terminal.com/zh/docs/usage/passkey.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/passkey.html",
+      "textSha256": "db6ce730824f5cbe90ff4fbfc9d645f78905e05868d4964100b29c72abf6c27f",
+      "characters": 229,
+      "textReviewed": true,
+      "imagesReviewed": 2,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/passkey-setting.UZslXiib.png",
+          "alt": "img.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/passkey-add.YgsOaS5X.png",
+          "alt": "img.png"
+        }
+      ]
+    },
+    {
+      "id": "rdp-server",
+      "category": "usage",
+      "title": "RDP 代理服务器",
+      "url": "https://www.next-terminal.com/zh/docs/usage/rdp-server.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/rdp-server.html",
+      "textSha256": "f08f7e5d2d9f347139f7db8b9bbcd2d444b7b55f79ba588584f7567af2def9c2",
+      "characters": 5200,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "rdp",
+      "category": "usage",
+      "title": "Windows / RDP 资产",
+      "url": "https://www.next-terminal.com/zh/docs/usage/rdp.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/rdp.html",
+      "textSha256": "ac89fc490c30b047cc05f06d5e161eaa23e9ea970cf72664aa304e1d04e10b24",
+      "characters": 2099,
+      "textReviewed": true,
+      "imagesReviewed": 5,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/asset-rdp-drive.BaC0lWLV.png",
+          "alt": "RDP 网络驱动器设置"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/rdp_fs.BNI99CKJ.png",
+          "alt": "RDP 会话中的网络驱动器"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/asset-rdp-remote-app-win.D5BLMkeq.png",
+          "alt": "在 Windows 中发布 RemoteApp"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/asset-rdp-remote-app-setting.B-tuuerI.png",
+          "alt": "配置 RemoteApp"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/asset-rdp-remote-app-view.lUqwO0Ul.png",
+          "alt": "RemoteApp 会话"
+        }
+      ]
+    },
+    {
+      "id": "readme",
+      "category": "usage",
+      "title": "快速开始",
+      "url": "https://www.next-terminal.com/zh/docs/usage/readme.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/readme.html",
+      "textSha256": "600bef511063569216f7b8d3a8d177ed59fa9b3950fb4dba5d21c3d26b77fd83",
+      "characters": 1022,
+      "textReviewed": true,
+      "imagesReviewed": 3,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/setup.Dz6yseFE.png",
+          "alt": "初始化管理员"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/login.AOgb6M7w.png",
+          "alt": "登录"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/dashboard.CLJfCoZ3.png",
+          "alt": "仪表盘"
+        }
+      ]
+    },
+    {
+      "id": "ssh-gateway",
+      "category": "usage",
+      "title": "SSH 网关",
+      "url": "https://www.next-terminal.com/zh/docs/usage/ssh-gateway.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/ssh-gateway.html",
+      "textSha256": "2a56f853b77ddc801ab18f937f07c1eb2bef391eca54dc4187799fc529bf4ab7",
+      "characters": 693,
+      "textReviewed": true,
+      "imagesReviewed": 1,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-gateway.KqHFvTaW.png",
+          "alt": "SSH网关示意图"
+        }
+      ]
+    },
+    {
+      "id": "ssh-server",
+      "category": "usage",
+      "title": "SSH 代理服务器",
+      "url": "https://www.next-terminal.com/zh/docs/usage/ssh-server.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/ssh-server.html",
+      "textSha256": "3108a25ce4c5b9adcf0b31d240e293240f02322530dad0c84bee3c30f42727f6",
+      "characters": 1762,
+      "textReviewed": true,
+      "imagesReviewed": 6,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-server-config.Bm7W0iR5.png",
+          "alt": "ssh-server-config.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-server-login.DamR88Gr.png",
+          "alt": "ssh-server-login.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-server-ui.DK1d1hvR.png",
+          "alt": "ssh-server-ui.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-server-direct.BRweszKF.png",
+          "alt": "ssh-server-direct.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-server-public-key-get.CEDJisEo.png",
+          "alt": "ssh-server-public-key-get.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/ssh-server-public-key-set.CrY_KpSP.png",
+          "alt": "ssh-server-public-key-set.png"
+        }
+      ]
+    },
+    {
+      "id": "ssh",
+      "category": "usage",
+      "title": "SSH 资产",
+      "url": "https://www.next-terminal.com/zh/docs/usage/ssh.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/ssh.html",
+      "textSha256": "ba21c0d0caaf4a2d82a5ca943d71f3b17fc2f24f207e66685bd873205dbfd1b1",
+      "characters": 1459,
+      "textReviewed": true,
+      "imagesReviewed": 3,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/ssh_terminal.Ch3ic8FE.png",
+          "alt": "SSH Web 终端"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/snippet-list.Bw989pxw.png",
+          "alt": "命令片段列表"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/snippet-use.A0M2JIKZ.png",
+          "alt": "使用命令片段"
+        }
+      ]
+    },
+    {
+      "id": "system-properties",
+      "category": "usage",
+      "title": "系统属性配置参考",
+      "url": "https://www.next-terminal.com/zh/docs/usage/system-properties.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/system-properties.html",
+      "textSha256": "bcd0b8d552797dc166a76d8b0f97d6505ad7bd9d10a2d16bbd16b0adf33135b9",
+      "characters": 4569,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "termark",
+      "category": "usage",
+      "title": "使用 Termark 接入 NextTerminal 资产",
+      "url": "https://www.next-terminal.com/zh/docs/usage/termark.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/termark.html",
+      "textSha256": "b0365140f602de74d313a0b28d607fad3321fba3c20b1adb03e6f3821adfd057",
+      "characters": 3543,
+      "textReviewed": true,
+      "imagesReviewed": 3,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/termark-config-nt.kvVQFWiN.png",
+          "alt": "Termark WebSocket 隧道配置"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/termark-direct-ssh.CZBh_jtd.png",
+          "alt": "Termark 直连 SSH 配置"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/termark-nt-dash.DbO21tQK.png",
+          "alt": "Termark 资产列表"
+        }
+      ]
+    },
+    {
+      "id": "vnc-telnet",
+      "category": "usage",
+      "title": "VNC 与 Telnet 资产",
+      "url": "https://www.next-terminal.com/zh/docs/usage/vnc-telnet.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/vnc-telnet.html",
+      "textSha256": "2ff15629c02be065d9f172e18fff118884411ce2f863c23c0c639f346cfeb10f",
+      "characters": 809,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "website",
+      "category": "usage",
+      "title": "Web 资产",
+      "url": "https://www.next-terminal.com/zh/docs/usage/website.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/usage/website.html",
+      "textSha256": "b22baeb5d61ff12aa3db7d07fb5e2447e04fac92a372fa9c0d56ed6c1072b7de",
+      "characters": 6329,
+      "textReviewed": true,
+      "imagesReviewed": 6,
+      "imageSources": [
+        {
+          "url": "https://www.next-terminal.com/assets/add.pInCgflQ.png",
+          "alt": "add.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/rp.BbqPijEs.png",
+          "alt": "反向代理授权流程图"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/modify.oi7vJqTl.png",
+          "alt": "modify.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/public.CiZTJjBV.png",
+          "alt": "public.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/temp-white.-v3AQIKa.png",
+          "alt": "temp-white.png"
+        },
+        {
+          "url": "https://www.next-terminal.com/assets/temp-white2.BXMH5bzU.png",
+          "alt": "temp-white2.png"
+        }
+      ]
+    },
+    {
+      "id": "rdp-black-screen-failed",
+      "category": "support",
+      "title": "RDP 连不上/黑屏/凭证失效？Windows 远程桌面 5 步排查",
+      "url": "https://www.next-terminal.com/zh/docs/blog/rdp-black-screen-failed.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/blog/rdp-black-screen-failed.html",
+      "textSha256": "aedec66ca680f5a9ff748e4745daa77851b6bde055ef63c70c39c4b558e1351f",
+      "characters": 2858,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "ssh-authentication",
+      "category": "support",
+      "title": "SSH 里的“认证私钥”到底是什么，它认证的是谁？",
+      "url": "https://www.next-terminal.com/zh/docs/blog/ssh-authentication.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/blog/ssh-authentication.html",
+      "textSha256": "200fb8d1209b8839e0bb44e36dbfc611ccf0eaf850d056ea78c0c0fe36131338",
+      "characters": 4351,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "postgresql-16-to-18",
+      "category": "support",
+      "title": "从 PostgreSQL 16 迁移到 PostgreSQL 18",
+      "url": "https://www.next-terminal.com/zh/docs/install/postgresql-16-to-18.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/install/postgresql-16-to-18.html",
+      "textSha256": "07ff9b187cc248bb6f204b40775606b7d9be0476574c812f090e879518daa7b3",
+      "characters": 3799,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    },
+    {
+      "id": "real-ip",
+      "category": "support",
+      "title": "获取真实客户端 IP",
+      "url": "https://www.next-terminal.com/zh/docs/install/real-ip.html",
+      "finalUrl": "https://www.next-terminal.com/zh/docs/install/real-ip.html",
+      "textSha256": "8581e40302e2306325a75b6af18ceaeceb0f96632bd628c548db5efdc689dc3b",
+      "characters": 6978,
+      "textReviewed": true,
+      "imagesReviewed": 0,
+      "imageSources": []
+    }
+  ],
+  "unreviewedMedia": [
+    {
+      "page": "website",
+      "url": "https://www.bilibili.com/video/BV1vb4uzBEea/",
+      "reason": "嵌入视频无法通过阅读工具访问，未逐帧观看或取得字幕；文字步骤与全部 6 幅图已核对。"
+    }
+  ]
+}

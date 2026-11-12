@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-12",
+  "projectName": "Puppeteer",
+  "packageName": "puppeteer",
+  "release": "puppeteer-branding",
+  "schema": 103,
+  "capabilityRevision": 83,
+  "configurationRevision": 60,
+  "scope": [
+    "project metadata and root documentation",
+    "frontend default labels and translations",
+    "backend display names and notification subjects",
+    "new MFA issuer display and Passkey RP display name",
+    "default and current instance brand",
+    "PWA application name"
+  ],
+  "compatibilityPreserved": [
+    "Go module/import paths",
+    "NT_* environment variables",
+    "nt commands",
+    "protocol identifiers",
+    "storage paths and Docker volumes",
+    "workspace directory",
+    "upstream license and attribution"
+  ],
+  "validation": {
+    "frontendTests": 60,
+    "typecheck": "pass",
+    "backendBuild": "pass",
+    "modules": [
+      "system",
+      "backup",
+      "identity",
+      "notification",
+      "nativeclient"
+    ],
+    "applicationRegressionSeconds": 70.944,
+    "backendBuildMode": "pass",
+    "productionBuild": "pass",
+    "publicBranding": "Puppeteer",
+    "browserTitle": "Puppeteer · R16",
+    "services": "healthy"
+  },
+  "backup": {
+    "file": "backend/.local/pre-puppeteer-103.dump",
+    "bytes": 273361798,
+    "sha256": "a324724f2e6e5aec4737d6315aa7a5955023d8d0e56c7cdce22f14df4a6e9c98"
+  },
+  "note": "Targeted rebranding and backup compatibility checks; no claim of another full R16 regression. Existing MFA credentials, Passkey RP IDs and secrets unchanged; new registrations display Puppeteer."
+}

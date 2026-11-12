@@ -1,0 +1,10 @@
+import {useState} from 'react';
+import {Alert,Button,Form,Input,Space,type FormInstance} from 'antd';
+import requests from '@/api/core/requests';
+type Certificate={fingerprint:string;subject:string;issuer:string;notBefore:string;notAfter:string};
+export default function BackendRDPCertificate({form}:{form:FormInstance}){
+ const [busy,setBusy]=useState(false),[error,setError]=useState(''),[certificate,setCertificate]=useState<Certificate>();
+ const target=()=>{const {route,...v}=form.getFieldsValue();return {...v,agentId:route?.startsWith('agent:')?route.slice(6):'',jumpId:route?.startsWith('jump:')?route.slice(5):'',gatewayGroupId:route?.startsWith('group:')?route.slice(6):'',proxyId:route?.startsWith('proxy:')?route.slice(6):''}};
+ const discover=async()=>{setError('');setCertificate(undefined);setBusy(true);try{await form.validateFields();const body=target(),signature=JSON.stringify(body);const result=await requests.post<Certificate>('/admin/rdp/certificate',body,{errorMode:'local'});if(signature!==JSON.stringify(target()))throw Error('资产参数已变化，请重新获取证书');form.setFieldValue('certFingerprint',result.fingerprint);setCertificate(result)}catch(e){setError((e as Error).message||'请先填写资产地址、端口和凭据')}finally{setBusy(false)}};
+ return <Space orientation="vertical" style={{width:'100%',marginBottom:16}}><Form.Item name="certFingerprint" label="RDP 证书指纹（自动获取）" extra="无需手工填写。留空保存时自动抓取并固定远端证书；证书更新后重新获取并保存。" style={{marginBottom:0}}><Input readOnly placeholder="保存时自动抓取"/></Form.Item><Button loading={busy} onClick={()=>void discover()}>获取 / 更新远端证书</Button>{error&&<Alert type="error" title={error}/>} {certificate&&<Alert type="success" title="已获取远端证书，保存资产后生效" description={<><div>主体：{certificate.subject||'未提供'}</div><div>签发者：{certificate.issuer||'未提供'}</div><div>有效期：{new Date(certificate.notBefore).toLocaleString()} — {new Date(certificate.notAfter).toLocaleString()}</div></>}/>}</Space>;
+}

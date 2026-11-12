@@ -1,0 +1,17 @@
+{
+  "scope": "Docker simulated remote SSH WAL repository",
+  "checks": [
+    "SSH pinned host key and encrypted remote full/WAL archive",
+    "two accelerated timer ticks execute real archive checks and deliver notifications; overlap blocked",
+    "repository outage detected; source remains writable",
+    "repository failure recorded; webhook 503 retains durable notification; success timestamp unchanged",
+    "repository restart, WAL retry and differential backup succeed",
+    "subsequent worker run retries durable failed notification then sends successful backup event in order",
+    "source offline; separate empty volume restored only from remote repository; target transaction verified"
+  ],
+  "passed": true,
+  "recoverySeconds": 18.661,
+  "date": "2026-11-12",
+  "scriptTestsPassed": 67,
+  "systemdInstalled": false
+}

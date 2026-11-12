@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "endpoint": "https://backend.example.com",
+  "agentId": "REPLACE_AFTER_ENROLLMENT",
+  "deviceKey": "KEEP_ENROLLED_KEY_PRIVATE",
+  "collectionSeconds": 5,
+  "networkPattern": "^(eth|ens|enp)",
+  "diskPaths": ["/"],
+  "proxyUrl": "",
+  "headers": {},
+  "caFile": "",
+  "certFile": "",
+  "keyFile": "",
+  "updates": {
+    "repository": "https://updates.example.com/agent",
+    "rootFile": "/var/lib/next-terminal-agent/trusted-root.json",
+    "stateDir": "/var/lib/next-terminal-agent/updates",
+    "autoInstall": false,
+    "allowHttpDevelopment": false
+  }
+}

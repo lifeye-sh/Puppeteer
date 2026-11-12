@@ -1,0 +1,179 @@
+name: nt-backend-r01
+services:
+  fixture-services:
+    profiles: [r09-fixtures]
+    build:
+      context: .
+      dockerfile: fixtures.Dockerfile
+    image: nt-backend-acceptance-services
+    volumes:
+      - ./.local/r09-fixtures:/fixture:ro
+    ports:
+      - "127.0.0.1:18580:8080"
+    restart: unless-stopped
+  acme-fixture:
+    profiles: [r09-fixtures]
+    image: nt-backend-acceptance-services
+    entrypoint: ["/app/pebble"]
+    command: ["-config", "/fixture/pebble.json", "-dnsserver", "fixture-services:8053", "-strict=false"]
+    environment:
+      PEBBLE_VA_NOSLEEP: "1"
+      PEBBLE_AUTHZREUSE: "0"
+    volumes:
+      - ./.local/r09-fixtures:/fixture:ro
+    depends_on: [fixture-services]
+    restart: unless-stopped
+  postgres:
+    image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+    environment:
+      POSTGRES_USER: nt_dev
+      POSTGRES_PASSWORD: ${NT_DB_PASSWORD:?Run scripts/start-backend.ps1 to create local credentials}
+      POSTGRES_DB: nt_backend
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nt_dev -d nt_backend"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  server:
+    build: .
+    environment:
+      NT_DATABASE_URL: postgres://nt_dev:${NT_DB_PASSWORD}@postgres:5432/nt_backend?sslmode=disable
+      NT_ADDR: :8089
+      NT_NATIVE_SSH_ADDR: :2022
+      NT_NATIVE_SSH_NAME: 127.0.0.1
+      NT_DATABASE_PROXY_ADDR: :13306
+      NT_DATABASE_PROXY_NAME: backend.localhost
+      NT_MYSQL_SPOOL_DIR: /var/run/next-terminal/mysql-spool
+      NT_WEBSITE_ADDR: :18443
+      NT_WEBSITE_PUBLIC_PORT: "18443"
+      NT_ENV: development
+      NT_MFA_KEY: ${NT_MFA_KEY:?Run scripts/start-backend.ps1 to create the local MFA key}
+      NT_VAULT_KEY: ${NT_VAULT_KEY:?Run scripts/start-backend.ps1 to create the local vault key}
+      NT_ALLOWED_ORIGINS: ${NT_ALLOWED_ORIGINS:-http://backend.localhost:5174}
+      NT_PASSKEY_RP_ID: ${NT_PASSKEY_RP_ID:-}
+      NT_PASSKEY_ORIGINS: ${NT_PASSKEY_ORIGINS:-}
+      NT_GUACD_ADDR: ${NT_GUACD_ADDR:-}
+      NT_GUACD_RELAY_HOST: ${NT_GUACD_RELAY_HOST:-server}
+      NT_RDP_DRIVE_ENABLED: "true"
+      NT_BACKUP_DIRECTORY: /var/lib/next-terminal/backups
+      NT_RESTORE_DIRECTORY: /var/lib/next-terminal/restore
+      NT_RUNTIME_PROFILE: /var/lib/next-terminal/runtime/active.json
+      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+      NT_MP4_URL: http://mp4-renderer:8090
+      NT_MP4_TOKEN: ${NT_MP4_TOKEN:-}
+      NT_MP4_DIRECTORY: /var/lib/next-terminal/mp4
+    networks: [default, mp4]
+    volumes:
+      - backupdata:/var/lib/next-terminal
+      - storageconfig:/var/lib/next-terminal/storage
+    ports:
+      - "127.0.0.1:8089:8089"
+      - "127.0.0.1:2022:2022"
+      - "127.0.0.1:13306:13306"
+      - "127.0.0.1:18443:18443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/app/nt", "health"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    # Long-data parameters never outlive the container and cannot fill host storage.
+    tmpfs: ["/var/run/next-terminal/mysql-spool:rw,size=128m,mode=0700,uid=10001,gid=10001"]
+  guacd:
+    profiles: [graphics]
+    build:
+      context: .
+      dockerfile: graphics.Dockerfile
+    image: nt-backend-rdp-storage
+    # Explicitly authorized on 2026-10-29. Only the mount daemon runs as root.
+    cap_add: [SYS_ADMIN]
+    devices: [/dev/fuse:/dev/fuse]
+    environment:
+      NT_DATABASE_URL: postgres://nt_dev:${NT_DB_PASSWORD}@postgres:5432/nt_backend?sslmode=disable
+      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+    volumes:
+      - storageconfig:/var/lib/next-terminal/storage:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/nt-rdp-storage", "health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    # Private service only: do not publish guacd or relay ports to the host.
+  mp4-renderer:
+    build: ./renderer
+    image: nt-recording-renderer
+    environment:
+      NT_MP4_TOKEN: ${NT_MP4_TOKEN:-}
+    networks: [mp4]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,size=768m,mode=1777"]
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 160
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8090/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  vnc-fixture:
+    profiles: [vnc-fixture]
+    image: nt-backend-r01-server
+    entrypoint: ["/app/vnc-fixture"]
+    restart: unless-stopped
+  ssh-fixture:
+    profiles: [ssh-fixture]
+    build: ./fixtures/ssh
+    volumes:
+      - ssh_hostkeys:/hostkeys
+      - ./.local/r04-authorized_keys:/fixture/authorized_keys:ro
+    restart: unless-stopped
+  rotation-fixture:
+    profiles: [rotation-fixture]
+    build: ./fixtures/rotation
+    volumes:
+      - ./.local/r10-rotation-admin-password:/fixture/admin-password:ro
+    restart: "no"
+  tests:
+    profiles: [test]
+    networks: [default, mp4]
+    image: golang:1.27.3-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb
+    working_dir: /src
+    volumes:
+      - .:/src
+      - gomod:/go/pkg/mod
+      - gobuild:/root/.cache/go-build
+    environment:
+      NT_TEST_DATABASE_URL: postgres://nt_dev:${NT_DB_PASSWORD}@postgres:5432/nt_backend?sslmode=disable
+      NT_MP4_TEST_TOKEN: ${NT_MP4_TOKEN:-}
+      GOMAXPROCS: "2"
+    command: ["go", "test", "./...", "-count=1"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  telnet-fixture:
+    profiles: [telnet-fixture]
+    image: nt-backend-r01-server
+    entrypoint: ["/app/telnet-fixture"]
+    restart: unless-stopped
+volumes:
+  storageconfig:
+  backupdata:
+  pgdata:
+  gomod:
+  gobuild:
+  ssh_hostkeys:
+networks:
+  mp4:
+    internal: true

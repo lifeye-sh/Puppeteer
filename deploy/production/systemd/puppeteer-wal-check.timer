@@ -1,0 +1,8 @@
+[Unit]
+Description=Check Puppeteer WAL archive every five minutes
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Unit=puppeteer-wal@check.service
+[Install]
+WantedBy=timers.target

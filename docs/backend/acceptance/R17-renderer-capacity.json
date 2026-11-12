@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "16 concurrent requests: 1 accepted, 15 busy; cancellation releases slot",
+    "four retained results enforce capacity; deletion frees slots",
+    "killed encoder becomes failed job; cleanup releases capacity",
+    "full tmpfs returns 507; health remains available; freeing space restores MP4 conversion"
+  ],
+  "passed": true,
+  "mp4Bytes": 4112,
+  "containerLimits": {
+    "memoryBytes": 2147483648,
+    "cpus": 2,
+    "pids": 160,
+    "tmpfsMiB": 256
+  },
+  "oomKilled": false,
+  "date": "2026-11-12",
+  "rendererRegressionTests": 4
+}

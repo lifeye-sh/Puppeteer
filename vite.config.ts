@@ -1,4 +1,5 @@
-import {defineConfig, PluginOption} from 'vite'
+import {defineConfig, loadEnv, PluginOption} from 'vite'
+import {backendProfile} from './scripts/frontend-backend-profile.ts';
 import {resolve} from 'path';
 import {VitePWA} from 'vite-plugin-pwa';
 import {visualizer} from "rollup-plugin-visualizer";
@@ -25,11 +26,19 @@ const manualChunkGroups = [
 const getPackagePathSegment = (packageName: string) => `/node_modules/${packageName}/`;
 
 // https://vitejs.dev/config/
-export default defineConfig(({mode}) => {
+export default defineConfig(({mode, command}) => {
     const isProd = mode === 'production';
+    const env = {...loadEnv(mode, process.cwd(), ''), ...process.env};
+    if (isProd && env.VITE_BACKEND_MODE && env.VITE_BACKEND_MODE !== 'new') {
+        throw new Error('Production releases require the Puppeteer backend; remove VITE_BACKEND_MODE or set it to new.');
+    }
     const analyze = process.env.ANALYZE === 'true';
+    const profile = command === 'serve'
+        ? backendProfile(mode, env)
+        : undefined;
     return {
         plugins: [
+            ...(profile ? [profile.plugin] : []),
             react(),
             tailwindcss(),
             ...(isProd ? [
@@ -41,7 +50,7 @@ export default defineConfig(({mode}) => {
                     // 新页面不再注册；旧注册仍会通过原来的 /sw.js 地址获取注销脚本。
                     injectRegister: false,
                     manifest: {
-                        name: '{{.SystemName}}',
+                        name: 'Puppeteer',
                         description: '',
                         background_color: '#313131',
                         icons: [
@@ -64,19 +73,7 @@ export default defineConfig(({mode}) => {
         resolve: {
             alias: {'@': resolve(import.meta.dirname, './src')},
         },
-        server: {
-            proxy: {
-                '/swagger/': {
-                    target: process.env.DEV_API_TARGET || 'http://localhost:8088/',
-                    changeOrigin: true,
-                },
-                '/api/': {
-                    target: process.env.DEV_API_TARGET || 'http://localhost:8088/',
-                    changeOrigin: true,
-                    ws: true,
-                },
-            },
-        },
+        server: profile?.server,
         build: {
             sourcemap: false,
             minify: 'oxc',

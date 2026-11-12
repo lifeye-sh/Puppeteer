@@ -1,0 +1,738 @@
+openapi: 3.1.0
+info:
+  title: Web assets and TLS website settings
+  version: r16-schema99
+  description: Audited against registered application handlers. Cookie mutations require
+    an allowed Origin. Coverage does not imply complete product acceptance.
+security:
+- session: []
+paths:
+  /api/admin/websites:
+    get:
+      summary: List managed websites
+      description: 'Requires website.read. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Website'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Save website
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id001
+                    type: string
+                    format: uuid
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebsiteWrite'
+  /api/admin/websites/{id}:
+    put:
+      summary: Save website
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebsiteWrite'
+    delete:
+      summary: Delete website
+      description: Requires identity.manage. Soft-deletes resource and disables access;
+        current version required.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: version
+        in: query
+        required: true
+        schema: &id002
+          type: integer
+  /api/admin/websites/{id}/logs:
+    get:
+      summary: Latest website requests
+      description: Requires audit.read. Newest first; timestamp uses PostgreSQL timestamptz
+        text.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: *id002
+                    ip: &id003
+                      type: string
+                    method: *id003
+                    path: *id003
+                    status: *id002
+                    reason: *id003
+                    createdAt: *id003
+                maxItems: 200
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/portal/websites:
+    get:
+      summary: List authorized enabled websites
+      description: 'Requires authenticated. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: *id003
+                    name: *id003
+                    domain: *id003
+                    mode: *id003
+                    url: *id003
+                    groupId: *id003
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/portal/websites/{id}/login-code:
+    post:
+      summary: Issue website login code
+      description: Requires authenticated. Enabled asset and current resource grant.
+        Safe local return path. Callback code expires in60seconds; no-store authentication
+        response.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: *id003
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  pattern: ^[0-9a-f]{64}$
+                return: *id003
+              required:
+              - state
+              - return
+  /api/portal/websites/{id}/temporary-ips:
+    get:
+      summary: List temporary IP grants
+      description: Requires authenticated. Current website grant required; member
+        sees own unrevoked rows, admin all. Timestamp PostgreSQL text. Expired rows
+        may remain until cleanup.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: *id001
+                    ip: *id003
+                    expiresAt: *id003
+                    absoluteExpiresAt: *id003
+                maxItems: 500
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/portal/websites/{id}/temporary-ips/{ip}:
+    delete:
+      summary: Revoke temporary IP grant
+      description: Requires authenticated. ip path parameter is the UUID of a grant,
+        not an IP address. Owner or admin only; matches website ID; already revoked
+        returns403.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - name: ip
+        in: path
+        required: true
+        schema: *id001
+  /api/admin/website-settings:
+    get:
+      summary: Read website settings
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    put:
+      summary: Save website settings
+      description: Requires identity.manage. Current version required. Enabled inheriting
+        sites must retain a valid certificate matching hostname. API trusted proxy
+        edits also create a unified configuration revision; clearing trust forces
+        direct address extraction.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+  /api/admin/website-settings/preview:
+    post:
+      summary: Preview default certificate impact
+      description: Requires identity.manage. Read-only preview for websites inheriting
+        default certificate; does not save settings.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: *id001
+                    name: *id003
+                    domain: *id003
+                    certificateValid: &id004
+                      type: boolean
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Problem:
+      type: object
+      properties:
+        reason: *id003
+        message: *id003
+    Website:
+      type: object
+      properties:
+        url: *id003
+        id: *id003
+        name: *id003
+        enabled: *id004
+        version: *id002
+        groupId: *id003
+        domain: *id003
+        entryPath: *id003
+        upstream: *id003
+        mode: *id003
+        hasPassword:
+          type: boolean
+          readOnly: true
+        policy: &id005
+          type: object
+          description: Access-policy document; validated by authorization.ValidatePolicy.
+            Website mode forces name=website, global=true, enabled=true.
+        certificateId: *id003
+        clientCaId: *id003
+        upstreamCa: *id003
+        agentId: *id003
+        jumpId: *id003
+        gatewayGroupId: *id003
+        proxyId: *id003
+        rewrites: &id006
+          type: array
+          items:
+            $ref: '#/components/schemas/Rewrite'
+        auditEnabled: *id004
+        tempTtlMinutes: *id002
+        tempMaxMinutes: *id002
+        tempAutoRenew: *id004
+        requestHeaders: &id007
+          type: object
+          additionalProperties: *id003
+          maxProperties: 32
+          description: Valid HTTP headers; authentication, cookie, proxy, framing
+            and routing headers are forbidden.
+        responseHeaders: &id008
+          type: object
+          additionalProperties: *id003
+          maxProperties: 32
+          description: Valid HTTP headers; authentication, cookie, proxy, framing
+            and routing headers are forbidden.
+    Settings:
+      type: object
+      properties:
+        defaultCertificateId: *id003
+        consoleUrl: *id003
+        apiTrustedProxies:
+          type: array
+          items: *id003
+        websiteTrustedProxies:
+          type: array
+          items: *id003
+        version: *id002
+    Rewrite:
+      type: object
+      properties:
+        find: *id003
+        replace: *id003
+    WebsiteWrite:
+      type: object
+      properties:
+        url: *id003
+        id: *id003
+        name: *id003
+        enabled: *id004
+        version: *id002
+        groupId: *id003
+        domain: *id003
+        entryPath: *id003
+        upstream: *id003
+        mode: *id003
+        hasPassword: *id004
+        policy: *id005
+        certificateId: *id003
+        clientCaId: *id003
+        upstreamCa: *id003
+        agentId: *id003
+        jumpId: *id003
+        gatewayGroupId: *id003
+        proxyId: *id003
+        rewrites: *id006
+        auditEnabled: *id004
+        tempTtlMinutes: *id002
+        tempMaxMinutes: *id002
+        tempAutoRenew: *id004
+        requestHeaders: *id007
+        responseHeaders: *id008
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+        clearPassword: *id004
+      description: Name 1..100 bytes; normalized DNS domain distinct from console/upstream;
+        safe absolute entry path; HTTP(S) upstream without userinfo/query/fragment.
+        mode private/public/temporary_ip. tempTtlMinutes1..1440, tempMaxMinutes>=TTL
+        and<=10080. At most one agent/jump/gatewayGroup/proxy. Matching valid server
+        certificate required when enabled. Empty password retains hash; clearPassword
+        mutually exclusive with password. Current version on update; ID from path.

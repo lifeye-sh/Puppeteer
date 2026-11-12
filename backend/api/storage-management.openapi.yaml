@@ -1,0 +1,1083 @@
+openapi: 3.1.0
+info:
+  title: Storage administration, text editing and resumable uploads
+  version: r16-schema99
+  description: Supplement to existing storage list/download/mkdir contracts. All requests
+    authenticate. Cookie mutations require allowed Origin. User channel, ACL, session
+    scope and file-write entitlement checks remain authoritative.
+security:
+- session: []
+paths:
+  /api/storage/spaces:
+    get:
+      summary: Accessible spaces and channel policy
+      description: 'Requires authenticated owner/ACL access. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Space'
+                  policy:
+                    $ref: '#/components/schemas/Policy'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/storage/default:
+    put:
+      summary: Select default accessible space
+      description: 'Requires authenticated owner/ACL access. '
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                spaceId: &id001
+                  type: string
+                  format: uuid
+              required:
+              - spaceId
+  /api/admin/storages:
+    get:
+      summary: List all storage spaces
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Space'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Create shared space
+      description: Requires identity.manage. Creates a platform-managed shared storage
+        space. Quota in bytes, maximum1TiB.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: &id002
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                quotaBytes:
+                  type: integer
+                  minimum: 0
+                  maximum: 1099511627776
+                enabled: &id003
+                  type: boolean
+              required:
+              - name
+              - quotaBytes
+  /api/admin/storages/{id}:
+    put:
+      summary: Update space name, state and quota
+      description: Requires identity.manage. Storage-row lock serializes quota change.
+        Lower quota does not delete existing files; future growth remains limited.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: *id002
+  /api/admin/storages/{id}/acl:
+    get:
+      summary: Read shared-space ACL
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId: *id001
+                    username: &id004
+                      type: string
+                    writable: *id003
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+    put:
+      summary: Grant or revoke shared-space access
+      description: Requires identity.manage. Only shared spaces accept ACL changes.
+        Revoke deletes member grant; otherwise upserts read/write flag. Mutation is
+        audited.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: *id001
+                writable: *id003
+                revoke: *id003
+              required:
+              - userId
+  /api/admin/users/{id}/channels:
+    get:
+      summary: Read user file and clipboard policy
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+    put:
+      summary: Update user file and clipboard policy
+      description: Requires identity.manage. Commits policy and requests termination
+        of reserved/connecting/connected RDP sessions for this user so channels cannot
+        retain stale permissions.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+  /api/storage/files/{id}/name:
+    put:
+      summary: Rename a node within its current parent
+      description: Requires authenticated owner/ACL access. Name validation and write
+        policy apply; this endpoint does not move across directories.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: &id005
+          type: integer
+      - &id006
+        name: space
+        in: query
+        schema: *id001
+        description: Accessible space; omitted uses personal default.
+      - &id007
+        name: session
+        in: query
+        schema: *id001
+        description: If present overrides space from a live, unrevoked, owned RDP
+          storage binding.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: *id004
+              required:
+              - name
+  /api/storage/files/{id}/text:
+    get:
+      summary: Read editable UTF-8 text
+      description: Requires authenticated owner/ACL access. Regular file<=1MiB, valid
+        UTF-8 without NUL. Rechecks modified timestamp after read; concurrent changes409.
+        Cache-Control:no-store.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text: *id004
+                  modifiedAt: &id008
+                    type: string
+                    format: date-time
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+      - *id006
+      - *id007
+    put:
+      summary: Replace text with version check
+      description: Requires authenticated owner/ACL access. Requires exact previously
+        read modifiedAt; UTF-8 and1MiB limit, write policy, quota, audit and optimistic
+        conflict protection.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+      - *id006
+      - *id007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: *id004
+                modifiedAt: *id008
+              required:
+              - text
+              - modifiedAt
+  /api/storage/uploads:
+    get:
+      summary: List own active uploads
+      description: Requires authenticated owner/ACL access. Newest100 uploading tasks
+        for actor and selected space.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Upload'
+                maxItems: 100
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id006
+      - *id007
+    post:
+      summary: Reserve resumable upload
+      description: Requires authenticated owner/ACL access. Maximum1GiB per upload.
+        Reserves complete size against quota at start. Parent must be directory; existing
+        file or active same-name upload conflicts. Space node+active-upload count
+        limited to10000.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upload'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id006
+      - *id007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parentId: *id005
+                name: *id004
+                size:
+                  type: integer
+                  minimum: 0
+                  maximum: 1073741824
+              required:
+              - parentId
+              - name
+              - size
+  /api/storage/uploads/{id}:
+    get:
+      summary: Read own upload progress
+      description: Requires authenticated owner/ACL access. Owner and selected space
+        must match; current ACL checked.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upload'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - *id006
+      - *id007
+    delete:
+      summary: Cancel own staging upload
+      description: Requires authenticated owner/ACL access. Owner only. Cancellation
+        remains allowed after ACL revocation solely to release staging data and reserved
+        quota. Completed uploads conflict; repeated cancellation is harmless.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/storage/uploads/{id}/parts:
+    put:
+      summary: Append or replay a matching upload part
+      description: Requires authenticated owner/ACL access. Raw body1..1048576 bytes.
+        Offset aligned to65536 bytes and consecutive. Non-final length aligned to65536.
+        Exact replay of already acknowledged bytes succeeds; mismatched replay409.
+        Global file-transfer concurrency limit429; oversized body413.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '413':
+          description: Chunk exceeds1MiB
+        '429':
+          description: File-transfer slots full
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - *id006
+      - *id007
+      - name: offset
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+          multipleOf: 65536
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+  /api/storage/uploads/{id}/complete:
+    post:
+      summary: Finalize complete upload atomically
+      description: Requires authenticated owner/ACL access. All bytes required; write
+        policy rechecked. Atomically creates node/moves chunks and audits. Repeated
+        completion returns same completed upload; partial/expired state409.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upload'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      - *id006
+      - *id007
+  /api/storage/events:
+    get:
+      summary: Paginate file operation audit
+      description: Requires authenticated owner/ACL access. Own operations by default;
+        audit.read permits all actors. Search<=200 bytes across name, operation, space,
+        username or exact session ID. Page normalized1..1000000; newest IDs first.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                    maxItems: 50
+                  total: *id005
+                  page: *id005
+                  pageSize:
+                    type: integer
+                    const: 50
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: ACL or channel policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Stale state, existing name or unavailable payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input, quota or file limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Space:
+      type: object
+      properties:
+        id: *id004
+        ownerId: *id004
+        name: *id004
+        shared: *id003
+        enabled: *id003
+        writable: *id003
+        isDefault: *id003
+        quotaBytes: *id005
+        usedBytes: *id005
+    Policy:
+      type: object
+      properties:
+        upload: *id003
+        download: *id003
+        clipboardCopy: *id003
+        clipboardPaste: *id003
+    Upload:
+      type: object
+      properties:
+        id: *id004
+        spaceId: *id004
+        parentId: *id005
+        name: *id004
+        size: *id005
+        received: *id005
+        state: *id004
+        nodeId: *id005
+        expiresAt: *id008
+    Problem:
+      type: object
+      properties:
+        reason: *id004
+        message: *id004
+    Event:
+      type: object
+      properties:
+        id: *id005
+        actorId: *id001
+        username: *id004
+        spaceId: *id001
+        spaceName: *id004
+        nodeId: *id005
+        operation: *id004
+        channel: *id004
+        sessionId: *id004
+        bytes: *id005
+        createdAt: *id008
+        name: *id004

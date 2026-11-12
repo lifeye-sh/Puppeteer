@@ -1,0 +1,436 @@
+{
+  "date": "2026-11-11",
+  "scope": "Authenticated administrator route-load smoke only; excludes button and business-flow completeness",
+  "versions": [
+    "r16-diagnostics-preview",
+    "r16-controls-preview",
+    "r16-retention-preview"
+  ],
+  "completeProductAcceptance": false,
+  "routes": [
+    {
+      "requestedPath": "/x-asset",
+      "path": "/x-asset",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 471,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/ai",
+      "path": "/ai",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 445,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/x-database-asset",
+      "path": "/x-database-asset",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 1040,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/x-website",
+      "path": "/x-website",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 544,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/x-snippet",
+      "path": "/x-snippet",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 395,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/x-access-request",
+      "path": "/x-access-request",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 550,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/x-db-work-order",
+      "path": "/x-db-work-order",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 472,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/storage",
+      "path": "/storage",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 615,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/notification-preferences",
+      "path": "/notification-preferences",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 475,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/asset",
+      "path": "/asset",
+      "title": "Next Terminal · 新后端 · R16",
+      "bodyLength": 1686,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/database-asset",
+      "path": "/database-asset",
+      "bodyLength": 902,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/website",
+      "path": "/website",
+      "bodyLength": 588,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/credential",
+      "path": "/credential",
+      "bodyLength": 1072,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/certificate",
+      "path": "/certificate",
+      "bodyLength": 1210,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/agent-gateway",
+      "path": "/agent-gateway",
+      "bodyLength": 1097,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/ssh-gateway",
+      "path": "/ssh-gateway",
+      "bodyLength": 758,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/gateway-group",
+      "path": "/gateway-group",
+      "bodyLength": 462,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/network-proxy",
+      "path": "/network-proxy",
+      "bodyLength": 464,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/website-setting",
+      "path": "/website-setting",
+      "bodyLength": 407,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/oidc-client",
+      "path": "/oidc-client",
+      "bodyLength": 569,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/authorised-asset",
+      "path": "/authorised-asset",
+      "bodyLength": 453,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/access-policy",
+      "path": "/access-policy",
+      "bodyLength": 355,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/strategy",
+      "path": "/strategy",
+      "bodyLength": 382,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/command-filter",
+      "path": "/command-filter",
+      "bodyLength": 371,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/ip-set",
+      "path": "/ip-set",
+      "bodyLength": 348,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/access-request",
+      "path": "/access-request",
+      "bodyLength": 537,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/db-work-order",
+      "path": "/db-work-order",
+      "bodyLength": 524,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/online-session",
+      "path": "/online-session",
+      "bodyLength": 442,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/access-log",
+      "path": "/access-log",
+      "bodyLength": 2465,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/access-log-stats",
+      "path": "/access-log-stats",
+      "bodyLength": 508,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/exec-command-log",
+      "path": "/exec-command-log",
+      "bodyLength": 2465,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/filesystem-log",
+      "path": "/filesystem-log",
+      "bodyLength": 2011,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/database-sql-log",
+      "path": "/database-sql-log",
+      "bodyLength": 386,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/user",
+      "path": "/user",
+      "bodyLength": 424,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/department",
+      "path": "/department",
+      "bodyLength": 388,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/role",
+      "path": "/role",
+      "bodyLength": 478,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/identity-settings",
+      "path": "/identity-settings",
+      "bodyLength": 438,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/login-locked",
+      "path": "/login-locked",
+      "bodyLength": 398,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/scheduled-task",
+      "path": "/scheduled-task",
+      "bodyLength": 429,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/snippet",
+      "path": "/snippet",
+      "bodyLength": 414,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/credential-rotation",
+      "path": "/credential-rotation",
+      "bodyLength": 520,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/monitoring",
+      "path": "/monitoring",
+      "bodyLength": 842,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/tools",
+      "path": "/tools",
+      "bodyLength": 547,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/system-event",
+      "path": "/system-event",
+      "bodyLength": 1226,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/setting",
+      "path": "/setting",
+      "bodyLength": 512,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    },
+    {
+      "requestedPath": "/system-status",
+      "path": "/system-status",
+      "bodyLength": 5801,
+      "overflow": false,
+      "errors": [],
+      "http": [],
+      "alerts": []
+    }
+  ]
+}

@@ -1,0 +1,377 @@
+openapi: 3.1.0
+info:
+  title: Puppeteer database assets and target diagnostics
+  version: r16-native-database-dml
+  description: MySQL and PostgreSQL asset contracts. PostgreSQL remains a read-only
+    profile. MySQL native DML requires an explicit independent credential, database.write
+    permission and effective db-proxy-block-dml=false; existing readonly connections
+    never upgrade.
+servers:
+- url: https://backend.localhost:5174/api
+security:
+- session: []
+paths:
+  /admin/database-assets:
+    get:
+      operationId: databaseList
+      responses:
+        '200':
+          description: Authorized database.read view; credential references and target
+            public CA included.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetList'
+    post:
+      operationId: databaseCreate
+      description: Requires identity.manage and allowed Origin. Omitted engine defaults
+        to mysql for compatibility.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Created asset ID
+        '422':
+          description: Invalid fields
+          unknown engine or PostgreSQL write credential: null
+  /admin/database-assets/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    put:
+      operationId: databaseUpdate
+      description: Requires identity.manage and allowed Origin. Omitted engine preserves
+        stored engine. Engine cannot change; version is required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Saved asset ID
+        '409':
+          description: Version conflict or engine changed
+    delete:
+      operationId: databaseDelete
+      parameters:
+      - name: version
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '204':
+          description: Asset disabled and soft deleted
+        '409':
+          description: Version conflict
+  /admin/database-assets/{id}/test:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      operationId: databaseTargetTest
+      description: Requires identity.manage and allowed Origin. Checks saved asset
+        version, Vault credential, TLS and effective role privileges, then SELECT
+        1. PostgreSQL requires SCRAM; no SQL write or native client session is created.
+      responses:
+        '200':
+          description: Diagnostic results; unsuccessful target checks return ok=false
+            with a sanitized message.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - profile
+                      - ok
+                      - message
+                      - durationMs
+                      properties:
+                        profile:
+                          type: string
+                          enum:
+                          - readonly
+                          - workorder
+                        ok:
+                          type: boolean
+                        message:
+                          type: string
+                        durationMs:
+                          type: integer
+        '403':
+          description: Not authorized
+        '409':
+          description: Asset changed during preparation
+  /portal/database-assets:
+    get:
+      operationId: databasePortal
+      responses:
+        '200':
+          description: Authorized assets; readonlyCredentialId, writeCredentialId
+            and tlsCa are empty. PostgreSQL assets must not use MySQL client commands
+            or workorders.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetList'
+  /account/database-password:
+    get:
+      operationId: databasePasswordStatus
+      responses:
+        '200':
+          description: Current user's status only, Cache-Control no-store; contains
+            no verification keys.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+                  active:
+                    type: boolean
+                  scramReady:
+                    type: boolean
+                    description: False for legacy Argon2-only
+                    expired or revoked passwords. True indicates material availability: null
+                    not native proxy availability.: null
+                  version:
+                    type: integer
+                  expiresAt:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                  updatedAt:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+    post:
+      summary: Generate or rotate personal database password
+      description: Current platform password and fresh bound TOTP required. Allowed
+        Origin required. Creates both MySQL verification and PostgreSQL SCRAM material;
+        old password/session versions are invalidated. No-store response.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  password:
+                    type: string
+                    description: Returned once; never retrievable later
+        '401':
+          description: Login required
+        '403':
+          description: Origin, ownership or permission denied
+        '400':
+          description: Invalid, expired or consumed password/MFA proof
+        '409':
+          description: Version, capacity or uniqueness conflict
+        '422':
+          description: Invalid fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+                  maxLength: 1024
+                totp:
+                  type: string
+                  writeOnly: true
+                  pattern: ^[0-9]{6}$
+                days:
+                  type: integer
+                  minimum: 1
+                  maximum: 365
+              required:
+              - password
+              - days
+    delete:
+      summary: Revoke personal database password
+      description: Current platform password and fresh bound TOTP required. Allowed
+        Origin required. Clears encrypted verifiers and SCRAM readiness, increments
+        version; existing native sessions fail lease validation.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+        '403':
+          description: Origin, ownership or permission denied
+        '400':
+          description: Invalid, expired or consumed password/MFA proof
+        '409':
+          description: Version, capacity or uniqueness conflict
+        '422':
+          description: Invalid fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+                  maxLength: 1024
+                totp:
+                  type: string
+                  writeOnly: true
+                  pattern: ^[0-9]{6}$
+              required:
+              - password
+  /database-proxy/status:
+    get:
+      operationId: databaseProxyStatus
+      responses:
+        '200':
+          description: Existing root fields describe MySQL. PostgreSQL has an independent
+            listener; both use the same downloadable public certificate.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  ready:
+                    type: boolean
+                  host:
+                    type: string
+                  port:
+                    type: string
+                  leaseSeconds:
+                    type: integer
+                    const: 5
+                  postgres:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      ready:
+                        type: boolean
+                      host:
+                        type: string
+                      port:
+                        type: string
+                      profile:
+                        type: string
+                        const: readonly-preview
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    AssetList:
+      type: object
+      properties:
+        total:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
+    Asset:
+      type: object
+      required:
+      - name
+      - alias
+      - host
+      - port
+      - database
+      - readonlyCredentialId
+      - tlsServerName
+      - tlsCa
+      - connectTimeout
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        engine:
+          type: string
+          enum:
+          - mysql
+          - postgresql
+          description: Default mysql on create; omitted on update preserves current
+            engine.
+        name:
+          type: string
+          maxLength: 128
+        alias:
+          type: string
+          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,63}$
+        host:
+          type: string
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        database:
+          type: string
+          maxLength: 64
+        readonlyCredentialId:
+          type: string
+        writeCredentialId:
+          type: string
+          description: Empty for PostgreSQL in this slice. MySQL must use a separate
+            credential.
+        tlsServerName:
+          type: string
+        tlsCa:
+          type: string
+          maxLength: 32768
+        connectTimeout:
+          type: integer
+          minimum: 1
+          maximum: 60
+        description:
+          type: string
+          maxLength: 2000
+        enabled:
+          type: boolean
+        version:
+          type: integer
+        nativeWriteCredentialId:
+          type: string
+          description: Optional MySQL-only UUID, distinct from readonly and work-order
+            credentials. Target account limited to this database SELECT/INSERT/UPDATE/DELETE.
+            Portal returns empty string. Blank removes native DML opt-in.
+        nativeWriteAvailable:
+          type: boolean
+          readOnly: true
+          description: Portal-only hint for current effective policy, user permission
+            and asset opt-in. Authorization is checked again during handshake and
+            every command/lease.

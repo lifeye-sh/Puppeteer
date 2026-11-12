@@ -1,0 +1,523 @@
+openapi: 3.1.0
+info:
+  title: Native client connection and public launch metadata
+  version: r16-remote-access-mfa
+  description: Current implemented protocol contract. R14 excluded acceptance items
+    remain excluded. Browser cookie mutations require allowed Origin; native protocol
+    endpoints separately require bearer and reject browser contexts as specified.
+paths:
+  /api/native/v1/assets:
+    get:
+      summary: List authorized native assets
+      description: Requires assets:read and no browser session cookie. Host/port/target
+        credentials are not returned. Native entries are advertised from current protocol
+        readiness and forwarding configuration; connection still rechecks authorization.
+      security:
+      - native: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  nextCursor:
+                    type: string
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 100
+      - in: query
+        name: cursor
+        schema:
+          type: string
+          description: Opaque server pagination token; empty starts the list
+  /api/native/v1/connect:
+    post:
+      summary: Reserve native SSH or forwarding session
+      description: Requires sessions:connect; rejects Origin, browser Cookie and query
+        string. Requires current host-key trust and access MFA proof when configured.
+        Forwarding additionally requires approved exact targets and unfiltered execute/upload/download
+        rights. Idempotency key belongs to actor and must retain asset, mode, readonly
+        and client key. Ticket is bound to source IP, OAuth family and client key.
+      security:
+      - native: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/Reservation'
+                - $ref: '#/components/schemas/Replay'
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Connect'
+  /api/native/v1/bridge:
+    get:
+      summary: Consume one-use SSH WebSocket bridge ticket
+      description: Authorization Bearer contains bridgeTicket, not an OAuth access
+        token. Requires Upgrade websocket and exact subprotocol nt-bridge.v1; rejects
+        Cookie, Origin and query string. Same source IP and current authorization
+        required. Ticket is burned before upgrade and is not restored on subsequent
+        failure. Binary WebSocket transports SSH; client authenticates its reserved
+        Ed25519 key and pins the returned host key. Target credentials never leave
+        the platform.
+      security:
+      - bridge: []
+      responses:
+        '101':
+          description: Success
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      parameters:
+      - in: header
+        name: Sec-WebSocket-Protocol
+        required: true
+        schema:
+          type: string
+          const: nt-bridge.v1
+  /api/native/v1/rdp-file:
+    post:
+      summary: Create recorded desktop launch file
+      description: Requires sessions:connect and a ready native RDP endpoint with
+        a trusted SHA256 target certificate pin. Rechecks resource policy and access
+        MFA proof. File contains a one-use NTICKET username; clipboard, drives, printers,
+        smartcards and audio are disabled. Current endpoint is a recorded read-only
+        view; this does not certify deferred R14 RemoteApp/client features.
+      security:
+      - native: []
+      responses:
+        '200':
+          description: No-store UTF-8 .rdp attachment containing a one-use launch
+            ticket
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assetId:
+                  type: string
+                  format: uuid
+              required:
+              - assetId
+              additionalProperties: false
+  /api/native/v1/sessions/{id}:
+    delete:
+      summary: Terminate own native bridge session
+      description: Requires sessions:connect, no Cookie/Origin/query, and ownership
+        of native bridge reservation. Idempotent for already terminating/closed owned
+        sessions; marks termination and stops a local live connection. This route
+        does not manage unrelated browser or native RDP reservations.
+      security:
+      - native: []
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/native/ssh-gateway:
+    get:
+      summary: Read public native SSH gateway metadata
+      description: Authenticated browser user. No target or private credentials. MFA
+        applies when bound, forced by account/login policy, or required for remote
+        access.
+      security:
+      - session: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway'
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+  /api/native/ssh-launch/{id}:
+    get:
+      summary: Create pinned SSH client launch configuration
+      description: Authenticated browser user with resource access and connect policy.
+        Requires native entry enabled/ready, valid public gateway hostname and asset
+        alias. Returns public OpenSSH config, known_hosts, command and Termark URI.
+        Each real connection independently validates personal SSH key, MFA and authorization.
+        This metadata does not start a connection or prove external-client acceptance.
+        With schema99, permitted local-password authentication has a separate command;
+        pinned host verification and MFA remain mandatory.
+      security:
+      - session: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Launch'
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/sessions/{id}/forward-streams:
+    get:
+      summary: Read forwarding stream audit
+      description: Session owner or session.read permission. Fixed page size 20; no
+        TCP content, only destinations, state and byte counters.
+      security:
+      - session: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ForwardStream'
+                  total:
+                    type: integer
+        '401':
+          description: Invalid authentication or single-use ticket
+        '403':
+          description: Scope, resource, policy or access MFA denied
+        '409':
+          description: State, version, trust or entry conflict
+        '422':
+          description: Invalid fields
+        '429':
+          description: Rate limit
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: current
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 1
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+    native:
+      type: http
+      scheme: bearer
+    bridge:
+      type: http
+      scheme: bearer
+  schemas:
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        alias:
+          type: string
+        protocol:
+          type: string
+        revision:
+          type: integer
+        entries:
+          type: array
+          items:
+            type: string
+            enum:
+            - ssh
+            - ssh-forward
+            - rdp-view
+    Reservation:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        bridgeTicket:
+          type: string
+          minLength: 64
+          maxLength: 64
+          description: Secret returned only in the initial reservation response; never
+            reissued on replay
+        expiresAt:
+          type: string
+          format: date-time
+        bridgeUrl:
+          type: string
+          const: /api/native/v1/bridge
+        hostKey:
+          type: string
+          description: Ephemeral Ed25519 SSH server public key to pin
+        capabilities:
+          type: object
+          properties:
+            shell:
+              type: boolean
+            exec:
+              type: boolean
+            sftp:
+              type: boolean
+            forwarding:
+              type: boolean
+      required:
+      - sessionId
+      - bridgeTicket
+      - expiresAt
+      - bridgeUrl
+      - hostKey
+      - capabilities
+    Replay:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        state:
+          type: string
+        replayed:
+          const: true
+      description: An idempotent replay never returns a second ticket or private key
+      required:
+      - sessionId
+      - state
+      - replayed
+    Connect:
+      type: object
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        entry:
+          type: string
+          enum:
+          - ssh
+          - ssh-forward
+        idempotencyKey:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{16,64}$
+        clientVersion:
+          type: string
+          maxLength: 100
+          description: UTF-8 byte limit 100
+        clientPublicKey:
+          type: string
+          description: Canonical trimmed OpenSSH Ed25519 authorized key; no options,
+            comment or trailing bytes
+        readonly:
+          type: boolean
+      required:
+      - assetId
+      - entry
+      - idempotencyKey
+      - clientPublicKey
+      additionalProperties: false
+    Gateway:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        ready:
+          type: boolean
+        host:
+          type: string
+        port:
+          type: integer
+        publicKey:
+          type: string
+        fingerprint:
+          type: string
+        usernameFormat:
+          type: string
+          const: platformUser:assetAlias
+        mfa:
+          type: string
+        forwarding:
+          type: boolean
+        forwardingSupported:
+          const: true
+        sftp:
+          const: false
+        passwordAuthentication:
+          type: boolean
+          description: Enforced native password and global local-password policy;
+            MFA and account restrictions still apply.
+    Launch:
+      type: object
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        assetName:
+          type: string
+        host:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        fingerprint:
+          type: string
+        config:
+          type: string
+        configFilename:
+          type: string
+        knownHosts:
+          type: string
+        knownHostsFilename:
+          type: string
+        command:
+          type: string
+        termarkUri:
+          type: string
+        forwardTargets:
+          type: array
+          items:
+            type: object
+            properties:
+              host:
+                type: string
+              port:
+                type: integer
+        passwordAuthentication:
+          type: boolean
+          description: Enforced native password and global local-password policy;
+            MFA and account restrictions still apply.
+        passwordCommand:
+          type: string
+          description: Only supplied when platform local-password authentication is
+            enabled. Interactive prompt only; never includes a password.
+    ForwardStream:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        host:
+          type: string
+        port:
+          type: integer
+        address:
+          type: string
+        state:
+          type: string
+        bytesToTarget:
+          type: integer
+          minimum: 0
+        bytesFromTarget:
+          type: integer
+          minimum: 0
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time

@@ -1,0 +1,1 @@
+{"name":"nt-recording-renderer","private":true,"type":"module","scripts":{"build":"esbuild replay.js --bundle --format=iife --outfile=public/replay.js","test":"node --test test.mjs"},"dependencies":{"@dushixiang/guacamole-common-js":"1.6.0-fix","@xterm/xterm":"5.5.0","playwright-core":"1.64.1"},"devDependencies":{"esbuild":"0.28.2"}}

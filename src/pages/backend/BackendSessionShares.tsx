@@ -1,0 +1,12 @@
+import {useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {Alert,Button,Input,InputNumber,Space,Table} from 'antd';
+import requests from '@/api/core/requests';
+type Share={id:string;username:string;expiresAt:string;claimedAt:string|null;revokedAt:string|null};
+export default function BackendSessionShares({sessionId}:{sessionId:string}){
+ const [username,setUsername]=useState(''),[minutes,setMinutes]=useState(10),[link,setLink]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const list=useQuery({queryKey:['r07-shares',sessionId],queryFn:()=>requests.get<Share[]>(`/sessions/${sessionId}/shares`,{errorMode:'local'}),refetchInterval:2000,retry:false});
+ const create=async()=>{setError('');setLink('');setBusy(true);try{const v=await requests.post<{path:string}>(`/sessions/${sessionId}/shares`,{username,minutes},{errorMode:'local'});setLink(location.origin+v.path);await list.refetch()}catch(e){setError((e as Error).message)}finally{setBusy(false)}};
+ const revoke=async(id:string)=>{setError('');try{await requests.delete(`/sessions/${sessionId}/shares/${id}`,{errorMode:'local'});setLink('');await list.refetch()}catch(e){setError((e as Error).message)}};
+ return <Space orientation="vertical" style={{width:'100%'}}><Alert type="info" title="邀请指定用户只读观察" description="接收者必须已有此资产的访问授权。链接只可领取一次，最长 30 分钟；每个会话最多 8 个观察者。撤销不影响原会话。"/>{(error||list.isError)&&<Alert type="error" title={error||list.error?.message}/>}<Space wrap><Input aria-label="接收用户名" placeholder="接收用户名" value={username} onChange={e=>setUsername(e.target.value)} maxLength={100}/><InputNumber aria-label="分享有效分钟" min={1} max={30} value={minutes} onChange={v=>setMinutes(v??10)}/><span>分钟</span><Button type="primary" loading={busy} disabled={!username.trim()} onClick={()=>void create()}>生成只读链接</Button></Space>{link&&<><Alert type="success" title="链接仅展示本次，请复制后交给指定用户"/><Input.TextArea aria-label="只读分享链接" readOnly value={link} autoSize onFocus={e=>e.target.select()}/></>}<Table<Share> rowKey="id" dataSource={list.data??[]} pagination={{pageSize:8}} columns={[{title:'接收者',dataIndex:'username'},{title:'到期时间',render:(_,v)=>new Date(v.expiresAt).toLocaleString()},{title:'状态',render:(_,v)=>v.revokedAt?'已撤销':new Date(v.expiresAt).getTime()<=Date.now()?'已到期':v.claimedAt?'已领取':'待领取'},{title:'操作',render:(_,v)=><Button danger disabled={!!v.revokedAt} onClick={()=>void revoke(v.id)}>撤销</Button>}]}/></Space>;
+}

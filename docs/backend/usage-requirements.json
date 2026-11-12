@@ -1,0 +1,634 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-26",
+  "status": "design-only",
+  "requirements": [
+    {
+      "id": "U01",
+      "owner": "M18",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M08",
+        "M15"
+      ],
+      "phase": "W1",
+      "sources": [
+        "readme"
+      ],
+      "title": "首次使用闭环",
+      "requirement": "初始化管理员、登录、创建并测试资产、用户授权、普通用户接入与审计核验组成一条交付用例。",
+      "acceptance": "并发初始化只有一个成功；普通用户看不到未授权资源；一次连接能关联访问、会话和操作记录。"
+    },
+    {
+      "id": "U02",
+      "owner": "M03",
+      "collaborators": [
+        "M02",
+        "M06"
+      ],
+      "phase": "W2",
+      "sources": [
+        "access",
+        "asset"
+      ],
+      "title": "按接入方式筛选资源目录",
+      "requirement": "分组树、搜索、分页和数量统计均限定授权范围；浏览器、原生客户端分别返回支持的协议与能力。",
+      "acceptance": "数据库资产不会被当成浏览器 SQL 会话；多标签独立建立或离开会话，不误结束其他标签连接。"
+    },
+    {
+      "id": "U03",
+      "owner": "M03",
+      "collaborators": [
+        "M05",
+        "M06"
+      ],
+      "phase": "W1/W3",
+      "sources": [
+        "asset",
+        "ssh",
+        "rdp",
+        "vnc-telnet"
+      ],
+      "title": "资产类型化配置",
+      "requirement": "分别校验协议端口、账号模式、SSH 超时 1–300 秒、保活、环境变量、退格模式、OS 探测、RDP 域/安全/显示/音频/PDU/RemoteApp/驱动器，以及 WOL 网络参数。",
+      "acceptance": "RDP/VNC 拒绝私钥账号模式；Telnet 使用交互登录且不创建 SFTP 能力；导入模板与单条保存使用同一校验器。"
+    },
+    {
+      "id": "U04",
+      "owner": "M03",
+      "collaborators": [
+        "M06"
+      ],
+      "phase": "W3",
+      "sources": [
+        "asset",
+        "ssh-server"
+      ],
+      "title": "SSH 名称与别名解析",
+      "requirement": "别名以字母开头，仅含英文字母、数字、下划线、中划线；支持文档中的 username:asset-name 入口，并结合前端别名提示制定解析规则。",
+      "acceptance": "本方案采用别名优先、名称兼容回退；只解析已授权 SSH 资产；重名或别名与名称碰撞时拒绝歧义，不静默选中另一主机。"
+    },
+    {
+      "id": "U05",
+      "owner": "M02",
+      "collaborators": [
+        "M01",
+        "M03",
+        "M06",
+        "M07"
+      ],
+      "phase": "W1/W3",
+      "sources": [
+        "authorization",
+        "file-management"
+      ],
+      "title": "动态分组授权与逐动作控制",
+      "requirement": "用户/部门与资源/分组可组合授权；分组新增资产动态生效；到期采用服务器时间。上传、下载、创建文件/目录、编辑、删除、重命名、复制、粘贴分别决策。",
+      "acceptance": "UI 隐藏按钮后直接请求 API 仍被拒绝；授权到期和撤销影响新接入及可控制的现存操作；文件 chmod 单列动作，不由编辑权限暗中推出。"
+    },
+    {
+      "id": "U06",
+      "owner": "M04",
+      "collaborators": [
+        "M01",
+        "M03",
+        "M05"
+      ],
+      "phase": "W1",
+      "sources": [
+        "credential"
+      ],
+      "title": "凭证引用完整生命周期",
+      "requirement": "密码或加密私钥含 Passphrase；生成密钥、提取公钥、MFA 明文查看、共享凭证更新影响检查和删除引用检查。",
+      "acceptance": "资产与 SSH 网关任何一方仍有引用时禁止删除；复制公钥不返回私钥；生成密钥不会被描述为已安装到目标 authorized_keys。"
+    },
+    {
+      "id": "U07",
+      "owner": "M05",
+      "collaborators": [
+        "M04",
+        "M15"
+      ],
+      "phase": "W3",
+      "sources": [
+        "agent-gateway",
+        "agent-gateway-config"
+      ],
+      "title": "安全网关注册与生命周期",
+      "requirement": "Agent 从内网主动连接 WebSocket；服务端提供各 OS 安装指引、网关专属注册凭证、在线状态、撤销、重连及版本发布能力。 按 D02 实现一次性注册令牌、设备 Key 轮换、WSS/yamux 和epoch fencing。",
+      "acceptance": "仅开放 Web 入口即可连接内网目标；吊销后无法新建流；旧 nt-tunnel 二进制互通需专项验证，自有协议不得标成官方兼容。"
+    },
+    {
+      "id": "U08",
+      "owner": "M05",
+      "collaborators": [
+        "M15",
+        "M18"
+      ],
+      "phase": "W3",
+      "sources": [
+        "agent-gateway-config"
+      ],
+      "title": "Agent 配置和升级契约",
+      "requirement": "根 endpoint、API Key、TLS 校验、自定义 Header、HTTP/SOCKS5/SOCKS5H 出站代理、网关名称、采集/心跳间隔、网卡正则、磁盘白名单和自动更新配置均纳入版本化 schema。 自有 Agent 按 D02 采用 TUF；官方自动更新 true 仅为来源值，本项目自动安装默认 false 并明确展示差异。",
+      "acceptance": "保留文档默认值及优先级清单；校验代理 host/port；采集 5 秒、心跳 30 秒；白名单覆盖黑名单，挂载点精确匹配；升级包校验、失败回滚和暂停升级属于本方案增强。"
+    },
+    {
+      "id": "U09",
+      "owner": "M05",
+      "collaborators": [
+        "M04",
+        "M06"
+      ],
+      "phase": "W2",
+      "sources": [
+        "ssh-gateway",
+        "agent-gateway",
+        "asset"
+      ],
+      "title": "入口 SSH 与出站 SSH 跳板分离",
+      "requirement": "SSH 网关通过跳板的端口转发访问目标，安全网关通过主动隧道访问目标，资产地址从最后一跳解释。",
+      "acceptance": "跳板禁用 AllowTcpForwarding 时返回具体失败阶段；M05 不拥有平台 SSH 登录会话，M06 不复制网关配置。"
+    },
+    {
+      "id": "U10",
+      "owner": "M06",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M08"
+      ],
+      "phase": "W3",
+      "sources": [
+        "ssh-server",
+        "ssh-authentication",
+        "system-properties"
+      ],
+      "title": "原生 SSH 入口与受控转发",
+      "requirement": "交互选资产、直连、用户公钥、可禁用密码认证；服务端 Host Key 独立于用户密钥；SSH 转发开关和 host:port 白名单单独控制。",
+      "acceptance": "关闭转发仍能登录；绕过白名单的 forwarding 请求拒绝且审计；主机密钥持久化和轮换有指纹变更记录；普通 SSH 隧道不得冒充 SQL 协议审计。"
+    },
+    {
+      "id": "U11",
+      "owner": "M06",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M03",
+        "M05",
+        "M08",
+        "M13"
+      ],
+      "phase": "W3-基础链路/W4-能力验收",
+      "sources": [
+        "rdp-server"
+      ],
+      "title": "原生 RDP 一次性票据入口",
+      "requirement": "输出 .rdp 与 `NTICKET:<ticketId>:<secret>`；默认 TTL 300 秒、允许 60–3600 秒；默认监听 3390；独立对外地址；解析成功即消费；两段 NLA 行为分开处理。 按 D03.1 实现 FreeRDP 侧车、票据 hook、目标 TLS/NLA 和每会话隔离。",
+      "acceptance": "并发消费只有一次成功；过期/已用/撤权/非 RDP 资产拒绝；失败重连重新签发；文件不含目标 Windows 密码；创建并结束审计会话。"
+    },
+    {
+      "id": "U12",
+      "owner": "M06",
+      "collaborators": [
+        "M02",
+        "M07",
+        "M08"
+      ],
+      "phase": "W3/W4",
+      "sources": [
+        "access",
+        "rdp",
+        "rdp-server",
+        "vnc-telnet"
+      ],
+      "title": "按入口发布会话能力矩阵",
+      "requirement": "区分浏览器 SSH/RDP/VNC/Telnet、原生 SSH/RDP 和 Termark；共享、文件、剪贴板、监控、终止和录像分别声明能力。 本项目可新增原生 RDP 主动断连，只有 D03.2 验证通过才声明能力；未实现仍返回 unsupported。",
+      "acceptance": "官方当前不支持的监控/主动断开不得冒充兼容；本项目终止扩展须D03.2实测后才返回成功；原生磁盘重定向不等同浏览器存储；无法执行必需策略时拒绝该入口。"
+    },
+    {
+      "id": "U13",
+      "owner": "M06",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M03",
+        "M05",
+        "M13"
+      ],
+      "phase": "W3-基础链路/W4-能力验收",
+      "sources": [
+        "termark",
+        "rdp-server"
+      ],
+      "title": "Termark 授权与两类传输",
+      "requirement": "本地客户端授权、已授权 SSH/RDP 目录同步、直连代理或 WebSocket 隧道；截图还包含前置 Basic、自定义 Header、上游代理与 mTLS 选项。 按 D01 先提供公开 Termark URI 与自有 nt-client PKCE/HTTPS 接入；官方专有同步和帧协议单列 external_contract_required，原需求保留，不标兼容完成。",
+      "acceptance": "仅开放 HTTPS 的网络中完成 SSH 与 RDP 接入；用户撤权立即影响同步和新接入；设备授权/帧格式未公开，保留独立真实客户端兼容验收，自有路径按D01先交付，客户端本地偏好不写入服务端业务表。"
+    },
+    {
+      "id": "U14",
+      "owner": "M07",
+      "collaborators": [
+        "M02",
+        "M06",
+        "M08",
+        "M18"
+      ],
+      "phase": "W2/W3",
+      "sources": [
+        "file-management",
+        "rdp",
+        "ssh"
+      ],
+      "title": "两类文件系统与上传状态",
+      "requirement": "SSH 使用目标 SFTP；浏览器 RDP 使用共享存储或操作者默认存储。上传区分准备、浏览器上传、后端传输、成功/失败，提供取消和可安全重试。",
+      "acceptance": "99% 浏览器上传不算成功；新驱动配置需新会话；并发上传和映射盘写入均执行字节配额；编辑/目录上传/批量下载单列能力门控。"
+    },
+    {
+      "id": "U15",
+      "owner": "M08",
+      "collaborators": [
+        "M06",
+        "M07",
+        "M09",
+        "M10",
+        "M11",
+        "M15"
+      ],
+      "phase": "W2/W4",
+      "sources": [
+        "audit"
+      ],
+      "title": "资产访问日志与调查关联",
+      "requirement": "登录、后台变更、访问、命令、文件、SQL 和会话录像形成可关联的调查链；访问失败在会话尚未创建时也要留记录。",
+      "acceptance": "按用户/资源/时间/结果定位并关联 trace/session/workOrder；Windows 内部复制不能伪造为浏览器文件日志；没有录像显示原因而非空成功回放。"
+    },
+    {
+      "id": "U16",
+      "owner": "M08",
+      "collaborators": [
+        "M18",
+        "M12"
+      ],
+      "phase": "W3",
+      "sources": [
+        "audit",
+        "system-properties"
+      ],
+      "title": "分类保留与录屏配置",
+      "requirement": "分别配置会话、登录、任务、访问、SQL 日志的保留天数及录像开关，保留设置影响各自清理任务。",
+      "acceptance": "对象删除与索引清理可重入；受保留锁保护的证据不删除；网站禁用访问日志明确降级范围，不连带关闭登录和管理操作审计。"
+    },
+    {
+      "id": "U17",
+      "owner": "M09",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M05",
+        "M13",
+        "M18"
+      ],
+      "phase": "W3",
+      "sources": [
+        "website"
+      ],
+      "title": "Web 域名路由与登录回跳",
+      "requirement": "入口域名与上游地址分开；入口域名唯一且不能等于 SelfDomain；SelfProxyEnabled/SelfDomain/Root 决定登录入口；支持 HTTP 跳转 HTTPS、入口路径与网关。",
+      "acceptance": "相同域名不同路径也不允许注册第二站点；未授权不能到达上游；回跳仅允许已登记站点；证书 SAN 覆盖域名，不只检查 CN。"
+    },
+    {
+      "id": "U18",
+      "owner": "M09",
+      "collaborators": [
+        "M02",
+        "M08"
+      ],
+      "phase": "W3",
+      "sources": [
+        "website",
+        "real-ip"
+      ],
+      "title": "公开访问与临时 IP 白名单",
+      "requirement": "匿名访问按 IP/CIDR/范围、国家省市、期限和口令判断；临时授权绑定站点与可信提取 IP，有 TTL 和 autoRenew 开关。",
+      "acceptance": "关闭 autoRenew 时不续期；开启时仅成功访问续期并受本方案绝对期限约束；过期/撤销即失效；NAT 同出口共享效应可见。"
+    },
+    {
+      "id": "U19",
+      "owner": "M09",
+      "collaborators": [
+        "M08",
+        "M18"
+      ],
+      "phase": "W3",
+      "sources": [
+        "website"
+      ],
+      "title": "请求头与响应改写规则",
+      "requirement": "按请求路径/方法/响应状态匹配；设置、追加、删除响应头和替换正文；支持自定义上游请求头与站点访问日志开关。",
+      "acceptance": "压缩内容正确解压重算长度，限制可改 MIME/大小；WebSocket、流式和二进制内容不误改；不会把平台认证头泄漏给目标网站。"
+    },
+    {
+      "id": "U20",
+      "owner": "M18",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M09",
+        "M15"
+      ],
+      "phase": "W1/W3",
+      "sources": [
+        "real-ip",
+        "website",
+        "system-properties"
+      ],
+      "title": "两套真实 IP 配置与信任边界",
+      "requirement": "管理 API 与 Web 反代分别配置 direct/XFF/X-Real-IP 和可信代理；前者动态生效，反代 YAML 按文档需重启。",
+      "acceptance": "直连伪造 XFF 不生效；多跳由右向左剥离可信代理；SelfProxy 联动测试；默认自动信任私网的官方行为与本方案显式信任差异必须公开。"
+    },
+    {
+      "id": "U21",
+      "owner": "M01",
+      "collaborators": [
+        "M04",
+        "M10"
+      ],
+      "phase": "W4",
+      "sources": [
+        "database"
+      ],
+      "title": "数据库专用密码",
+      "requirement": "个人中心签发数据库用途凭据，与 API Token、平台密码和目标数据库密码分开；代理身份必须匹配凭据所属账号。 按D07采用TLS完整认证及Argon2id专用verifier；PG另存SCRAM材料。",
+      "acceptance": "A 用户凭据不能给 B 用户认证；撤销后新连接拒绝；MySQL challenge-response 使用专用 verifier，不能拿随机 token 的普通摘要直接实现协议认证。"
+    },
+    {
+      "id": "U22",
+      "owner": "M10",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M03",
+        "M05",
+        "M08"
+      ],
+      "phase": "W4",
+      "sources": [
+        "database",
+        "system-properties"
+      ],
+      "title": "MySQL 代理兼容基线",
+      "requirement": "兼容 username@asset_name 与个人数据库密码；启停、监听地址和阻止 DML/DDL 配置；查询和客户端元数据查询经过分类后放行。",
+      "acceptance": "真实 MySQL 客户端可握手、选择数据库、查询元数据和使用 prepared statement；变更受阻并产生审计；PG 是独立扩展适配器，不称官方使用文档已确认。"
+    },
+    {
+      "id": "U23",
+      "owner": "M11",
+      "collaborators": [
+        "M10",
+        "M08",
+        "M14"
+      ],
+      "phase": "W4",
+      "sources": [
+        "database"
+      ],
+      "title": "SQL 审批后自动执行",
+      "requirement": "提交资产/数据库/SQL/原因，管理员决定后自动调度已批准内容，保存结果并通知申请人；代理不能因存在工单而任意放开写 SQL。",
+      "acceptance": "审批事务与执行意图原子提交，重复审批不重复执行；SQL 变动重审；超时结果不明进入 unknown，DDL 隐式提交和部分成功单独记录。"
+    },
+    {
+      "id": "U24",
+      "owner": "M01",
+      "collaborators": [
+        "M04",
+        "M08"
+      ],
+      "phase": "W1",
+      "sources": [
+        "otp",
+        "cli"
+      ],
+      "title": "TOTP 与恢复码",
+      "requirement": "6 位/30 秒 TOTP，绑定前验证；同一时间步防重放；一次性恢复码和管理员恢复入口，恢复后要求重新绑定。",
+      "acceptance": "并发 TOTP/恢复码只有一次消费成功；恢复码独立哈希且仅签发时展示；CLI 清理 MFA 留下操作者、原因和会话撤销审计；前端恢复码流程缺口单列联调任务。"
+    },
+    {
+      "id": "U25",
+      "owner": "M01",
+      "collaborators": [
+        "M18"
+      ],
+      "phase": "W3",
+      "sources": [
+        "passkey",
+        "system-properties",
+        "cli"
+      ],
+      "title": "Passkey 域与来源配置",
+      "requirement": "HTTPS、无协议和端口的 RP ID、明确 Origin 白名单；注册、登录、删除及 CLI 全部清理。",
+      "acceptance": "跨 Origin/RP 的挑战拒绝，挑战一次性；清理用户全部 Passkey 后旧凭据不可用，不把浏览器删除成功当服务端已撤销。"
+    },
+    {
+      "id": "U26",
+      "owner": "M01",
+      "collaborators": [
+        "M02",
+        "M04",
+        "M08",
+        "M18"
+      ],
+      "phase": "W4",
+      "sources": [
+        "oidc_server",
+        "system-properties"
+      ],
+      "title": "OIDC 身份提供方完整闭环",
+      "requirement": "Discovery/JWKS、授权同意、授权码/刷新/客户端凭据、scope 与用户部门范围、客户端密钥仅生成时展示、用户撤销同意与声明映射。",
+      "acceptance": "issuer 固定且 discovery 端点自洽；redirect_uri 精确匹配；禁用客户端和撤销同意后刷新拒绝；正文 oauth2 路径与前端 oidc/server 差异须按兼容台账处理。"
+    },
+    {
+      "id": "U27",
+      "owner": "M13",
+      "collaborators": [
+        "M01",
+        "M04",
+        "M09",
+        "M16"
+      ],
+      "phase": "W3",
+      "sources": [
+        "mtls",
+        "website",
+        "cli"
+      ],
+      "title": "mTLS 用户证书与默认继承",
+      "requirement": "自签/导入/ACME 服务证书；客户端证书生成及 .p12 下载、状态/指纹/序列号/最近使用、吊销重颁；站点证书优先于默认项。",
+      "acceptance": "无证书、过期、吊销及其他 CA 证书不能通过；变更默认项展示受影响站点；证书通过不等于获得资源授权；CA 备份/恢复和轮换联动。"
+    },
+    {
+      "id": "U28",
+      "owner": "M16",
+      "collaborators": [
+        "M04",
+        "M07",
+        "M08",
+        "M13"
+      ],
+      "phase": "W3",
+      "sources": [
+        "backup"
+      ],
+      "title": "明确备份边界与格式兼容",
+      "requirement": "官方 .ntbak 含 PostgreSQL 与 CA 材料，不含录屏和 Windows 映射盘；本方案提供数据库/CA 备份及独立对象备份清单。 按 D04 使用 nt-backup/v1 的 tar+age 容器、PG自定义dump、CA/KEK和对象清单；格式与官方明确区分。",
+      "acceptance": "备份页明确包含/排除内容；data/recordings 与 data/drive 独立恢复验证；格式未公开时不得宣称能导入官方 .ntbak，也不得把 ZIP 改扩展名冒充兼容。"
+    },
+    {
+      "id": "U29",
+      "owner": "M16",
+      "collaborators": [
+        "M12",
+        "M14",
+        "M18"
+      ],
+      "phase": "W3",
+      "sources": [
+        "backup",
+        "postgresql-16-to-18"
+      ],
+      "title": "恢复编排与 PostgreSQL 升级",
+      "requirement": "立即/每日定时备份、保留天数、S3/SFTP/WebDAV 测试和复制；恢复前安全备份、维护锁、版本校验、重启及恢复验证；主版本升级走导出/恢复。 按 D04 在隔离数据库恢复、验证后切换；外部任务不重放，切换后写入不承诺无损回退。",
+      "acceptance": "验证 pg_dump/pg_restore 版本矩阵；禁止直接复用不同主版本数据目录；保留旧库和回滚方案；恢复不重放 SQL/轮换任务；异地复制失败与本地备份成功分开呈现。"
+    },
+    {
+      "id": "U30",
+      "owner": "M18",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M13",
+        "M15",
+        "M08"
+      ],
+      "phase": "W1/W3",
+      "sources": [
+        "cli"
+      ],
+      "title": "运维 CLI 作为统一应用入口",
+      "requirement": "新增 cmd/nt，覆盖 user list/passwd/otpclr/passkeyclr、sec list/delete、cert generate/revoke、config list/get/set、geodata download/-f、status/version/help/completion。",
+      "acceptance": "CLI 复用模块用例与配置校验；应急离线模式限制 OS 身份并留审计，不能由 CLI 直接随意改表；密码使用交互或安全输入通道。"
+    },
+    {
+      "id": "U31",
+      "owner": "M18",
+      "collaborators": [
+        "M01",
+        "M02",
+        "M06",
+        "M07",
+        "M08",
+        "M10",
+        "M14",
+        "M17"
+      ],
+      "phase": "W0/W4",
+      "sources": [
+        "system-properties"
+      ],
+      "title": "系统属性兼容注册表",
+      "requirement": "逐键登记官方 property 键、领域所有者、解析类型/单位、秘密标记、验证和生效方式；property string 兼容外观不改变内部类型化设置。 本项目设计默认值与官方未知默认值分字段保留；103键均定义类型/范围/effect；M18按 D06 实现revision/ACK及安全收紧。",
+      "acceptance": "未知键拒绝写入；秘密默认掩码；UI/API/CLI 同规则；官方默认值未知须注明；本项目默认值与单位依据显式登记；废弃分组树键由资源模块迁移，避免两份权威数据。"
+    },
+    {
+      "id": "U32",
+      "owner": "M18",
+      "collaborators": [
+        "M02",
+        "M07"
+      ],
+      "phase": "W0/W3",
+      "sources": [
+        "license",
+        "authorization",
+        "file-management",
+        "cli"
+      ],
+      "title": "许可生命周期与能力分层",
+      "requirement": "设备标识、导入/绑定/更新状态、资产/用户/并发额度及到期展示；文件编辑、目录上传、批量下载、GeoIP 和高级策略独立能力项。 按 D05 提供 local 或本项目 Ed25519/JWS provider；不向官方服务伪造授权。",
+      "acceptance": "实际实现能力、产品许可和用户授权取交集；外部许可校验协议未知则显示未接入；不得伪造官方许可证，也不把官方授权门户订单业务纳入本后端。"
+    },
+    {
+      "id": "U33",
+      "owner": "M15",
+      "collaborators": [
+        "M05",
+        "M06",
+        "M08"
+      ],
+      "phase": "W2/W3",
+      "sources": [
+        "error-codes",
+        "rdp-black-screen-failed",
+        "ssh",
+        "agent-gateway-config",
+        "readme"
+      ],
+      "title": "协议故障与指标来源",
+      "requirement": "保留 Guacamole 数字错误码，诊断区分用户入口、代理、网关、目标认证、协议协商与存储；SSH 主机指标和 Agent 所在机器指标不得混用。",
+      "acceptance": "514/522/776 等超时能定位不同层；769 不误判为平台已退出登录；命令不可用时指标 unknown；排障不会自动修改目标安全策略。"
+    },
+    {
+      "id": "U34",
+      "owner": "M12",
+      "collaborators": [
+        "M06",
+        "M02"
+      ],
+      "phase": "W3",
+      "sources": [
+        "ssh"
+      ],
+      "title": "命令片段插入与任务执行分离",
+      "requirement": "命令片段检索/使用只插入终端，批量任务另走受控执行用例。",
+      "acceptance": "使用片段不自动附加换行执行；系统片段与个人片段范围明确；命令过滤和审计仍在真实执行入口生效。"
+    },
+    {
+      "id": "U35",
+      "owner": "M17",
+      "collaborators": [
+        "M03",
+        "M06",
+        "M08",
+        "M18"
+      ],
+      "phase": "W4",
+      "sources": [
+        "ssh",
+        "system-properties"
+      ],
+      "title": "AI 双重开关与审计助手",
+      "requirement": "系统 LLM、Shell 助手/审计助手及单资产 AI 设置分别生效；模型、代理、提示词和执行策略类型化管理。",
+      "acceptance": "系统或资产关闭时不能通过直接 API 执行工具；审计助手只读取已授权日志；模型密钥不进入配置列表和会话审计。"
+    },
+    {
+      "id": "U36",
+      "owner": "M14",
+      "collaborators": [
+        "M11",
+        "M18"
+      ],
+      "phase": "W3/W4",
+      "sources": [
+        "database",
+        "system-properties"
+      ],
+      "title": "执行反馈与邮件配置",
+      "requirement": "SQL 工单完成/失败/结果待核对后通知申请人；SMTP TLS、账号、发件人和测试发送归渠道模块。",
+      "acceptance": "发送失败可独立重试，不重做 SQL；不把数据库密码/完整秘密放进消息；配置测试与生产投递记录可区分。"
+    }
+  ]
+}

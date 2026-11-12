@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "restoreId": "restore-1384095835",
+  "restoreToFrozenSeconds": 15.249,
+  "activateSeconds": 3.326,
+  "checks": [
+    "safety archive",
+    "restricted staging database",
+    "API and graphics readiness",
+    "rollback before writes",
+    "resume",
+    "old session denied",
+    "new login and restore history",
+    "shared file and secrets",
+    "post-write rollback refused without stopping services"
+  ],
+  "date": "2026-11-12",
+  "environment": "Docker isolated development transport with production-built images",
+  "agentProcessUpdateRollback": {
+    "passed": true,
+    "seconds": 70.978
+  },
+  "agentConnectivity": {
+    "passed": true,
+    "tests": 2,
+    "seconds": 15.31
+  }
+}

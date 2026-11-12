@@ -2913,7 +2913,7 @@
     "oidc_server": {
       "setting": "Identity Provider",
       "server": "OIDC Server",
-      "description": "Enable the OIDC server so other applications can authenticate users through Next Terminal for single sign-on.",
+      "description": "Enable the OIDC server so other applications can authenticate users through Puppeteer for single sign-on.",
       "endpoints_title": "Standard Endpoints:",
       "endpoint": {
         "discovery": "Discovery",
@@ -3461,7 +3461,7 @@
     "load_failed": "Failed to load access status",
     "retry": "Retry",
     "title": "Agent access",
-    "description": "Install the Next Terminal Skill for OpenClaw, Hermes or custom agents. Install once, then query and manage resources with the installed client.",
+    "description": "Install the Puppeteer Skill for OpenClaw, Hermes or custom agents. Install once, then query and manage resources with the installed client.",
     "create_key": "Create API key",
     "download_skill": "Download Skill",
     "download_client": "Download API client",
@@ -3472,7 +3472,7 @@
     "key_instruction": "Configure NT_API_KEY securely in the agent environment; do not paste the key into a conversation.",
     "setup_tip": "Create an API token on the access tokens page and configure NT_API_KEY in the agent’s persistent environment. Install the Skill and client in the next-terminal-api subdirectory of the persistent Skill directory, then load it as required by the framework. Only Python 3 is needed. Use --token-env for a different environment variable name.",
     "copy_prompt": "Copy installation instructions",
-    "prompt": "Install the Next Terminal resource management Skill for {{url}}.\n\n1. Identify this agent framework’s persistent Skill directory and use its next-terminal-api subdirectory. Do not use temporary storage or only read the Skill for this conversation.\n2. Download {{url}}/agent/next-terminal/install.py and run python3 install.py --base-url {{url}} --directory <persistent-skill-directory>/next-terminal-api. It installs SKILL.md and scripts/nt_api.py and saves instance configuration without secrets. If an existing installation targets another instance, confirm the directory before overwriting it.\n3. Load or reload the installed Skill according to the framework. I configured NT_API_KEY in the persistent agent environment. Do not print, save or request the key in chat. If missing, tell me where to configure it.\n4. Run the installed scripts/nt_api.py check. Report the installation directory, Skill loading status and account name; report failures accurately.\nAlso run scripts/nt_api.py permissions to obtain account permissions and the effective license. Check them before selecting interfaces; visibility in the complete document does not authorize calls.\n5. Use the installed Skill and client for subsequent authorized resource management tasks.\n\nAfter installation and verification, wait for my task.",
+    "prompt": "Install the Puppeteer resource management Skill for {{url}}.\n\n1. Identify this agent framework’s persistent Skill directory and use its next-terminal-api subdirectory. Do not use temporary storage or only read the Skill for this conversation.\n2. Download {{url}}/agent/next-terminal/install.py and run python3 install.py --base-url {{url}} --directory <persistent-skill-directory>/next-terminal-api. It installs SKILL.md and scripts/nt_api.py and saves instance configuration without secrets. If an existing installation targets another instance, confirm the directory before overwriting it.\n3. Load or reload the installed Skill according to the framework. I configured NT_API_KEY in the persistent agent environment. Do not print, save or request the key in chat. If missing, tell me where to configure it.\n4. Run the installed scripts/nt_api.py check. Report the installation directory, Skill loading status and account name; report failures accurately.\nAlso run scripts/nt_api.py permissions to obtain account permissions and the effective license. Check them before selecting interfaces; visibility in the complete document does not authorize calls.\n5. Use the installed Skill and client for subsequent authorized resource management tasks.\n\nAfter installation and verification, wait for my task.",
     "permissions": "The agent inherits the API key account’s permissions. Set an expiry and revoke the token when retiring the agent.",
     "heading": "Connect your agent to manage resources",
     "step_key": "Create an API key",

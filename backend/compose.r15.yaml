@@ -1,0 +1,17 @@
+# R15 AI workflows. Combine with compose.yaml, not the R14 native-RDP
+# acceptance overlay. The existing R14 binary/SDK remain available separately.
+services:
+  ai-fixture:
+    profiles: [r15-fixtures]
+    image: nt-backend-r01-server
+    entrypoint: [/app/ai-fixture]
+    volumes:
+      - ./.local/r15-full/ai-fixture:/app/ai-fixture:ro
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # Internal protocol fixture only; no published host ports.
+  server:
+    volumes:
+      - ./.local/r15-release/server:/app/server:ro
+      - ./.local/r15-release/nt:/app/nt:ro

@@ -1,0 +1,10 @@
+{
+  "release": "r16-login-captcha",
+  "scope": "Registration versus OpenAPI only; does not prove schemas, permissions, buttons or business acceptance",
+  "completeProductAcceptance": false,
+  "registeredOperations": 407,
+  "documentedOperations": 407,
+  "matchedOperations": 407,
+  "documentedButUnregistered": [],
+  "registeredWithoutOpenAPI": []
+}

@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily Puppeteer WAL differential backup
+[Timer]
+OnCalendar=Mon..Sat *-*-* 02:00:00 UTC
+Persistent=true
+Unit=puppeteer-wal@diff.service
+[Install]
+WantedBy=timers.target

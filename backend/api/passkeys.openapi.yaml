@@ -1,0 +1,167 @@
+openapi: 3.1.0
+info:
+  title: Passkey registration and login
+  version: r16-passkey-configuration
+  description: >-
+    Every mutation requires an allowed Origin. Registration requires an authenticated user,
+    current local password and fresh bound TOTP. Login retains the existing captcha requirement.
+    Challenges are server-persisted, single-use, purpose/session/origin bound, and expire in five
+    minutes. User verification is required; signatures, RP hash, origin, owner, revocation and
+    authenticator counters are checked. Challenge consumption precedes response validation.
+    Unified settings govern enablement, explicit RP and exact HTTPS origins. Empty RP with an
+    empty origins list inherits deployment configuration. The compatibility allow switch defaults
+    true, but an absent/invalid RP never opens login. All configured origins must also be allowed
+    by the deployment API Origin policy. Config changes invalidate outstanding ceremonies;
+    no-op saves do not. Finish rechecks current configuration under a transaction lock.
+    Disabling prevents login/registration immediately; enablement waits for online ACK.
+    Existing authenticated sessions remain valid and personal credentials remain revocable.
+    Isolated restore disables Passkey and revokes credentials. Physical authenticator acceptance
+    was excluded by the user; synthetic signed tests do not claim Windows Hello verification.
+security:
+  - session: []
+paths:
+  /api/account/passkeys:
+    get:
+      responses:
+        '200':
+          description: Current RP credentials, including revocation metadata; no private keys
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Record'}}
+        '401': {description: Authentication required}
+        '503': {description: No configured RP identity}
+  /api/account/passkeys/start:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Proof'}
+      responses:
+        '200': {description: One-use token and standard WebAuthn PublicKeyCredentialCreationOptions}
+        '400': {description: Invalid password or missing/replayed MFA proof}
+        '403': {description: Origin or account policy denied}
+        '503': {description: Passkey disabled or unconfigured}
+  /api/account/passkeys/finish:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token, name, response]
+              properties:
+                token: {type: string}
+                name: {type: string}
+                response: {$ref: '#/components/schemas/CredentialResponse'}
+      responses:
+        '201': {description: New credential ID}
+        '400': {description: Expired/used/wrong-purpose challenge or invalid attestation}
+        '403': {description: Session or Origin mismatch}
+        '503': {description: Passkey disabled or unconfigured}
+  /api/account/passkeys/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: {type: string, format: uuid}
+    delete:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Proof'}
+      responses:
+        '204': {description: Owned credential revoked}
+        '400': {description: Invalid ID or password/MFA proof}
+        '409': {description: Would remove the last verified administrator login path}
+  /api/passkey/login/start:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                key: {type: string, description: One-use captcha result when required by deployment}
+      responses:
+        '200':
+          description: One-use token and standard PublicKeyCredentialRequestOptions
+          headers:
+            Set-Cookie:
+              schema: {type: string}
+              description: nt_passkey_challenge; HttpOnly; Secure; SameSite=Strict; Path=/api/passkey; Max-Age=300
+        '400': {description: Captcha verification failed}
+        '403': {description: Origin denied}
+        '429': {description: Attempt or verification capacity exceeded}
+        '503': {description: Passkey disabled or unconfigured}
+  /api/passkey/login/finish:
+    post:
+      security:
+        - challenge: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token, response]
+              properties:
+                token: {type: string}
+                response: {$ref: '#/components/schemas/CredentialResponse'}
+      responses:
+        '200':
+          description: Login cookie issued; bound TOTP remains required when needTotp is true
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [needTotp]
+                properties:
+                  needTotp: {type: boolean}
+        '400': {description: Invalid challenge, signature, user verification, counter or owner}
+        '403': {description: Account or login policy denied}
+        '429': {description: Attempt or verification capacity exceeded}
+        '503': {description: Passkey disabled or unconfigured}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+    challenge: {type: apiKey, in: cookie, name: nt_passkey_challenge}
+  schemas:
+    Proof:
+      type: object
+      additionalProperties: false
+      required: [password]
+      properties:
+        password: {type: string, maxLength: 1024, writeOnly: true}
+        totp: {type: string, pattern: '^\d{6}$', writeOnly: true}
+    Record:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        createdAt: {type: string, format: date-time}
+        lastUsedAt: {type: [string, 'null'], format: date-time}
+        revokedAt: {type: [string, 'null'], format: date-time}
+    CredentialResponse:
+      type: object
+      description: Standard WebAuthn JSON credential; binary fields use base64url
+      required: [id, rawId, type, response]
+      properties:
+        id: {type: string}
+        rawId: {type: string}
+        type: {const: public-key}
+        clientExtensionResults: {type: object}
+        response:
+          type: object
+          description: Registration attestationObject/clientDataJSON, or login authenticatorData/signature/clientDataJSON/userHandle

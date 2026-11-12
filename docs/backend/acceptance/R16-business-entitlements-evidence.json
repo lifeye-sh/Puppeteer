@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-11",
+  "release": "r16-business-entitlements",
+  "schema": 70,
+  "capabilitiesRevision": 48,
+  "controlledFeatures": 12,
+  "applicationRegressionSeconds": 130.6,
+  "frontendTests": 10,
+  "typecheck": true,
+  "goVet": true,
+  "buildSeconds": 14.4,
+  "serverHealthy": true,
+  "rdpStorageHealthy": true,
+  "browserAcceptance": "valid local license: 12 features including all three new gates",
+  "negativeEntitlementAcceptance": "isolated database and real SSH/SFTP/HTTPS fixtures",
+  "businessSettingsRevision": 26,
+  "businessLicenseChanged": false,
+  "roundComplete": false
+}

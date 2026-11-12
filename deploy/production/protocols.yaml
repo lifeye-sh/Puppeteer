@@ -1,0 +1,17 @@
+# Listener exposure is opt-in. Application policy and TLS still govern access.
+# Native RDP remains deferred and is not enabled by this overlay.
+services:
+  server:
+    environment:
+      NT_NATIVE_SSH_ADDR: :2022
+      NT_NATIVE_SSH_NAME: ${PUPPETEER_PROTOCOL_HOST:?Set the protocol certificate hostname}
+      NT_DATABASE_PROXY_ADDR: :13306
+      NT_POSTGRES_PROXY_ADDR: :15432
+      NT_DATABASE_PROXY_NAME: ${PUPPETEER_PROTOCOL_HOST}
+      NT_WEBSITE_ADDR: :18443
+      NT_WEBSITE_PUBLIC_PORT: ${PUPPETEER_WEBSITE_PORT:-18443}
+    ports:
+      - '${PUPPETEER_PROTOCOL_BIND:-127.0.0.1}:${PUPPETEER_SSH_PORT:-2022}:2022'
+      - '${PUPPETEER_PROTOCOL_BIND:-127.0.0.1}:${PUPPETEER_MYSQL_PORT:-13306}:13306'
+      - '${PUPPETEER_PROTOCOL_BIND:-127.0.0.1}:${PUPPETEER_POSTGRES_PORT:-15432}:15432'
+      - '${PUPPETEER_PROTOCOL_BIND:-127.0.0.1}:${PUPPETEER_WEBSITE_PORT:-18443}:18443'

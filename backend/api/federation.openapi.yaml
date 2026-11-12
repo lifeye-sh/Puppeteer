@@ -1,0 +1,245 @@
+openapi: 3.1.0
+info:
+  title: External OIDC and WeCom identity providers
+  version: r16-managed-federation
+  description: >-
+    Independent and settings-managed default providers. Managed provider edits use the
+    unified settings API; this provider-edit API rejects them. Issuer is globally unique, so an
+    existing independent provider cannot be silently adopted. Administration requires identity.manage. Save, bind, unbind and authorization
+    tests require the current local password and a fresh TOTP when bound. Mutations require an
+    allowed Origin. External accounts bind only by verified issuer and subject; matching email
+    never links or creates a platform user. Anonymous login resolves a pre-existing binding.
+    Issuer and provider kind are immutable; WeCom corporation ID is also immutable.
+    Provider changes invalidate outstanding authorization through provider-version checks.
+    Authorization state is single-use, bound to browser/user, expires in five minutes, and is
+    consumed before network/signature verification. OIDC uses code, nonce, PKCE S256 and RS256.
+    Login still applies local account status, lockout and MFA/enrollment policy.
+security:
+  - session: []
+paths:
+  /api/admin/oidc-providers:
+    get:
+      responses:
+        '200':
+          description: Independent providers; secret material is never returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Provider'}}
+        '403': {description: "identity.manage required"}
+    post:
+      requestBody: {$ref: '#/components/requestBodies/Save'}
+      responses:
+        '200': {$ref: '#/components/responses/Saved'}
+        '400': {description: "Invalid payload, password or MFA proof"}
+        '403': {description: "Permission or Origin denied"}
+        '409': {description: "Conflicting provider or last administrator login path"}
+  /api/admin/oidc-providers/{id}:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    put:
+      requestBody: {$ref: '#/components/requestBodies/Save'}
+      responses:
+        '200': {$ref: '#/components/responses/Saved'}
+        '400': {description: "Invalid payload, password or MFA proof"}
+        '403': {description: "Permission or Origin denied"}
+        '409': {description: "Stale version, immutable identity domain or last login path"}
+  /api/admin/oidc-providers/{id}/test:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      description: >-
+        Tests saved OIDC metadata (not client credentials or login), or obtains a WeCom app
+        access token to check saved app credentials. Does not enable login or bind users.
+      responses:
+        '200': {description: "version and message; OIDC also returns discovery metadata"}
+        '403': {description: "identity.manage or Origin denied"}
+        '422': {description: "Discovery/TLS or WeCom credential check failed"}
+        '429': {description: "Per-user diagnostic limit"}
+  /api/admin/oidc-providers/{id}/authorize-test:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      description: Verifies a real authorization exchange; never binds or logs in a user
+      requestBody: {$ref: '#/components/requestBodies/Proof'}
+      responses:
+        '200': {$ref: '#/components/responses/Authorization'}
+        '400': {description: "Invalid proof"}
+        '403': {description: "Permission or Origin denied"}
+        '422': {description: "Invalid callback origin/path or unavailable identity provider"}
+  /api/account/oidc-identities:
+    get:
+      responses:
+        '200':
+          description: Own bindings and providers currently allowing new bindings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: string, format: uuid}
+                        providerId: {type: string, format: uuid}
+                        name: {type: string}
+                        issuer: {type: string}
+                        subject: {type: string}
+                        createdAt: {type: string, format: date-time}
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: string, format: uuid}
+                        name: {type: string}
+                        issuer: {type: string}
+        '401': {description: "Authentication required"}
+  /api/account/oidc-providers/{id}/bind:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      requestBody: {$ref: '#/components/requestBodies/Proof'}
+      responses:
+        '200': {$ref: '#/components/responses/Authorization'}
+        '400': {description: "Invalid proof"}
+        '403': {description: "Binding disabled or session/Origin denied"}
+        '422': {description: "Invalid callback or unavailable provider"}
+  /api/account/oidc-identities/{id}:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    delete:
+      description: Deletes only own binding; invalidates outstanding binding attempts
+      requestBody: {$ref: '#/components/requestBodies/Proof'}
+      responses:
+        '200': {description: 'ok: true'}
+        '400': {description: "Invalid proof"}
+        '403': {description: "Binding not owned by caller or Origin denied"}
+        '409': {description: "Would remove last verified administrator login path"}
+  /api/oidc/login/providers:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Only enabled providers, exposing ID and display name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: string, format: uuid}
+                        name: {type: string}
+  /api/oidc/login/{id}/start:
+    parameters: [{$ref: '#/components/parameters/ID'}]
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                key: {type: string, description: "Consumed captcha proof when captcha is required"}
+      responses:
+        '200': {$ref: '#/components/responses/Authorization'}
+        '400': {description: "Invalid captcha, provider or callback proof"}
+        '403': {description: "Origin denied"}
+        '429': {description: "Login work limit"}
+  /api/oidc/callback:
+    get:
+      security: []
+      description: >-
+        Dispatches by stored state purpose. Login requires the secure HttpOnly browser binding
+        cookie. Binding/tests require the initiating authenticated session. No arbitrary redirect.
+      parameters: [{$ref: '#/components/parameters/State'}, {$ref: '#/components/parameters/Code'}]
+      responses:
+        '200': {description: "HTML test/binding result, no external tokens exposed"}
+        '303': {description: "Login redirects to /login, or /login?oidcError=1 on failure"}
+        '400': {description: "Invalid/expired/replayed state or changed provider"}
+        '401': {description: "Initiating test/binding session missing"}
+        '403': {description: "Permission denied"}
+        '409': {description: "Binding conflict or last-login-path protection"}
+        '422': {description: "Authorization exchange failed; challenge remains consumed"}
+  /api/wechat-work/callback:
+    get:
+      security: []
+      description: WeCom counterpart of the OIDC callback, with the same stored-purpose dispatch
+      parameters: [{$ref: '#/components/parameters/State'}, {$ref: '#/components/parameters/Code'}]
+      responses:
+        '200': {description: "HTML test/binding result"}
+        '303': {description: "Login redirects to /login, optionally with oidcError=1"}
+        '400': {description: "Invalid/expired/replayed state or changed provider"}
+        '401': {description: "Initiating test/binding session missing"}
+        '403': {description: "Permission denied"}
+        '409': {description: "Binding conflict or last-login-path protection"}
+        '422': {description: "Authorization exchange failed; challenge remains consumed"}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+  parameters:
+    ID: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+    State: {name: state, in: query, required: true, schema: {type: string, minLength: 64, maxLength: 64}}
+    Code: {name: code, in: query, required: false, schema: {type: string}}
+  requestBodies:
+    Proof:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Proof'}
+    Save:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/Provider'}
+              - {$ref: '#/components/schemas/Proof'}
+              - type: object
+                properties:
+                  clientSecret:
+                    type: string
+                    maxLength: 8192
+                    writeOnly: true
+                    description: Required on create; empty on edit preserves existing sealed secret
+  responses:
+    Saved:
+      description: Saved provider ID
+      content:
+        application/json:
+          schema: {type: object, properties: {id: {type: string, format: uuid}}}
+    Authorization:
+      description: Authorization URL; browser must navigate to it to continue
+      content:
+        application/json:
+          schema: {type: object, properties: {authorizationUrl: {type: string, format: uri}}}
+  schemas:
+    Proof:
+      type: object
+      required: [password]
+      properties:
+        password: {type: string, writeOnly: true}
+        totp: {type: string, writeOnly: true, description: "Fresh bound TOTP when MFA is enrolled"}
+    Provider:
+      type: object
+      required: [name, issuer, clientId, redirectUri]
+      properties:
+        id: {type: string, format: uuid, readOnly: true}
+        kind: {type: string, enum: [oidc, wecom], default: oidc}
+        name: {type: string, maxLength: 100}
+        issuer: {type: string, format: uri, maxLength: 2048, description: "Exact HTTPS issuer; immutable"}
+        clientId: {type: string, maxLength: 512, description: "WeCom corporation ID is at most 128 bytes"}
+        redirectUri: {type: string, format: uri, maxLength: 2048}
+        agentId: {type: string, maxLength: 32, description: "WeCom only; decimal digits required"}
+        authorizationUrl: {type: string, format: uri, maxLength: 2048, description: "WeCom only; HTTPS"}
+        enabled: {type: boolean, default: false}
+        bindingEnabled: {type: boolean, default: false}
+        settingsManaged: {type: boolean, readOnly: true}
+        scopes: {type: array, minItems: 1, maxItems: 32, uniqueItems: true, items: {type: string, maxLength: 128}, description: "OIDC only; must include openid. Omission preserves existing scopes on edit; create defaults to openid."}
+        hasSecret: {type: boolean, readOnly: true}
+        version: {type: integer, description: "Required current provider version on edit"}

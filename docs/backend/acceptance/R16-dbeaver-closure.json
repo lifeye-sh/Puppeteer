@@ -1,0 +1,15 @@
+{
+  "status": "completed_by_user_waiver",
+  "completed": true,
+  "date": "2026-11-12",
+  "instruction": "DBeaver得相关测试都标记为完成，不用测试。",
+  "scope": [
+    "DBeaver object tree",
+    "DBeaver data page",
+    "DBeaver queries",
+    "DBeaver manual-query audit correlation"
+  ],
+  "additionalTestingRequired": false,
+  "automatedTestPassed": false,
+  "note": "按用户明确要求免测关闭；保留历史失败、跳过和未关联记录，不将其改写为自动测试通过。"
+}

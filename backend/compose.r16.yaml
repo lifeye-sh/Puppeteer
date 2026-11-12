@@ -1,0 +1,39 @@
+# Combine with compose.yaml and compose.r15.yaml for R16.
+services:
+  server:
+    environment:
+      NT_POSTGRES_PROXY_ADDR: :15432
+      NT_ENTITLEMENT_MODE: ${NT_ENTITLEMENT_MODE:-local}
+      NT_ENTITLEMENT_LOCAL_FILE: ${NT_ENTITLEMENT_LOCAL_FILE:-}
+      NT_ENTITLEMENT_TRUST_FILE: ${NT_ENTITLEMENT_TRUST_FILE:-}
+    ports:
+      - "127.0.0.1:15432:15432"
+    volumes:
+      - ./.local/puppeteer-logo/server:/app/server:ro
+      - ./.local/puppeteer-branding/nt:/app/nt:ro
+  guacd:
+    environment:
+      NT_ENTITLEMENT_MODE: ${NT_ENTITLEMENT_MODE:-local}
+      NT_ENTITLEMENT_LOCAL_FILE: ${NT_ENTITLEMENT_LOCAL_FILE:-}
+      NT_ENTITLEMENT_TRUST_FILE: ${NT_ENTITLEMENT_TRUST_FILE:-}
+    volumes:
+      - ./.local/puppeteer-branding/nt-rdp-storage:/usr/local/bin/nt-rdp-storage:ro
+  r16-postgres-fixture:
+    profiles: [r16-fixtures]
+    image: postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
+    entrypoint: [sh, /fixture-scripts/start.sh]
+    environment:
+      POSTGRES_PASSWORD: r16-disposable-fixture-only
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - ./.local/r16-pg:/fixture:ro
+      - ./fixtures/postgres:/fixture-scripts:ro
+      - ./fixtures/postgres/init.sql:/docker-entrypoint-initdb.d/01-r16.sql:ro
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d inventory]
+      interval: 2s
+      timeout: 3s
+      retries: 20

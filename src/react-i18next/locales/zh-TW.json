@@ -2792,7 +2792,7 @@
     "oidc_server": {
       "setting": "身分提供服務",
       "server": "OIDC 伺服器",
-      "description": "啟用 OIDC 伺服器，讓其他應用程式透過 Next Terminal 驗證使用者身分並實現單一登入。",
+      "description": "啟用 OIDC 伺服器，讓其他應用程式透過 Puppeteer 驗證使用者身分並實現單一登入。",
       "endpoints_title": "標準端點：",
       "endpoint": {
         "discovery": "服務探索（Discovery）",
@@ -3461,7 +3461,7 @@
     "load_failed": "載入接入狀態失敗",
     "retry": "重試",
     "title": "Agent 接入",
-    "description": "為 OpenClaw、Hermes 或自訂 Agent 安裝 Next Terminal Skill。安裝一次，之後透過已安裝的腳本查詢及管理資源。",
+    "description": "為 OpenClaw、Hermes 或自訂 Agent 安裝 Puppeteer Skill。安裝一次，之後透過已安裝的腳本查詢及管理資源。",
     "create_key": "建立 API Key",
     "download_skill": "下載 Skill 文件",
     "download_client": "下載 API 用戶端",
@@ -3487,7 +3487,7 @@
     "preview_prompt": "查看安裝指令",
     "advanced": "API 文件（開發者）",
     "advanced_tip": "Skill 安裝包含介面探索及呼叫腳本。自行開發整合時，可在此查閱 API 契約。",
-    "prompt": "請為我安裝 Next Terminal 資源管理 Skill，實例位址為 {{url}}。\n\n1. 確認目前 Agent 框架的持久 Skill 目錄，並使用其中的 next-terminal-api 子目錄。不要使用暫存目錄，也不要只在本次對話中讀取文件。\n2. 下載 {{url}}/agent/next-terminal/install.py，在本機執行 python3 install.py --base-url {{url}} --directory <持久Skill目錄>/next-terminal-api。安裝程式會下載 SKILL.md 與 scripts/nt_api.py，並儲存不含金鑰的實例設定。若已有同名 Skill 指向另一實例，請先確認安裝位置，避免覆寫。\n3. 依框架要求載入或重新載入已安裝的 Skill。API Key 已由我設定在持久環境變數 NT_API_KEY 中；不要輸出、儲存或索取金鑰明文。無法讀取時，請告訴我應在哪個執行環境設定。\n4. 使用已安裝的 scripts/nt_api.py check 驗證連線，回報 Skill 安裝位置、載入情況及帳戶名稱；失敗時說明原因，不要宣稱安裝與連線成功。\n並執行 scripts/nt_api.py permissions 取得目前帳號權限與系統授權，後續先檢查權限再選擇介面；完整文件可見不代表可以呼叫。\n5. 後續管理任務使用已安裝的 Skill 與腳本，依需求探索介面並執行我授權的操作。\n\n安裝及驗證完成後，等待我提供具體任務。",
+    "prompt": "請為我安裝 Puppeteer 資源管理 Skill，實例位址為 {{url}}。\n\n1. 確認目前 Agent 框架的持久 Skill 目錄，並使用其中的 next-terminal-api 子目錄。不要使用暫存目錄，也不要只在本次對話中讀取文件。\n2. 下載 {{url}}/agent/next-terminal/install.py，在本機執行 python3 install.py --base-url {{url}} --directory <持久Skill目錄>/next-terminal-api。安裝程式會下載 SKILL.md 與 scripts/nt_api.py，並儲存不含金鑰的實例設定。若已有同名 Skill 指向另一實例，請先確認安裝位置，避免覆寫。\n3. 依框架要求載入或重新載入已安裝的 Skill。API Key 已由我設定在持久環境變數 NT_API_KEY 中；不要輸出、儲存或索取金鑰明文。無法讀取時，請告訴我應在哪個執行環境設定。\n4. 使用已安裝的 scripts/nt_api.py check 驗證連線，回報 Skill 安裝位置、載入情況及帳戶名稱；失敗時說明原因，不要宣稱安裝與連線成功。\n並執行 scripts/nt_api.py permissions 取得目前帳號權限與系統授權，後續先檢查權限再選擇介面；完整文件可見不代表可以呼叫。\n5. 後續管理任務使用已安裝的 Skill 與腳本，依需求探索介面並執行我授權的操作。\n\n安裝及驗證完成後，等待我提供具體任務。",
     "go_settings": "前往接入設定",
     "view_settings": "查看接入設定",
     "view_guide": "查看 Agent 接入指南",

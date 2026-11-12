@@ -174,6 +174,7 @@ export type AccountInfo = {
     mfaEnabled: boolean;
     roles: string[];
     permissions?: {method: string; path: string}[];
+    actions?: string[];
     menus?: Menu[];
     language: string;
     forceTotpEnabled: boolean

@@ -2913,7 +2913,7 @@
     "oidc_server": {
       "setting": "身份提供服务",
       "server": "OIDC 服务端",
-      "description": "启用 OIDC 服务端，让其他应用通过 Next Terminal 验证用户身份并实现单点登录。",
+      "description": "启用 OIDC 服务端，让其他应用通过 Puppeteer 验证用户身份并实现单点登录。",
       "endpoints_title": "标准端点：",
       "endpoint": {
         "discovery": "服务发现（Discovery）",
@@ -3461,7 +3461,7 @@
     "load_failed": "加载接入状态失败",
     "retry": "重试",
     "title": "Agent 接入",
-    "description": "为 OpenClaw、Hermes 或自定义 Agent 安装 Next Terminal Skill。安装一次，后续通过已安装的脚本查询和管理资源。",
+    "description": "为 OpenClaw、Hermes 或自定义 Agent 安装 Puppeteer Skill。安装一次，后续通过已安装的脚本查询和管理资源。",
     "create_key": "创建 API Key",
     "download_skill": "下载 Skill 文档",
     "download_client": "下载 API 客户端",
@@ -3472,7 +3472,7 @@
     "key_instruction": "在 agent 本地环境安全配置 NT_API_KEY，不要将密钥粘贴到对话中",
     "setup_tip": "在访问令牌页面创建 API 令牌，并在 Agent 的持久环境中设置 NT_API_KEY。使用安装程序将 Skill 和客户端安装到持久 Skill 目录下的 next-terminal-api 子目录，再按框架要求加载。脚本仅需 Python 3；其他环境变量名可通过 --token-env 指定。",
     "copy_prompt": "复制安装指令",
-    "prompt": "请为我安装 Next Terminal 资源管理 Skill，实例地址为 {{url}}。\n\n1. 确认当前 Agent 框架的持久 Skill 目录，在其中使用 next-terminal-api 子目录。不要使用临时目录，也不要只在本轮对话中读取文档。\n2. 下载 {{url}}/agent/next-terminal/install.py，在本地运行 python3 install.py --base-url {{url}} --directory <持久Skill目录>/next-terminal-api。安装程序会下载 SKILL.md 和 scripts/nt_api.py，保存不含密钥的实例配置。若已有同名 Skill 指向另一实例，先确认安装位置，避免覆盖。\n3. 按框架要求加载或重新加载已安装的 Skill。API Key 已由我配置在持久环境变量 NT_API_KEY 中；不要输出、保存或索取密钥明文。无法读取时，告诉我应在什么运行环境配置。\n4. 使用已安装的 scripts/nt_api.py check 验证连接，报告 Skill 安装位置、加载情况及账户名称；失败时说明原因，不宣称安装和连接成功。\n并运行 scripts/nt_api.py permissions 获取当前账号权限和系统授权，后续先检查权限再选择接口；接口文档完整可见不代表可以调用。\n5. 后续管理任务使用已安装的 Skill 和脚本，按需发现接口并执行我授权的操作。\n\n安装和验证完成后，等待我提供具体任务。",
+    "prompt": "请为我安装 Puppeteer 资源管理 Skill，实例地址为 {{url}}。\n\n1. 确认当前 Agent 框架的持久 Skill 目录，在其中使用 next-terminal-api 子目录。不要使用临时目录，也不要只在本轮对话中读取文档。\n2. 下载 {{url}}/agent/next-terminal/install.py，在本地运行 python3 install.py --base-url {{url}} --directory <持久Skill目录>/next-terminal-api。安装程序会下载 SKILL.md 和 scripts/nt_api.py，保存不含密钥的实例配置。若已有同名 Skill 指向另一实例，先确认安装位置，避免覆盖。\n3. 按框架要求加载或重新加载已安装的 Skill。API Key 已由我配置在持久环境变量 NT_API_KEY 中；不要输出、保存或索取密钥明文。无法读取时，告诉我应在什么运行环境配置。\n4. 使用已安装的 scripts/nt_api.py check 验证连接，报告 Skill 安装位置、加载情况及账户名称；失败时说明原因，不宣称安装和连接成功。\n并运行 scripts/nt_api.py permissions 获取当前账号权限和系统授权，后续先检查权限再选择接口；接口文档完整可见不代表可以调用。\n5. 后续管理任务使用已安装的 Skill 和脚本，按需发现接口并执行我授权的操作。\n\n安装和验证完成后，等待我提供具体任务。",
     "permissions": "Agent 使用 API Key 所属账号的权限。请为令牌设置有效期；停用 Agent 时，在访问令牌页面撤销它。",
     "heading": "让你的 Agent 管理资源",
     "step_key": "创建 API Key",

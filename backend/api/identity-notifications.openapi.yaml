@@ -1,0 +1,1164 @@
+openapi: 3.1.0
+info:
+  title: Notification administration and identity entry controls
+  version: r16-schema99
+security:
+- session: []
+paths:
+  /api/admin/notifications:
+    get:
+      summary: Read channels, rules, bindings and deliveries
+      description: Requires identity.manage. Channel secrets never returned. Deliveries
+        newest first, max200.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Channel'
+                  rules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Rule'
+                  bindings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Binding'
+                  deliveries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Delivery'
+                    maxItems: 200
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/admin/notifications/channels:
+    post:
+      summary: Create notification channels
+      description: Requires identity.manage. Permission checked again in security
+        transaction; mutation is audited. Binding response id is the user ID.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id001
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelWrite'
+  /api/admin/notifications/channels/{id}:
+    put:
+      summary: Update notification channels
+      description: Requires identity.manage. Optimistic version conflict returns409.
+        Managed channels return409; edit them through platform settings.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelWrite'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/admin/notifications/rules:
+    post:
+      summary: Create notification rules
+      description: Requires identity.manage. Permission checked again in security
+        transaction; mutation is audited. Binding response id is the user ID.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+  /api/admin/notifications/rules/{id}:
+    put:
+      summary: Update notification rules
+      description: Requires identity.manage. Optimistic version conflict returns409.
+        Managed channels return409; edit them through platform settings.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/admin/notifications/bindings:
+    post:
+      summary: Create notification bindings
+      description: Requires identity.manage. Permission checked again in security
+        transaction; mutation is audited. Binding response id is the user ID.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Binding'
+  /api/admin/notifications/channels/{id}/test:
+    post:
+      summary: Queue test notification
+      description: Requires identity.manage. Requires notification.send entitlement.
+        Targets current administrator; asynchronous result is in deliveries, not guaranteed
+        by202.
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/admin/notifications/deliveries/{id}/retry:
+    post:
+      summary: Retry failed delivery
+      description: Requires identity.manage. Requires notification.send entitlement.
+        Only failed status resets to pending with attempts0; other states are unchanged.
+      responses:
+        '204':
+          description: Success
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+  /api/admin/contact-settings:
+    get:
+      summary: Read account recovery and SMS settings
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactSettings'
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    put:
+      summary: Update account recovery and SMS settings
+      description: Requires identity.manage. Password and fresh bound MFA. Email channel
+        must be enabled SMTP; SMS channel enabled sms-webhook. Recovery needs at least
+        one channel, SMS login needs SMS channel. Optimistic version update.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: &id002
+                    type: boolean
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactSettingsWrite'
+  /api/admin/login-policy:
+    get:
+      summary: Read local password login policy
+      description: Requires identity.manage. Administrator account type additionally
+        required. canDisable reflects recent verified alternate login, effectivePasswordEnabled
+        reflects rollout barrier.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  passwordEnabled: *id002
+                  effectivePasswordEnabled: *id002
+                  version: &id003
+                    type: integer
+                  canDisable: *id002
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    put:
+      summary: Update local password login policy
+      description: Requires identity.manage. Administrator type plus password/fresh
+        MFA. Disabling needs this administrator to have completed an alternate login
+        in15minutes; protects final administrator login path. Updates unified configuration
+        and version barrier.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: *id002
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passwordEnabled: *id002
+                version: *id003
+                password: &id006
+                  type: string
+                  format: password
+                  maxLength: 1024
+                  writeOnly: true
+                totp: &id007
+                  type: string
+                  writeOnly: true
+                  description: Fresh bound TOTP when enrolled
+              required:
+              - passwordEnabled
+              - version
+              - password
+  /api/contact/start:
+    post:
+      summary: Start verified-contact recovery or SMS login
+      description: Public endpoint. HTTPS allowed Origin required. Consumes captcha
+        when enabled in deployment. Always generic success for unrecognized address
+        or disabled delivery. Secure HttpOnly SameSite=Strict __Host-nt_contact cookie
+        binds five-minute challenge. Address must be normalized mailbox or E.164 phone.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge: &id004
+                    type: string
+                  expiresIn:
+                    type: integer
+                    const: 300
+                  message: *id004
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                  - email
+                  - phone
+                address: *id004
+                purpose:
+                  type: string
+                  enum:
+                  - recovery
+                  - sms-login
+                key: *id004
+              required:
+              - kind
+              - address
+              - purpose
+  /api/contact/finish:
+    post:
+      summary: Complete verified-contact authentication
+      description: Public endpoint. HTTPS allowed Origin and matching __Host-nt_contact
+        cookie. One-time proof checks enabled channel and versions. Recovery validates
+        current password policy and changes password without logging in; SMS login
+        issues a session retaining MFA/enrollment requirements.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: *id002
+                  passwordReset: *id002
+                  needTotp: *id002
+                  needRebind: *id002
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                challenge: *id004
+                code:
+                  type: string
+                  writeOnly: true
+                purpose:
+                  type: string
+                  enum:
+                  - recovery
+                  - sms-login
+                newPassword:
+                  type: string
+                  format: password
+                  writeOnly: true
+                  minLength: 8
+                  maxLength: 1024
+              required:
+              - challenge
+              - code
+              - purpose
+  /api/ldap/login/providers:
+    get:
+      summary: List enabled LDAP login providers
+      description: Public endpoint. Only public IDs/names; never directory endpoints
+        or bind credentials.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: *id001
+                        name: *id004
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+  /api/ldap/login:
+    post:
+      summary: Authenticate an already-bound LDAP identity
+      description: Public endpoint. HTTPS allowed Origin, captcha when configured,
+        provider/account/IP locks and bounded verification. Only pre-bound identities;
+        no implicit provisioning. Rechecks provider/user/epoch after remote verification.
+        Session may require MFA or enrollment.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  needTotp: *id002
+                  needRebind: *id002
+        '400':
+          description: Invalid or expired proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: State or version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Attempt or concurrency limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                  const: ldap
+                providerId: *id001
+                username:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                password:
+                  type: string
+                  format: password
+                  minLength: 1
+                  maxLength: 1024
+                  writeOnly: true
+                key: *id004
+              required:
+              - source
+              - providerId
+              - username
+              - password
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Config:
+      type: object
+      properties:
+        host: *id004
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        implicitTls: *id002
+        username: *id004
+        from: *id004
+        ca: *id004
+        apiBase: *id004
+        corpId: *id004
+        agentId: *id003
+      description: 'SMTP: host/port/from, implicit TLS or required STARTTLS, optional
+        credentials and CA. WeCom: HTTPS apiBase/corpId/agentId. SMS webhook: HTTPS
+        apiBase; no URL credentials/query/fragment. CA is optional custom trust, not
+        an insecure flag.'
+    Channel:
+      type: object
+      properties:
+        settingsManaged: *id002
+        id: *id004
+        name: *id004
+        type: *id004
+        enabled: *id002
+        config: &id008
+          $ref: '#/components/schemas/Config'
+        hasSecret: *id002
+        version: *id003
+    Binding:
+      type: object
+      properties:
+        userId: *id004
+        channelId: *id004
+        address: *id004
+        enabled: *id002
+      description: Administrator provisions user/channel address. SMTP must be one
+        exact mailbox; all addresses 1–254 bytes, no CR/LF, pipe, comma or semicolon.
+        Upsert by user/channel pair.
+    Rule:
+      type: object
+      properties:
+        id: *id004
+        name: *id004
+        enabled: *id002
+        events:
+          type: array
+          items:
+            type: string
+            enum:
+            - access.submitted
+            - access.approved
+            - access.rejected
+            - access.cancelled
+            - access.expired
+            - database.submitted
+            - database.approved
+            - database.rejected
+            - database.cancelled
+            - database.finished
+            - monitor.firing
+            - monitor.recovered
+          minItems: 1
+          maxItems: 12
+        channelIds:
+          type: array
+          items: *id001
+          minItems: 1
+          maxItems: 20
+        recipientMode:
+          type: string
+          enum:
+          - requester
+          - reviewers
+          - specified
+        recipientIds:
+          type: array
+          items: *id001
+          maxItems: 100
+        version: *id003
+      description: Name 1–100 bytes. specified requires at least one recipient. Monitor
+        events require specified. PUT uses current version; ID comes from path.
+    Delivery:
+      type: object
+      properties:
+        test: *id002
+        id: *id004
+        channelId: *id004
+        recipientId: *id004
+        status: *id004
+        attempts: *id003
+        error: *id004
+        createdAt: &id005
+          type: string
+          format: date-time
+        nextAttempt: *id005
+    ContactSettings:
+      type: object
+      properties:
+        emailChannel: *id004
+        smsChannel: *id004
+        recoveryEnabled: *id002
+        smsLoginEnabled: *id002
+        version: *id003
+    ContactSettingsWrite:
+      type: object
+      properties:
+        emailChannel: *id004
+        smsChannel: *id004
+        recoveryEnabled: *id002
+        smsLoginEnabled: *id002
+        version: *id003
+        password: *id006
+        totp: *id007
+      required:
+      - version
+      - password
+    ChannelWrite:
+      type: object
+      properties:
+        settingsManaged: *id002
+        id: *id004
+        name: *id004
+        type:
+          type: string
+          enum:
+          - smtp
+          - wecom
+          - sms-webhook
+        enabled: *id002
+        config: *id008
+        hasSecret: *id002
+        version: *id003
+        secret:
+          type: string
+          writeOnly: true
+          maxLength: 8192
+        clearSecret: *id002
+      required:
+      - name
+      - type
+      - config
+      description: ID comes from URL. PUT requires current version. settingsManaged
+        and hasSecret are output only. Name<=100 bytes; CA<=65536 bytes. Empty secret
+        retains encrypted value; clearSecret and nonempty secret conflict. Enabled
+        authenticated channels require a secret. Managed SMTP channels must be edited
+        in platform settings.
+    Problem:
+      type: object
+      properties:
+        reason: *id004
+        message: *id004

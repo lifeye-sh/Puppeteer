@@ -1,0 +1,115 @@
+package application
+
+import (
+	"context"
+	"net"
+	"net/http"
+	"next-terminal/backend/internal/modules/connectivity"
+	"next-terminal/backend/internal/modules/identity"
+	"next-terminal/backend/internal/modules/resource"
+	"next-terminal/backend/internal/platform/fault"
+	"next-terminal/backend/internal/platform/rdpcert"
+	"time"
+)
+
+func (a *App) discoverRDPCertificate(r *http.Request, in resource.Asset) (rdpcert.Certificate, error) {
+	var empty rdpcert.Certificate
+	u, e := a.require(r, "identity.manage")
+	if e != nil {
+		return empty, e
+	}
+	if in.Protocol != "rdp" {
+		return empty, fault.Invalid
+	}
+	// All normal asset fields are validated; only the as-yet unknown fingerprint is exempt.
+	check := in
+	check.CertFingerprint = "discovery"
+	if e = resource.Validate(check); e != nil {
+		return empty, e
+	}
+	if !a.allowAttempt("rdp-cert:" + u.ID) {
+		return empty, problem(429, "rate_limited", "证书探测过于频繁")
+	}
+	select {
+	case a.probeSlots <- struct{}{}:
+		defer func() { <-a.probeSlots }()
+	default:
+		return empty, problem(429, "busy", "探测并发已满")
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	authorize := func(c context.Context) error { _, e := a.require(r.WithContext(c), "identity.manage"); return e }
+	request := "rdp-cert-" + identity.NewToken()[:32]
+	var dial connectivity.Dialer = connectivity.DialTCP
+	switch {
+	case in.AgentID != "":
+		dial = func(c context.Context, h string, p int) (net.Conn, error) {
+			return a.connectivity.DialAgent(ctx, c, in.AgentID, request, h, p, authorize)
+		}
+	case in.JumpID != "":
+		dial = a.jumpDialer(ctx, in.JumpID, u.ID, request)
+	case in.GatewayGroupID != "":
+		dial = a.groupDialer(ctx, in.GatewayGroupID, u.ID, request, authorize)
+	case in.ProxyID != "":
+		dial = a.proxyDialer(ctx, in.ProxyID, u.ID, request)
+	}
+	conn, e := dial(ctx, in.Host, in.Port)
+	if e != nil {
+		return empty, problem(422, "rdp_certificate_unreachable", "无法连接 RDP 目标，请检查地址、端口和连接路径")
+	}
+	defer conn.Close()
+	cert, e := rdpcert.Probe(ctx, conn, in.Host)
+	if e != nil {
+		return empty, problem(422, "rdp_certificate_failed", "未能获取 RDP TLS 证书，请确认远端已启用 RDP 与 TLS 1.2 或更高版本")
+	}
+	if e = authorize(ctx); e != nil {
+		return empty, e
+	}
+	e = a.audit.Detail(ctx, u.ID, "rdp.certificate_discovered", requestID(r), sourceIP(r), map[string]string{"host": in.Host, "fingerprint": cert.Fingerprint})
+	return cert, e
+}
+func (a *App) rdpCertificate(w http.ResponseWriter, r *http.Request) error {
+	var in resource.Asset
+	if e := decode(w, r, &in); e != nil {
+		return e
+	}
+	cert, e := a.discoverRDPCertificate(r, in)
+	if e != nil {
+		return e
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, 200, cert)
+	return nil
+}
+func (a *App) prepareRDPCertificate(r *http.Request, in *resource.Asset) error {
+	if in.Protocol != "rdp" {
+		return nil
+	}
+	if _, e := a.require(r, "identity.manage"); e != nil {
+		return e
+	}
+	if in.ID != "" {
+		rows, _, e := a.resources.List(r.Context(), resource.Filter{ID: in.ID, All: true, Limit: 1})
+		if e != nil {
+			return e
+		}
+		if len(rows) != 1 {
+			return fault.Denied
+		}
+		old := rows[0]
+		if old.Version != in.Version {
+			return fault.Conflict
+		}
+		if old.Protocol != in.Protocol || old.Host != in.Host || old.Port != in.Port || old.AgentID != in.AgentID || old.JumpID != in.JumpID || old.ProxyID != in.ProxyID || old.GatewayGroupID != in.GatewayGroupID {
+			in.CertFingerprint = ""
+		}
+	}
+	if in.CertFingerprint == "" {
+		cert, e := a.discoverRDPCertificate(r, *in)
+		if e != nil {
+			return e
+		}
+		in.CertFingerprint = cert.Fingerprint
+	}
+	return nil
+}

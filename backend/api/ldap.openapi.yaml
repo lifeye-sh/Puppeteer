@@ -1,0 +1,172 @@
+openapi: 3.1.0
+info:
+  title: LDAP directories and complete directory synchronization
+  version: r16-managed-ldap
+  description: >-
+    Administrative operations require identity.manage; mutations require an allowed Origin.
+    Saving and synchronization require current password and a fresh TOTP when bound.
+    LDAPS or mandatory StartTLS with verified CA is required. URL, base DN and stable identity
+    attribute are immutable after directory creation. The managed default directory is edited
+    only through the unified settings API by an administrator. Independent directories retain
+    their own settings. Secrets and secret references are never returned.
+    Synchronization is a complete bounded preview followed by a one-use, same-session apply.
+    Partial results, referrals, duplicate identities and malformed optional claims reject the
+    whole preview. Imported users are disabled ordinary external-only accounts. Nicknames are
+    initialized only for new users; mapped email is preview-only and never verified or bound.
+security:
+  - session: []
+paths:
+  /api/admin/ldap-providers:
+    get:
+      responses:
+        '200':
+          description: All independent and managed directory metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Provider'}}
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProviderWrite'}
+      responses:
+        '200': {description: Created directory ID}
+        '400': {description: Malformed input or password/MFA proof failure}
+        '403': {description: Permission denied}
+        '409': {description: Identity conflict or protected administrator path}
+        '422': {description: Invalid directory configuration}
+  /api/admin/ldap-providers/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/ProviderID'}
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProviderWrite'}
+      responses:
+        '200': {description: Saved directory ID; version incremented}
+        '409': {description: Stale version, immutable identity boundary, managed directory, or last administrator login path}
+        '422': {description: Invalid directory or mapping}
+  /api/admin/ldap-providers/{id}/test:
+    parameters:
+      - {$ref: '#/components/parameters/ProviderID'}
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                username: {type: string, maxLength: 256}
+                password: {type: string, maxLength: 1024, writeOnly: true}
+      responses:
+        '200': {description: Service bind and base DN verified; when both optional credentials are supplied the unique stable subject is returned. No account is created or bound.}
+        '422': {description: TLS, directory, credential or unique identity verification failed}
+  /api/admin/ldap-providers/{id}/sync-preview:
+    parameters:
+      - {$ref: '#/components/parameters/ProviderID'}
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [password]
+              properties:
+                password: {type: string, maxLength: 1024, writeOnly: true}
+                totp: {type: string, pattern: '^\d{6}$', writeOnly: true}
+                limit: {type: integer, minimum: 0, maximum: 10000, description: 'Omitted or zero uses min(1000, directory cap); explicit limit must not exceed the directory cap.'}
+      responses:
+        '200':
+          description: Complete directory preview; token expires after five minutes and is bound to actor, session, auth epoch and provider version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  preview: {type: string}
+                  version: {type: integer}
+                  expiresIn: {const: 300}
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subject: {type: string}
+                        username: {type: string}
+                        nickname: {type: string}
+                        mail: {type: string, description: 'Unverified directory claim; not an account contact.'}
+        '422': {description: Complete directory could not be read within TLS, paging, count or byte bounds; no partial preview returned}
+  /api/admin/ldap-sync:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [password, preview, subjects]
+              properties:
+                password: {type: string, maxLength: 1024, writeOnly: true}
+                totp: {type: string, pattern: '^\d{6}$', writeOnly: true}
+                preview: {type: string, minLength: 64, maxLength: 64}
+                subjects: {type: array, maxItems: 100, items: {type: string}}
+                departmentId: {type: string, description: 'Empty or an existing department UUID; no role is granted.'}
+                disableMissing: {type: boolean, default: false, description: 'Disable only managed ordinary users absent from the complete preview; revoke their access credentials. Manual bindings and administrators are excluded.'}
+      responses:
+        '200': {description: Counts of created, existing and disabled users}
+        '400': {description: Invalid, expired, reused, foreign-session or stale-provider preview, or failed password/MFA proof}
+        '409': {description: Protected identity invariant}
+        '422': {description: Invalid subjects or department}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+  parameters:
+    ProviderID: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+  schemas:
+    Mapping:
+      type: object
+      additionalProperties: false
+      required: [username]
+      properties:
+        username: {type: string, pattern: '^[a-zA-Z][a-zA-Z0-9-]{0,63}$'}
+        nickname: {type: string, pattern: '^$|^[a-zA-Z][a-zA-Z0-9-]{0,63}$'}
+        mail: {type: string, pattern: '^$|^[a-zA-Z][a-zA-Z0-9-]{0,63}$'}
+    Provider:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string, maxLength: 100}
+        url: {type: string, maxLength: 2048}
+        baseDN: {type: string, maxLength: 1024}
+        bindDN: {type: string, maxLength: 1024}
+        searchFilter: {type: string, maxLength: 4096}
+        loginAttribute: {type: string}
+        identityAttribute: {enum: [entryUUID, objectGUID]}
+        caPEM: {type: string, maxLength: 65536}
+        enabled: {type: boolean}
+        bindingEnabled: {type: boolean}
+        hasSecret: {type: boolean, readOnly: true}
+        settingsManaged: {type: boolean, readOnly: true}
+        version: {type: integer}
+        searchSizeLimit: {type: integer, minimum: 1, maximum: 10000, default: 10000}
+        propertyMapping: {$ref: '#/components/schemas/Mapping'}
+    ProviderWrite:
+      allOf:
+        - {$ref: '#/components/schemas/Provider'}
+        - type: object
+          required: [name, url, baseDN, bindDN, searchFilter, loginAttribute, identityAttribute, password]
+          properties:
+            bindPassword: {type: string, maxLength: 65536, writeOnly: true, description: 'Required at creation; empty on update retains the existing secret.'}
+            password: {type: string, maxLength: 1024, writeOnly: true}
+            totp: {type: string, pattern: '^\d{6}$', writeOnly: true}

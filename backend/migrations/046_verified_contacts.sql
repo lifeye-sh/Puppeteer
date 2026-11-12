@@ -1,0 +1,10 @@
+ALTER TABLE notification_channels DROP CONSTRAINT notification_channels_type_check;
+ALTER TABLE notification_channels ADD CONSTRAINT notification_channels_type_check CHECK(type IN('smtp','wecom','sms-webhook'));
+CREATE TABLE identity_contact_settings(singleton integer PRIMARY KEY CHECK(singleton=1),email_channel uuid REFERENCES notification_channels(id),sms_channel uuid REFERENCES notification_channels(id),recovery_enabled boolean NOT NULL DEFAULT false,sms_login_enabled boolean NOT NULL DEFAULT false,version bigint NOT NULL DEFAULT 1);
+INSERT INTO identity_contact_settings(singleton) VALUES(1);
+CREATE TABLE verified_contacts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL REFERENCES users(id),kind text NOT NULL CHECK(kind IN('email','phone')),address text NOT NULL,version bigint NOT NULL DEFAULT 1,verified_at timestamptz NOT NULL DEFAULT now(),UNIQUE(user_id,kind),UNIQUE(kind,address));
+CREATE TABLE contact_challenges(token_hash text PRIMARY KEY,user_id uuid NOT NULL REFERENCES users(id),user_version bigint NOT NULL,auth_epoch bigint NOT NULL,settings_version bigint NOT NULL,kind text NOT NULL,address text NOT NULL,purpose text NOT NULL,binding_hash text NOT NULL,code_hash text NOT NULL,attempts integer NOT NULL DEFAULT 0,consumed_at timestamptz,created_at timestamptz NOT NULL DEFAULT now(),expires_at timestamptz NOT NULL);
+CREATE INDEX contact_challenge_user ON contact_challenges(user_id,created_at);
+CREATE TABLE contact_deliveries(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),challenge_hash text NOT NULL REFERENCES contact_challenges(token_hash) ON DELETE CASCADE,channel_id uuid NOT NULL REFERENCES notification_channels(id),channel_version bigint NOT NULL,payload_sealed bytea NOT NULL,status text NOT NULL DEFAULT 'pending',attempts integer NOT NULL DEFAULT 0,next_attempt timestamptz NOT NULL DEFAULT now(),lease_token text NOT NULL DEFAULT '',last_error text NOT NULL DEFAULT '');
+ALTER TABLE auth_sessions ADD COLUMN contact_id uuid,ADD COLUMN contact_version bigint,ADD COLUMN contact_settings_version bigint;
+UPDATE instance_state SET schema_version=46 WHERE singleton=1;

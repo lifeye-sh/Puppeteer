@@ -1,0 +1,1260 @@
+{
+  "schemaVersion": 2,
+  "status": "design-with-incremental-implementation",
+  "sourceCommit": "a43c7d83519bd9af3a80e3769f96e178aff9d29c",
+  "dependencyMeaning": "buildAfter means suggested implementation prerequisites, not Go import dependencies or the complete runtime authorization graph. Cross-module implementations are wired by application workflows through consumer-owned ports.",
+  "modules": [
+    {
+      "id": "F00",
+      "key": "platform",
+      "name": "公共基础设施",
+      "group": "技术底座",
+      "wave": "W0",
+      "buildAfter": [],
+      "goal": "提供所有业务共用的事务、任务、事件、存储、加密与可观测性机制。",
+      "features": [
+        "PostgreSQL 连接、事务上下文、迁移与测试环境",
+        "outbox、幂等记录、带租约的任务队列及重试机制",
+        "对象存储、加密原语、时钟、ID、日志、指标和 tracing",
+        "HTTP 错误映射、请求限制、健康检查与协议测试工具"
+      ],
+      "excludes": [
+        "不包含用户、资产、授权或审批规则",
+        "不执行远程命令、SQL、轮换等业务副作用"
+      ],
+      "tables": [
+        "migration_history",
+        "jobs",
+        "job_runs",
+        "outbox_events",
+        "event_deliveries",
+        "idempotency_records"
+      ],
+      "ports": [
+        "UnitOfWork.Within",
+        "Outbox.Append",
+        "JobQueue.Enqueue/Claim/Ack",
+        "BlobStore.Put/Get/Delete",
+        "KeyEnvelope.Encrypt/Decrypt"
+      ],
+      "events": [
+        "TaskLeaseExpired（基础设施信号，由任务所属模块解释）"
+      ],
+      "apiEvidence": [],
+      "acceptance": [
+        "同一事务的业务写入与 outbox 同成败",
+        "旧 lease_epoch 的 Worker 不能提交结果",
+        "对象上传重复调用不生成重复对象",
+        "外部副作用结果不明时由业务决定是否重试"
+      ],
+      "usageRequirements": [],
+      "implementationGuides": [
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M01",
+      "key": "identity",
+      "name": "身份与组织",
+      "group": "身份与安全",
+      "wave": "W1",
+      "buildAfter": [
+        "F00",
+        "M18"
+      ],
+      "goal": "管理谁可以登录、身份如何验证、用户属于哪些组织。",
+      "features": [
+        "用户、部门树、成员关系、个人资料与偏好",
+        "密码登录、验证码、MFA、Passkey、短信认证与登录会话",
+        "API Key、用户 SSH 公钥、账号锁定与撤销",
+        "LDAP、OIDC、企业微信登录、外部身份绑定",
+        "OIDC/OAuth 服务端、客户端、授权同意与令牌生命周期"
+      ],
+      "excludes": [
+        "角色权限、资源授权和 IP/地域策略由 M02 决定",
+        "客户端证书签发及吊销由 M13 执行",
+        "不直接修改资产、会话或审计表"
+      ],
+      "tables": [
+        "users",
+        "departments",
+        "department_closure",
+        "user_departments",
+        "auth_sessions",
+        "auth_challenges",
+        "mfa_factors",
+        "webauthn_credentials",
+        "user_ssh_keys",
+        "api_tokens",
+        "login_locks",
+        "user_preferences",
+        "identity_providers",
+        "external_identities",
+        "oauth_clients",
+        "oauth_client_bindings",
+        "oauth_authorizations",
+        "oauth_auth_codes",
+        "oauth_refresh_tokens",
+        "signing_keys",
+        "mfa_recovery_codes",
+        "database_passwords"
+      ],
+      "ports": [
+        "Identity.Authenticate/ResolveActor/Revoke",
+        "Organization.GetSubjectFacts",
+        "Preferences.Get/Update",
+        "Federation.ExchangeCode/BindIdentity",
+        "CredentialCipher（由 M04 实现）",
+        "LoginPolicy（由 M02 实现）",
+        "Identity.ConsumeRecoveryCode",
+        "DatabaseIdentity.IssuePassword/VerifyHandshake/Revoke"
+      ],
+      "events": [
+        "UserDisabled",
+        "AuthSessionRevoked",
+        "DepartmentMembershipChanged",
+        "ExternalIdentityBound"
+      ],
+      "apiEvidence": [
+        "src/api/account-api.ts",
+        "src/api/user-api.ts",
+        "src/api/department-api.ts",
+        "src/api/oidc-api.ts",
+        "src/api/oidc-client-api.ts",
+        "src/api/wechat-work-api.ts"
+      ],
+      "acceptance": [
+        "MFA 中间态无法调用业务 API",
+        "相同邮箱不会自动绑定两个外部身份",
+        "禁用用户后会话及 API Key 的有效权限同步收缩",
+        "部门移动拒绝环；身份和组织事实可供权限模块独立测试"
+      ],
+      "usageRequirements": [
+        "U21",
+        "U24",
+        "U25",
+        "U26"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/settings-entitlements.md",
+        "implementation/database-auth.md"
+      ]
+    },
+    {
+      "id": "M02",
+      "key": "authorization",
+      "name": "权限与访问策略",
+      "group": "身份与安全",
+      "wave": "W1",
+      "buildAfter": [
+        "F00",
+        "M18"
+      ],
+      "goal": "统一决定某主体在特定环境下能对某资源做什么。",
+      "features": [
+        "角色、操作权限、菜单权限投影",
+        "用户/部门对主机、网站、数据库和分组的授权",
+        "IP、地域、时段、白名单/黑名单与授权有效期",
+        "文件/剪贴板操作策略、命令过滤策略",
+        "IP 集维护与同步、GeoData 版本维护",
+        "权限变更 revision、可解释的决策结果"
+      ],
+      "excludes": [
+        "不负责登录、远程连接或审批流程",
+        "不把交互终端字符串过滤作为强隔离沙箱",
+        "不直接读取其他模块数据库表获取身份/资产事实"
+      ],
+      "tables": [
+        "roles",
+        "user_roles",
+        "permissions",
+        "role_permissions",
+        "grants",
+        "strategies",
+        "command_filters",
+        "command_filter_rules",
+        "policy_groups",
+        "policy_rules",
+        "policy_rule_ip_sets",
+        "policy_bindings",
+        "ip_sets",
+        "geodata_versions"
+      ],
+      "ports": [
+        "Authorization.Evaluate/Explain",
+        "Grant.Create/Revoke",
+        "Role.Assign",
+        "SubjectFacts（由 M01 提供）",
+        "ResourceFacts（由 M03 注册表与资源拥有者提供）",
+        "GeoResolver.Lookup"
+      ],
+      "events": [
+        "GrantCreated",
+        "GrantRevoked",
+        "PolicyChanged",
+        "RolePermissionsChanged",
+        "SecurityDatasetPublished"
+      ],
+      "apiEvidence": [
+        "src/api/role-api.ts",
+        "src/api/access-policy-api.ts",
+        "src/api/authorised-asset-api.ts",
+        "src/api/authorised-website-api.ts",
+        "src/api/authorised-database-asset-api.ts",
+        "src/api/strategy-api.ts",
+        "src/api/command-filter-api.ts",
+        "src/api/command-filter-rule-api.ts",
+        "src/api/ip-set-api.ts",
+        "src/api/geodata-api.ts"
+      ],
+      "acceptance": [
+        "无授权默认拒绝，多个约束按已定义规则合并",
+        "直接访问隐藏菜单对应 API 仍然被拒绝",
+        "审批创建 grant 与审批记录在共享事务中原子提交",
+        "策略 revision 变化可触发现存连接重新检查"
+      ],
+      "usageRequirements": [
+        "U05"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/settings-entitlements.md",
+        "implementation/database-auth.md"
+      ]
+    },
+    {
+      "id": "M03",
+      "key": "resource",
+      "name": "资源目录与主机资产",
+      "group": "资源与连接",
+      "wave": "W1",
+      "buildAfter": [
+        "F00",
+        "M18"
+      ],
+      "goal": "提供统一资源身份、分组、标签和主机资产定义。",
+      "features": [
+        "资源注册表、分组树、标签、排序与名称快照",
+        "SSH/Telnet/RDP/VNC 主机资产 CRUD",
+        "主机批量修改、导入导出、连通性检查请求、OS 发现请求",
+        "门户资源目录查询与资源事实接口"
+      ],
+      "excludes": [
+        "websites 表由 M09 拥有，database_assets 表由 M10 拥有",
+        "不保存明文凭据，不执行远程会话",
+        "检查和 OS 发现通过受控连接能力执行"
+      ],
+      "tables": [
+        "resource_registry",
+        "resource_groups",
+        "resource_group_closure",
+        "assets",
+        "resource_tags"
+      ],
+      "ports": [
+        "ResourceRegistry.Register/Update/Tombstone",
+        "Asset.Get/Save/Import",
+        "ResourceCatalog.List/GetFacts",
+        "Probe（由 M05/M06 能力适配）",
+        "AssetTarget.ResolveAuthorizedNameOrAlias"
+      ],
+      "events": [
+        "ResourceRegistered",
+        "ResourceChanged",
+        "ResourceMoved",
+        "ResourceDisabled"
+      ],
+      "apiEvidence": [
+        "src/api/asset-api.ts",
+        "src/api/portal-api.ts"
+      ],
+      "acceptance": [
+        "资源与注册表创建同事务提交",
+        "分组移动不会产生环且会使权限事实失效",
+        "导出不含凭据明文，导入给出逐行错误",
+        "门户查询先限定可访问范围再分页，不泄露其他资产 total"
+      ],
+      "usageRequirements": [
+        "U02",
+        "U03",
+        "U04"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M04",
+      "key": "vault",
+      "name": "凭据与密钥",
+      "group": "身份与安全",
+      "wave": "W1",
+      "buildAfter": [
+        "F00",
+        "M18"
+      ],
+      "goal": "集中保护可恢复秘密，并管理凭据从创建到轮换和退役的生命周期。",
+      "features": [
+        "密码、私钥、口令、供应商秘密的版本化加密存储",
+        "凭据引用、显式解密查看和短期秘密租约",
+        "凭据轮换策略、候选版本、逐资产验证和补偿",
+        "密钥生成、公钥导出、引用冲突检测"
+      ],
+      "excludes": [
+        "不管理用户登录密码哈希",
+        "定时触发由 M12，远程连接由 M05/M06",
+        "加密原语与对象存储由 F00，业务秘密权限由应用入口组合 M02 校验"
+      ],
+      "tables": [
+        "credentials",
+        "secret_versions",
+        "secret_access_events",
+        "rotation_policies",
+        "rotation_policy_targets",
+        "rotation_runs",
+        "rotation_targets"
+      ],
+      "ports": [
+        "Secrets.StoreVersion/Lease/Reveal",
+        "Credential.GetMetadata/GetPublicKey",
+        "Rotation.Request/Reconcile",
+        "RemoteCredentialUpdater（连接能力适配）"
+      ],
+      "events": [
+        "CredentialVersionActivated",
+        "SecretRevealed",
+        "RotationCompleted",
+        "RotationNeedsReconcile"
+      ],
+      "apiEvidence": [
+        "src/api/credential-api.ts",
+        "src/api/credential-rotation-api.ts"
+      ],
+      "acceptance": [
+        "普通查询与日志中不存在可用秘密",
+        "空字符串、字段缺失、替换值有明确更新语义",
+        "共享凭据部分轮换成功有逐资产状态",
+        "目标操作结果不明时不自动覆盖或重试"
+      ],
+      "usageRequirements": [
+        "U06"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/native-rdp.md",
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md",
+        "implementation/database-auth.md"
+      ]
+    },
+    {
+      "id": "M05",
+      "key": "connectivity",
+      "name": "网关与网络连接",
+      "group": "资源与连接",
+      "wave": "W2",
+      "buildAfter": [
+        "M03",
+        "M04"
+      ],
+      "goal": "提供经过授权的可达路径和目标拨号能力。",
+      "features": [
+        "SSH 跳板、Agent 网关、网关组、HTTP/SOCKS5 代理",
+        "DialPlan 编译、默认链继承、循环检测、健康与熔断",
+        "自有 Agent 注册、证书身份、主动隧道与受限拨号",
+        "连接节点登记、容量、排空与心跳",
+        "网络位置相关 WOL 与探活能力"
+      ],
+      "excludes": [
+        "不决定资源授权，不管理终端业务会话",
+        "不把旧 nt-tunnel 二进制协议视为已知兼容",
+        "节点通道不提供不受限的任意命令执行接口"
+      ],
+      "tables": [
+        "dial_plans",
+        "dial_plan_hops",
+        "gateways",
+        "ssh_gateway_configs",
+        "agent_gateway_configs",
+        "agent_registration_tokens",
+        "gateway_group_members",
+        "gateway_group_configs",
+        "network_proxies",
+        "node_registry",
+        "ssh_known_hosts"
+      ],
+      "ports": [
+        "DialPlan.Compile/Resolve",
+        "Transport.Dial",
+        "Gateway.Register/Revoke",
+        "NodeRegistry.ReserveCapacity/Drain",
+        "AgentConfig.Validate",
+        "AgentRelease.Check/Download"
+      ],
+      "events": [
+        "GatewayOnlineChanged",
+        "GatewayRevoked",
+        "DialPlanChanged",
+        "NodeDraining"
+      ],
+      "apiEvidence": [
+        "src/api/ssh-gateway-api.ts",
+        "src/api/agent-gateway-api.ts",
+        "src/api/agent-gateway-token-api.ts",
+        "src/api/gateway-group-api.ts",
+        "src/api/network-proxy-api.ts"
+      ],
+      "acceptance": [
+        "循环链和越权目标拨号被拒绝",
+        "删除有引用的网关返回前端需要的关联列表",
+        "Agent 撤销后不能重新拨号，已有流被关闭",
+        "故障切换不迁移或重放现存远程操作"
+      ],
+      "usageRequirements": [
+        "U07",
+        "U08",
+        "U09"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/native-rdp.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M06",
+      "key": "session",
+      "name": "远程会话",
+      "group": "资源与连接",
+      "wave": "W2",
+      "buildAfter": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M08"
+      ],
+      "goal": "统一管理从会话申请到连接、共享、监控与终止的生命周期。",
+      "features": [
+        "会话预约、策略快照、节点归属、租约与断连",
+        "SSH/Telnet 终端、浏览器 RDP/VNC 协议适配",
+        "分享参与者、只读能力、在线监控与管理员终止",
+        "原生 SSH 接入、原生客户端短期票据",
+        "原生 RDP 作为独立可关闭子功能"
+      ],
+      "excludes": [
+        "不拥有录像表和历史审计数据",
+        "文件 CRUD 由 M07，网关拨号由 M05",
+        "不在掉线后自动重放输入或命令"
+      ],
+      "tables": [
+        "sessions",
+        "session_grant_sources",
+        "session_participants",
+        "session_shares",
+        "client_tickets"
+      ],
+      "ports": [
+        "Session.Create/Attach/Disconnect/Join",
+        "Session.GetAuthorizedContext",
+        "ProtocolDriver.Connect/Resize/Close",
+        "Recorder（由 M08 提供）",
+        "ClientTicket.Issue/Consume",
+        "NativeSSH.Authenticate/SelectTarget/Forward",
+        "RDPTicket.Issue/Consume",
+        "ClientAccess.ListCapabilities/OpenTunnel"
+      ],
+      "events": [
+        "SessionRequested",
+        "SessionConnected",
+        "SessionClosed",
+        "SessionInterrupted",
+        "ParticipantChanged"
+      ],
+      "apiEvidence": [
+        "src/api/session-api.ts",
+        "src/api/portal-api.ts",
+        "src/pages/access/Terminal.ts",
+        "src/pages/access/AccessGuacamole.tsx"
+      ],
+      "acceptance": [
+        "会话 ID 不能作为裸访问凭证",
+        "只读输入、剪贴板和 resize 在服务端受限",
+        "租约过期后连接节点停止 I/O",
+        "SSH、图形、原生 RDP 分别通过测试才开放能力"
+      ],
+      "usageRequirements": [
+        "U10",
+        "U11",
+        "U12",
+        "U13"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/native-rdp.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M07",
+      "key": "files",
+      "name": "文件与共享存储",
+      "group": "资源与连接",
+      "wave": "W2",
+      "buildAfter": [
+        "M02",
+        "M06"
+      ],
+      "goal": "为获准会话和共享存储提供受控文件操作。",
+      "features": [
+        "文件系统挂载、目录列表、创建、删除、重命名和权限修改",
+        "SFTP、共享存储、图形会话驱动目录适配",
+        "上传任务、下载、批量下载、文本编辑与冲突检测",
+        "容量、预留空间、ACL 与临时文件回收"
+      ],
+      "excludes": [
+        "不管理脚本片段，脚本属于 M12",
+        "底层对象存储驱动属于 F00",
+        "不能利用 sessionId 访问任意平台磁盘路径"
+      ],
+      "tables": [
+        "filesystem_mounts",
+        "upload_tasks",
+        "storages",
+        "storage_acl"
+      ],
+      "ports": [
+        "Filesystem.Mount/List/Mutate",
+        "Upload.Create/Transfer/Cancel",
+        "FileAccess.Check",
+        "Storage.Reserve/Release"
+      ],
+      "events": [
+        "FileOperationCompleted",
+        "UploadCompleted",
+        "UploadFailed",
+        "StorageQuotaExceeded"
+      ],
+      "apiEvidence": [
+        "src/api/filesystem-api.ts",
+        "src/api/storage-api.ts",
+        "src/pages/access/upload/upload-manager.ts"
+      ],
+      "acceptance": [
+        "路径和符号链接边界经过测试",
+        "HTTP 上传成功意味着目标落盘成功",
+        "取消与完成竞态不会删除最终文件",
+        "所有通道的上传/下载能力与会话策略一致"
+      ],
+      "usageRequirements": [
+        "U14"
+      ],
+      "implementationGuides": [
+        "implementation/native-rdp.md",
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M08",
+      "key": "audit",
+      "name": "审计与录像",
+      "group": "审计与代理",
+      "wave": "W0",
+      "buildAfter": [
+        "F00"
+      ],
+      "goal": "统一接收、保留、检索和回放业务与会话证据。",
+      "features": [
+        "登录、管理、命令、文件、SQL、网站和系统事件审计",
+        "终端/图形录屏、片段索引、上传、转码与校验",
+        "审计检索、统计、录像播放与授权下载",
+        "保留、受限清理、法律保留与删除审计"
+      ],
+      "excludes": [
+        "不拥有在线 sessions 表或业务实体",
+        "不主动决定资产访问授权",
+        "不将其他模块所有业务字段复制为第二份权威状态"
+      ],
+      "tables": [
+        "recordings",
+        "recording_segments",
+        "audit_logins",
+        "audit_operations",
+        "audit_commands",
+        "audit_files",
+        "database_sql_logs",
+        "website_access_logs",
+        "asset_access_logs"
+      ],
+      "ports": [
+        "Audit.AppendInTx/Search",
+        "Recorder.Open/Append/Finalize",
+        "Recording.GetPlayback/RequestConvert",
+        "AuditRetention.SchedulePurge",
+        "AccessAudit.RecordAttempt/QueryTimeline"
+      ],
+      "events": [
+        "RecordingFinalized",
+        "RecordingUploaded",
+        "RecordingConversionFailed",
+        "AuditStorageDegraded"
+      ],
+      "apiEvidence": [
+        "src/api/login-log-api.ts",
+        "src/api/operation-log-api.ts",
+        "src/api/session-command-api.ts",
+        "src/api/exec-command-log-api.ts",
+        "src/api/fileystem-log-api.ts",
+        "src/api/database-sql-log-api.ts",
+        "src/api/access-log-api.ts",
+        "src/api/system-event-api.ts"
+      ],
+      "acceptance": [
+        "业务与管理审计同事务，录像失败可见",
+        "SQL/网站日志只有本模块持久化写入口",
+        "分区、录像保留和对象清理不会破坏引用",
+        "非审计授权用户不能通过下载链接绕过检查"
+      ],
+      "usageRequirements": [
+        "U15",
+        "U16"
+      ],
+      "implementationGuides": [
+        "implementation/native-rdp.md",
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md",
+        "implementation/database-auth.md"
+      ],
+      "physicalTableAliases": {
+        "login_logs": "audit_logins",
+        "operation_logs": "audit_operations",
+        "access_logs": "asset_access_logs",
+        "recording_chunks": "recording_segments",
+        "session_commands": "audit_commands"
+      }
+    },
+    {
+      "id": "M09",
+      "key": "webproxy",
+      "name": "网站访问代理",
+      "group": "审计与代理",
+      "wave": "W3",
+      "buildAfter": [
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M08"
+      ],
+      "goal": "完整管理网站资源定义及其认证反向代理业务。",
+      "features": [
+        "网站 CRUD、上游地址、入口域名、Header 与响应改写",
+        "公开/登录访问、访问口令、IP/地域/时段策略",
+        "临时 IP 授权、网站独立访问会话",
+        "HTTP/WebSocket 流式转发、TLS/SNI 与错误页"
+      ],
+      "excludes": [
+        "通用资源 ID、分组、标签由 M03 管理",
+        "证书材料由 M13，密钥由 M04",
+        "网站访问日志由 M08 持久化"
+      ],
+      "tables": [
+        "websites",
+        "website_temp_allows",
+        "website_access_sessions"
+      ],
+      "ports": [
+        "Website.Save/GetFacts",
+        "WebsiteAccess.Authorize/IssueAccess",
+        "ProxyRoute.Resolve",
+        "ResponsePolicy.Apply",
+        "WebsiteDomain.ValidateUnique",
+        "TemporaryAccess.Grant/Renew/Revoke"
+      ],
+      "events": [
+        "WebsiteChanged",
+        "WebsiteTemporaryAccessGranted",
+        "WebsiteAccessCompleted"
+      ],
+      "apiEvidence": [
+        "src/api/website-api.ts",
+        "src/api/website-temp-allow-api.ts",
+        "src/api/http-proxy-api.ts",
+        "src/api/portal-api.ts"
+      ],
+      "acceptance": [
+        "网站与资源注册表原子创建",
+        "控制台 Cookie 和认证头不会泄露给上游",
+        "目标解析与实际拨号一致并受授权约束",
+        "大响应和 WebSocket 不经过无限缓冲改写"
+      ],
+      "usageRequirements": [
+        "U17",
+        "U18",
+        "U19"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M10",
+      "key": "database",
+      "name": "数据库访问代理",
+      "group": "审计与代理",
+      "wave": "W4",
+      "buildAfter": [
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M08"
+      ],
+      "goal": "管理数据库资源及 MySQL/PostgreSQL 访问、语句控制和受控执行。",
+      "features": [
+        "数据库资产 CRUD、连接测试与目标数据库身份",
+        "原生客户端认证、协议代理和连接生命周期",
+        "SQL 分类、prepared statement、事务与取消",
+        "接受已审批执行命令并报告确定或未知结果"
+      ],
+      "excludes": [
+        "工单状态和审批决定由 M11 管理",
+        "SQL 日志由 M08 保存",
+        "不能把任意 SELECT 字符串视为安全只读"
+      ],
+      "tables": [
+        "database_assets",
+        "db_connections"
+      ],
+      "ports": [
+        "DatabaseAsset.Save/GetFacts",
+        "DatabaseAccess.Connect",
+        "SQLExecutor.Execute/InspectResult",
+        "SQLPolicy.Classify"
+      ],
+      "events": [
+        "DatabaseResourceChanged",
+        "DatabaseConnectionClosed",
+        "SQLExecutionCompleted",
+        "SQLExecutionUnknown"
+      ],
+      "apiEvidence": [
+        "src/api/database-asset-api.ts",
+        "src/api/portal-api.ts",
+        "src/api/database-sql-log-api.ts"
+      ],
+      "acceptance": [
+        "资源授权与平台身份不被目标凭据替代",
+        "MySQL 首批通过真实客户端协议测试；PG 扩展单独通过后才发布能力",
+        "无法确定远程提交结果时报告 unknown",
+        "不同用户与事务状态不能混用连接池"
+      ],
+      "usageRequirements": [
+        "U22"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md",
+        "implementation/database-auth.md"
+      ]
+    },
+    {
+      "id": "M11",
+      "key": "approval",
+      "name": "申请与审批",
+      "group": "流程与自动化",
+      "wave": "W3",
+      "buildAfter": [
+        "M01",
+        "M02",
+        "M03",
+        "M08"
+      ],
+      "goal": "管理临时访问和 SQL 工单的申请、审核、取消与执行跟踪。",
+      "features": [
+        "可申请资源范围、临时访问申请和审批",
+        "审批者范围、禁止自批、时长与策略上限",
+        "SQL 工单、执行任务、结果跟踪与人工核对",
+        "审批事件、历史记录和通知触发"
+      ],
+      "excludes": [
+        "不直接写 grants，由应用流程调用 M02 公开接口",
+        "不连接数据库执行 SQL，由 M10 执行",
+        "不直接发送邮件或企业微信消息"
+      ],
+      "tables": [
+        "approval_scopes",
+        "access_requests",
+        "db_work_orders",
+        "work_order_executions"
+      ],
+      "ports": [
+        "AccessRequest.Submit/Approve/Reject/Cancel",
+        "WorkOrder.Submit/Decide/RecordResult/Reconcile",
+        "ApprovalScope.Check",
+        "ApprovalUnitOfWork（应用层编排）"
+      ],
+      "events": [
+        "AccessRequestSubmitted",
+        "AccessRequestReviewed",
+        "WorkOrderApproved",
+        "WorkOrderReconcileRequired"
+      ],
+      "apiEvidence": [
+        "src/api/access-request-api.ts",
+        "src/api/db-work-order-api.ts"
+      ],
+      "acceptance": [
+        "重复审批只能生成一个授权或执行意图",
+        "取消已批准申请与撤销 grant 原子提交",
+        "执行参数改变必须重新审批",
+        "SQL 结果不明不自动重做，人工核对留下审计"
+      ],
+      "usageRequirements": [
+        "U23"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md",
+        "implementation/database-auth.md"
+      ]
+    },
+    {
+      "id": "M12",
+      "key": "automation",
+      "name": "任务调度与脚本",
+      "group": "流程与自动化",
+      "wave": "W3",
+      "buildAfter": [
+        "F00",
+        "M02",
+        "M03",
+        "M06",
+        "M08"
+      ],
+      "goal": "统一安排何时执行获准业务任务，管理可复用脚本。",
+      "features": [
+        "cron、时区、未来运行时间、启停与手动触发",
+        "任务重叠、misfire、执行历史与取消",
+        "系统/个人脚本片段与批量远程执行",
+        "通过注册 TaskHandler 调用轮换、续签、备份、清理等业务"
+      ],
+      "excludes": [
+        "底层 jobs/job_runs 由 F00 拥有",
+        "不实现凭据轮换、备份、证书签发的状态机",
+        "业务处理器不能以 scheduler 身份绕过用户授权"
+      ],
+      "tables": [
+        "schedules",
+        "scheduled_runs",
+        "snippets"
+      ],
+      "ports": [
+        "Schedule.Save/Trigger/NextRuns",
+        "Snippet.Get/Save",
+        "TaskHandler.Execute/Cancel",
+        "RunHistory.Query"
+      ],
+      "events": [
+        "ScheduleTriggered",
+        "ScheduledRunCompleted",
+        "ScheduledRunMissed"
+      ],
+      "apiEvidence": [
+        "src/api/scheduled-task-api.ts",
+        "src/api/snippet-api.ts",
+        "src/api/snippet-user-api.ts"
+      ],
+      "acceptance": [
+        "多调度器对同一计划时刻只创建一个任务",
+        "时区/DST 与 next-ten-runs 使用同一解释",
+        "任务执行前重新校验委托权限",
+        "未注册或被禁用的任务类型不能执行"
+      ],
+      "usageRequirements": [
+        "U34"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M13",
+      "key": "pki",
+      "name": "证书与身份凭据签发",
+      "group": "流程与自动化",
+      "wave": "W3",
+      "buildAfter": [
+        "M01",
+        "M04",
+        "M08"
+      ],
+      "goal": "集中管理服务证书、客户端证书和签发吊销流程。",
+      "features": [
+        "TLS 证书导入、默认项、有效期与私钥匹配",
+        "ACME 订单、DNS provider、自动续签与签发日志",
+        "用户客户端证书签发、下载、吊销",
+        "证书配置发布与旧证书安全退役"
+      ],
+      "excludes": [
+        "不拥有用户账号；账户接口通过应用层调用本模块",
+        "OIDC signing_keys 的轮换语义由 M01 拥有",
+        "秘密加密由 M04，定时触发由 M12"
+      ],
+      "tables": [
+        "user_client_certs",
+        "certificates",
+        "certificate_orders",
+        "dns_providers",
+        "certificate_dns_bindings",
+        "certificate_revocations"
+      ],
+      "ports": [
+        "Certificate.Import/Issue/Renew/Revoke",
+        "ClientCertificate.Issue/Revoke",
+        "CertificateMaterial.Lease",
+        "DNSChallenge.Present/Cleanup",
+        "ClientCertificate.ExportPKCS12/Validate"
+      ],
+      "events": [
+        "CertificateIssued",
+        "CertificateRenewalFailed",
+        "ClientCertificateRevoked"
+      ],
+      "apiEvidence": [
+        "src/api/certificate-api.ts",
+        "src/api/dns-provider-api.ts",
+        "src/api/account-api.ts",
+        "src/api/user-api.ts"
+      ],
+      "acceptance": [
+        "默认有效证书最多一个且切换原子",
+        "私钥不经过普通列表或事件暴露",
+        "客户端证书吊销能影响后续认证及应关闭的连接",
+        "续签失败保留旧有效证书并告警"
+      ],
+      "usageRequirements": [
+        "U27"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/native-rdp.md",
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M14",
+      "key": "notification",
+      "name": "通知与消息投递",
+      "group": "流程与自动化",
+      "wave": "W3",
+      "buildAfter": [
+        "M01",
+        "M04",
+        "M08",
+        "M18"
+      ],
+      "goal": "把业务事件可靠投递给符合条件的渠道与用户。",
+      "features": [
+        "邮件/企业微信等渠道、个人绑定和模板",
+        "通知规则、收件者解析、静默窗口与偏好",
+        "投递记录、去重、重试、失败诊断",
+        "审批资格查询和通知测试"
+      ],
+      "excludes": [
+        "收件资格不是审批权限",
+        "不修改审批、资产或告警结果",
+        "身份验证码发放决策属于 M01，渠道发送可复用此模块端口"
+      ],
+      "tables": [
+        "notification_channels",
+        "notification_bindings",
+        "notification_rules",
+        "notification_deliveries"
+      ],
+      "ports": [
+        "Notification.HandleEvent/TestChannel",
+        "Recipients.Resolve",
+        "Delivery.Send",
+        "Template.Render"
+      ],
+      "events": [
+        "NotificationDelivered",
+        "NotificationDeliveryFailed"
+      ],
+      "apiEvidence": [
+        "src/api/notification-api.ts"
+      ],
+      "acceptance": [
+        "同一事件规则渠道收件者只创建一条投递",
+        "发送失败不回滚已成功业务事务",
+        "个人偏好和当前审批资格得到验证",
+        "重试语义和供应商不支持幂等时的重复可能性明确"
+      ],
+      "usageRequirements": [
+        "U36"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M15",
+      "key": "operations",
+      "name": "监控与诊断",
+      "group": "平台运营",
+      "wave": "W2",
+      "buildAfter": [
+        "F00",
+        "M08",
+        "M18"
+      ],
+      "goal": "展示系统健康、业务运行指标并提供受控诊断。",
+      "features": [
+        "仪表盘、主机/数据库池/存储/会话指标",
+        "阈值、恢复条件、告警确认与状态聚合",
+        "ping/tcping SSE、客户端来源 IP 诊断",
+        "系统版本与运行健康信息"
+      ],
+      "excludes": [
+        "不拥有所有业务模块的统计真相",
+        "配置保存在 M18，IP 集和 GeoData 属于 M02",
+        "不会以监控权限赋予任意远程命令或扫描权限"
+      ],
+      "tables": [
+        "monitor_rules",
+        "system_events"
+      ],
+      "ports": [
+        "Monitoring.GetOverview/Acknowledge",
+        "MetricProvider.Snapshot",
+        "Diagnostics.Ping/TCPing",
+        "Dashboard.QueryReadModel"
+      ],
+      "events": [
+        "MonitorAlertChanged",
+        "DiagnosticCompleted"
+      ],
+      "apiEvidence": [
+        "src/api/monitoring-api.ts",
+        "src/api/dashboard-api.ts",
+        "src/pages/sysops/ToolsPing.tsx",
+        "src/pages/sysops/ToolsTcping.tsx"
+      ],
+      "acceptance": [
+        "告警确认与故障恢复不是同一个动作",
+        "诊断目标/次数/时长受限，断开 SSE 取消任务",
+        "聚合故障不阻塞登录和现存远程会话",
+        "指标不带高基数用户或会话标签"
+      ],
+      "usageRequirements": [
+        "U33"
+      ],
+      "implementationGuides": [
+        "implementation/native-client-agent.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M16",
+      "key": "backup",
+      "name": "备份与恢复",
+      "group": "平台运营",
+      "wave": "W3",
+      "buildAfter": [
+        "F00",
+        "M04",
+        "M08",
+        "M18"
+      ],
+      "goal": "提供可验证、可恢复的数据保护闭环。",
+      "features": [
+        "备份配置、文件目录、手动与定时备份",
+        "S3/SFTP/WebDAV 备份复制和保留",
+        "版本/校验/密钥依赖清单、备份下载与上传恢复",
+        "维护模式恢复编排、恢复前备份和恢复验证"
+      ],
+      "excludes": [
+        "不直接调用其他业务模块的任意 DELETE/TRUNCATE",
+        "不把每日逻辑备份等同于 PITR",
+        "不会在恢复后自动重做历史远程任务"
+      ],
+      "tables": [
+        "backup_files",
+        "backup_tasks"
+      ],
+      "ports": [
+        "Backup.Create/Inspect/Copy",
+        "Restore.Validate/Prepare/Apply/Verify",
+        "BackupContributor.Describe/Export",
+        "MaintenanceCoordinator（应用层实现）",
+        "ArchiveFormat.Inspect/ValidateVersion",
+        "Restore.Preflight/RestartRequired"
+      ],
+      "events": [
+        "BackupCompleted",
+        "BackupFailed",
+        "RestorePrepared",
+        "RestoreCompleted"
+      ],
+      "apiEvidence": [
+        "src/api/backup-api.ts"
+      ],
+      "acceptance": [
+        "备份清单明确包含与排除对象",
+        "隔离环境能恢复数据库、对象引用和密钥访问",
+        "恢复失败保留原实例或明确回退步骤",
+        "恢复完成后旧票据和危险待执行任务失效"
+      ],
+      "usageRequirements": [
+        "U28",
+        "U29"
+      ],
+      "implementationGuides": [
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M17",
+      "key": "ai",
+      "name": "AI 运维助手",
+      "group": "智能扩展",
+      "wave": "W4",
+      "buildAfter": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M06",
+        "M07",
+        "M08"
+      ],
+      "goal": "在现有用户权限内提供可审批、可追溯的 AI 运维能力。",
+      "features": [
+        "模型配置、对话、历史、分支、压缩与用量",
+        "AI WebSocket、消息去重、队列与断线恢复",
+        "工具调用、参数快照、审批决定、取消和超时",
+        "工具适配器复用已有资产、会话、文件等业务能力"
+      ],
+      "excludes": [
+        "不自行实现资产 CRUD、文件写入或远程 shell",
+        "模型输出、主机备注不是授权来源",
+        "用户偏好 user_preferences 通过 M01 端口保存"
+      ],
+      "tables": [
+        "ai_profiles",
+        "ai_conversations",
+        "ai_messages",
+        "ai_turns",
+        "ai_events",
+        "ai_tool_executions",
+        "ai_tool_approvals",
+        "ai_usage_ledger"
+      ],
+      "ports": [
+        "Conversation.Submit/Load/Cancel",
+        "ToolApproval.Decide",
+        "ModelProvider.Generate",
+        "AuthorizedTool.Execute",
+        "Usage.Reserve/Record"
+      ],
+      "events": [
+        "AITurnStarted",
+        "AIToolApprovalRequested",
+        "AIToolCompleted",
+        "AIUsageRecorded"
+      ],
+      "apiEvidence": [
+        "src/api/ai-api.ts",
+        "src/api/ai-settings-api.ts",
+        "src/api/ai-preferences-api.ts"
+      ],
+      "acceptance": [
+        "相同 clientMessageId 与 executionId 不重复执行",
+        "工具参数改变后原审批失效",
+        "用户撤权后待执行工具被拒绝",
+        "模型重试不会自动重放未知结果的写操作"
+      ],
+      "usageRequirements": [
+        "U35"
+      ],
+      "implementationGuides": [
+        "implementation/settings-entitlements.md"
+      ]
+    },
+    {
+      "id": "M18",
+      "key": "system",
+      "name": "系统设置与产品能力",
+      "group": "平台运营",
+      "wave": "W0",
+      "buildAfter": [
+        "F00"
+      ],
+      "goal": "管理初始化状态、统一配置发布、品牌和功能可用性。",
+      "features": [
+        "初始化状态、版本信息、品牌、Logo 和外部链接",
+        "类型化设置注册表、校验、revision 与节点 ACK",
+        "产品能力、资源额度与前端 license DTO 适配",
+        "维护模式和功能启停的配置控制"
+      ],
+      "excludes": [
+        "setup 创建用户/角色由应用流程调用 M01/M02",
+        "各领域设置的业务校验仍归领域模块",
+        "不冒充官方许可证签发或验证实现"
+      ],
+      "tables": [
+        "instance_state",
+        "settings",
+        "settings_revisions",
+        "settings_node_acks",
+        "branding",
+        "logo_assets",
+        "entitlement_licenses",
+        "entitlement_head"
+      ],
+      "ports": [
+        "Settings.Get/Update/RegisterSchema",
+        "Capabilities.Check/Get",
+        "Branding.Get/Update",
+        "Initialization.Get/MarkComplete",
+        "CLI.RegisterCommands",
+        "PropertyCompatibility.Get/Set/List"
+      ],
+      "events": [
+        "SettingsChanged",
+        "CapabilityChanged",
+        "InstanceInitialized"
+      ],
+      "apiEvidence": [
+        "src/api/property-api.ts",
+        "src/api/branding-api.ts",
+        "src/api/license-api.ts",
+        "src/api/logo-api.ts",
+        "src/api/access-setting-api.ts"
+      ],
+      "acceptance": [
+        "未注册设置键不能任意写入",
+        "未实现能力不能通过 license 字段伪装启用",
+        "配置更新失败的节点保留旧可用版本并报告",
+        "初始化状态和首个管理员创建原子提交"
+      ],
+      "usageRequirements": [
+        "U01",
+        "U20",
+        "U30",
+        "U31",
+        "U32"
+      ],
+      "implementationGuides": [
+        "implementation/backup-restore.md",
+        "implementation/settings-entitlements.md"
+      ]
+    }
+  ],
+  "usageReview": "usage-docs-review.md"
+}

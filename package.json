@@ -1,10 +1,16 @@
 {
-  "name": "next-terminal",
+  "name": "puppeteer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "release:frontend": "node scripts/frontend-release.mjs build",
+    "verify:frontend": "node scripts/frontend-release.mjs verify",
     "dev": "vite",
+    "dev:legacy": "vite --mode legacy",
+    "dev:backend": "vite --mode backend",
+    "test:migration-proxy": "node --experimental-strip-types --test tests/migration-proxy.test.mjs",
+    "docs:migration": "node scripts/backend-migration-docs.mjs",
     "build": "NODE_OPTIONS=--max-old-space-size=6144 tsc && vite build",
     "lint": "tsc -p tsconfig.app.json",
     "test:http": "node --experimental-strip-types --test tests/http-response.test.mjs",

@@ -2792,7 +2792,7 @@
     "oidc_server": {
       "setting": "ID プロバイダー",
       "server": "OIDC サーバー",
-      "description": "OIDC サーバーを有効にすると、他のアプリから Next Terminal でユーザー認証を行い、シングルサインオンを利用できます。",
+      "description": "OIDC サーバーを有効にすると、他のアプリから Puppeteer でユーザー認証を行い、シングルサインオンを利用できます。",
       "endpoints_title": "標準エンドポイント：",
       "endpoint": {
         "discovery": "ディスカバリー",
@@ -3461,7 +3461,7 @@
     "load_failed": "アクセス状態の読み込みに失敗しました",
     "retry": "再試行",
     "title": "Agent 接続",
-    "description": "OpenClaw、Hermes、または独自の Agent に Next Terminal Skill をインストールします。一度インストールすれば、以後は付属のスクリプトでリソースを照会・管理できます。",
+    "description": "OpenClaw、Hermes、または独自の Agent に Puppeteer Skill をインストールします。一度インストールすれば、以後は付属のスクリプトでリソースを照会・管理できます。",
     "create_key": "API Key を作成",
     "download_skill": "Skill ドキュメントをダウンロード",
     "download_client": "API クライアントをダウンロード",
@@ -3487,7 +3487,7 @@
     "preview_prompt": "インストール手順を表示",
     "advanced": "API ドキュメント（開発者向け）",
     "advanced_tip": "インストールした Skill には API の探索・呼び出しスクリプトが含まれます。独自の連携を開発する場合は、こちらで API の仕様を確認できます。",
-    "prompt": "Next Terminal のリソース管理 Skill をインストールしてください。インスタンス URL は {{url}} です。\n\n1. この Agent フレームワークの永続的な Skill ディレクトリを確認し、その中の next-terminal-api サブディレクトリを使用してください。一時ディレクトリを使ったり、この会話の間だけドキュメントを読んだりしないでください。\n2. {{url}}/agent/next-terminal/install.py をダウンロードし、ローカルで python3 install.py --base-url {{url}} --directory <永続Skillディレクトリ>/next-terminal-api を実行してください。SKILL.md、scripts/nt_api.py、秘密情報を含まないインスタンス設定が保存されます。同名の Skill が別のインスタンスに接続している場合は、上書きする前にインストール先を確認してください。\n3. フレームワークの手順に従ってインストール済みの Skill を読み込むか、再読み込みしてください。API Key は永続的な環境変数 NT_API_KEY に設定済みです。キーの平文を出力・保存したり、チャットで要求したりしないでください。読み取れない場合は、どの実行環境で設定すべきか教えてください。\n4. インストール済みの scripts/nt_api.py check で接続を確認し、インストール先、読み込み状況、アカウント名を報告してください。失敗した場合は原因を説明し、成功したと報告しないでください。\nscripts/nt_api.py permissions も実行してアカウント権限とシステムライセンスを取得し、API を選ぶ前に確認してください。完全な仕様書に表示されることは呼び出し権限を意味しません。\n5. 以後の管理タスクでは、インストール済みの Skill とスクリプトを使用し、必要な API を調べて私が許可した操作を実行してください。\n\nインストールと確認が完了したら、具体的なタスクの指示を待ってください。",
+    "prompt": "Puppeteer のリソース管理 Skill をインストールしてください。インスタンス URL は {{url}} です。\n\n1. この Agent フレームワークの永続的な Skill ディレクトリを確認し、その中の next-terminal-api サブディレクトリを使用してください。一時ディレクトリを使ったり、この会話の間だけドキュメントを読んだりしないでください。\n2. {{url}}/agent/next-terminal/install.py をダウンロードし、ローカルで python3 install.py --base-url {{url}} --directory <永続Skillディレクトリ>/next-terminal-api を実行してください。SKILL.md、scripts/nt_api.py、秘密情報を含まないインスタンス設定が保存されます。同名の Skill が別のインスタンスに接続している場合は、上書きする前にインストール先を確認してください。\n3. フレームワークの手順に従ってインストール済みの Skill を読み込むか、再読み込みしてください。API Key は永続的な環境変数 NT_API_KEY に設定済みです。キーの平文を出力・保存したり、チャットで要求したりしないでください。読み取れない場合は、どの実行環境で設定すべきか教えてください。\n4. インストール済みの scripts/nt_api.py check で接続を確認し、インストール先、読み込み状況、アカウント名を報告してください。失敗した場合は原因を説明し、成功したと報告しないでください。\nscripts/nt_api.py permissions も実行してアカウント権限とシステムライセンスを取得し、API を選ぶ前に確認してください。完全な仕様書に表示されることは呼び出し権限を意味しません。\n5. 以後の管理タスクでは、インストール済みの Skill とスクリプトを使用し、必要な API を調べて私が許可した操作を実行してください。\n\nインストールと確認が完了したら、具体的なタスクの指示を待ってください。",
     "go_settings": "接続設定へ",
     "view_settings": "接続設定を表示",
     "view_guide": "Agent 接続ガイドを表示",

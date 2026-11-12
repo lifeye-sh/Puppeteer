@@ -1,0 +1,377 @@
+openapi: 3.1.0
+info:
+  title: Puppeteer R15 AI workflows
+  version: r16-contract-permissions
+  description: >-
+    Supplemental contract for the new backend. All mutations require an allowed Origin.
+    Profiles require an administrator. Conversation access is owner-only, including
+    administrators. Chat Completions supports SSE and user-confirmed read-only metadata.
+    Tool proposals require separate approval and execution; tool results are never automatically forwarded to models.
+servers:
+  - url: /api
+security:
+  - session: []
+paths:
+  /ai/status:
+    get:
+      operationId: aiGetStatus
+      responses:
+        '200': {description: 'Authenticated users: enabled, readonlyEnabled, shellEnabled, auditEnabled booleans and version integer only. Prompts and management budgets are not returned.'}
+  /admin/ai/settings:
+    get:
+      operationId: aiGetManagementSettings
+      description: Administrator type and identity.manage required. Returns full current policy, budget, prompts and optimistic version.
+      responses:
+        '200': {description: Current management settings; no provider API keys}
+        '401': {description: Login required}
+        '403': {description: Administrator required}
+    put:
+      operationId: aiSaveSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled, version]
+              properties:
+                enabled: {type: boolean}
+                readonlyEnabled: {type: boolean, default: false}
+                shellEnabled: {type: boolean, default: false}
+                auditEnabled: {type: boolean, default: false}
+                dailyBudgetMicros: {type: integer, minimum: 0, maximum: 100000000000}
+                maxTurnCostMicros: {type: integer, minimum: 0, maximum: 10000000000}
+                commandTimeoutSeconds: {type: integer, minimum: 0, maximum: 10}
+                shellPrompt: {type: string, maxLength: 32768, description: Unicode text; newline and tab allowed, other controls rejected}
+                auditPrompt: {type: string, maxLength: 32768, description: Unicode text; newline and tab allowed, other controls rejected}
+                version: {type: integer, minimum: 1}
+      responses:
+        '200': {description: Updated and audited}
+        '403': {description: Administrator required}
+        '409': {description: Configuration revision changed}
+  /admin/ai/profiles:
+    get:
+      operationId: aiListProfiles
+      responses:
+        '200': {description: 'Profile array, hasKey only; never returns apiKey'}
+    post:
+      operationId: aiCreateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProfileWrite'}
+      responses:
+        '200': {description: Created profile id}
+        '422': {description: Invalid configuration}
+  /admin/ai/profiles/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    put:
+      operationId: aiUpdateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProfileWrite'}
+      responses:
+        '200': {description: Updated profile id}
+        '409': {description: Revision changed}
+        '422': {description: Endpoint changes require replacing or explicitly clearing the key}
+    delete:
+      operationId: aiDeleteProfile
+      responses:
+        '200': {description: Soft delete and clear stored secret; retain conversation history}
+  /ai/profiles:
+    get:
+      operationId: aiListEnabledProfiles
+      responses:
+        '200': {description: Enabled profiles without endpoint or credential metadata}
+  /ai/conversations:
+    get:
+      operationId: aiListConversations
+      responses:
+        '200': {description: At most 100 owner conversations sorted by updatedAt descending}
+    post:
+      operationId: aiCreateConversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [profileId, title]
+              properties:
+                profileId: {type: string, format: uuid}
+                title: {type: string, minLength: 1, maxLength: 100}
+                contextType: {type: string, enum: ['', asset, session], default: ''}
+                contextId: {type: string, description: Immutable target UUID for a scoped conversation}
+      responses:
+        '200': {description: Conversation id}
+        '403': {description: AI or model disabled}
+        '409': {description: Conversation count limit}
+  /ai/conversations/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    get:
+      operationId: aiLoadConversation
+      responses:
+        '200': {description: 'conversation metadata and turns array, including state/reason/token usage'}
+        '404': {description: Missing or another user's conversation}
+    delete:
+      operationId: aiDeleteConversation
+      responses:
+        '200': {description: Delete messages; keep usage reservations and operation audit}
+        '409': {description: A request is still running}
+  /ai/conversations/{id}/messages:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    post:
+      operationId: aiSubmitMessage
+      description: >-
+        Single bounded synchronous request. Reusing clientMessageId returns its stored
+        turn without invoking the provider; changing its text returns 409. Provider
+        timeout is 55 seconds, no retries. Stale requests become interrupted after
+        100 seconds. Limits: 8192 UTF-8 bytes input, 64 KiB history, 30 turns per
+        conversation, 1 active request per user, 60 reservations per user per hour,
+        4 active handlers per process. This is not a monetary budget.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, clientMessageId]
+              properties:
+                text: {type: string, minLength: 1}
+                clientMessageId: {type: string, format: uuid}
+                contextDigest: {type: string, description: SHA-256 from current preview; required for a fresh scoped turn}
+      responses:
+        '200': {description: 'Turn with id, prompt, output, state, reason, model, promptTokens, completionTokens, createdAt'}
+        '403': {description: Disabled or authorization changed}
+        '409': {description: Conflicting message or request quota exceeded}
+        '429': {description: Process concurrency limit}
+  /ai/conversations/{id}/messages/stream:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    post:
+      operationId: aiStreamMessage
+      description: >-
+        Same JSON input and quotas as messages. Emits turn events with durable full
+        snapshots and increasing revision, then done. done may contain running for
+        an idempotent replay; observe GET conversation until terminal. Never resubmit
+        to resume. Client disconnection does not cancel generation. No automatic retries.
+        A provider disconnect, missing DONE or non-stop finish is not success.
+        Post-header failures emit an error event; GET remains the source of truth.
+      responses:
+        '200':
+          description: SSE snapshots with state, output, revision and cancelRequested
+          content:
+            text/event-stream:
+              schema: {type: string}
+        '403': {description: Login, AI, profile or scoped resource access denied}
+        '409': {description: Changed or missing preview consent, conflict or quota}
+  /ai/conversations/{id}/turns/{turn}/cancel:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+      - {name: turn, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      operationId: aiCancelTurn
+      responses:
+        '200': {description: Cancellation requested; stream observes within approximately 500ms plus network latency}
+        '404': {description: Another owner or missing conversation}
+        '409': {description: Turn is already terminal or expired}
+  /ai/context:
+    get:
+      operationId: aiPreviewContext
+      parameters:
+        - {name: type, in: query, required: true, schema: {enum: [asset, session]}}
+        - {name: targetId, in: query, required: true, schema: {type: string, format: uuid}}
+      description: >-
+        Returns snapshot JSON and its SHA-256 digest. Only asset name, host, port,
+        protocol and session state/createdAt/connectedAt/closedAt are included.
+        Requires global AI, readonlyEnabled, per-asset opt-in and current resource
+        grant; another actor's session additionally requires audit.read. No model call.
+      responses:
+        '200': {description: 'snapshot string and digest string'}
+        '403': {description: Context disabled or insufficient access}
+  /admin/ai/assets/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    get:
+      operationId: aiGetAssetAccess
+      responses:
+        '200': {description: 'enabled false/version 0 for an unconfigured asset'}
+    put:
+      operationId: aiSaveAssetAccess
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled, version]
+              properties:
+                enabled: {type: boolean}
+                version: {type: integer, minimum: 0}
+      responses:
+        '200': {description: Administrator change saved and audited}
+        '409': {description: Stale revision}
+  /admin/ai/profiles/{id}/models:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    get:
+      operationId: aiDiscoverModels
+      responses:
+        '200': {description: At most 200 model identifiers from the saved administrator profile}
+  /ai/conversations/{id}/messages/queued:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    post:
+      operationId: aiEnqueueMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, clientMessageId]
+              properties:
+                text: {type: string, description: At most 8192 UTF-8 bytes}
+                clientMessageId: {type: string, format: uuid}
+                contextDigest: {type: string}
+      responses:
+        '200': {description: Durable queued turn or the immutable existing turn; refresh never resubmits}
+        '409': {description: Context changed or budget/quota exceeded; no provider request issued}
+  /ai/ws:
+    get:
+      operationId: aiSubscribe
+      parameters:
+        - {name: conversationId, in: query, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '101': {description: 'Owner and origin checked; full initial snapshot, then changed snapshots with monotonic cursor and turn revisions; reconnect receives a full snapshot'}
+        '403': {description: Authorization or Origin denied}
+  /ai/conversations/{id}/history/{action}:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+      - {name: action, in: path, required: true, schema: {type: string, enum: [branch, compact]}}
+    post:
+      operationId: aiEditHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [through]
+              properties:
+                through: {type: string, format: uuid}
+                title: {type: string}
+                summary: {type: string, description: Reviewed summary; required for compact; max 16384 UTF-8 bytes}
+      responses:
+        '200': {description: Conversation id; branch never copies tool approvals or usage; compact preserves original history}
+        '409': {description: Active turn or stale cutoff}
+  /ai/conversations/{id}/tools:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    get:
+      operationId: aiListExecutions
+      responses:
+        '200': {description: Latest 100 owner tool executions; current scope authorization required}
+    post:
+      operationId: aiProposeTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clientId, name, arguments]
+              properties:
+                clientId: {type: string, format: uuid}
+                turnId: {type: string, format: uuid}
+                callId: {type: string}
+                name: {type: string, enum: [asset_inspect, audit_commands, session_command, file_read, file_write]}
+                arguments:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    command: {type: string, description: At most 4096 UTF-8 bytes}
+                    path: {type: string}
+                    content: {type: string, description: Complete replacement for an existing text file; max 8192 UTF-8 bytes}
+      responses:
+        '200': {description: 'Immutable execution snapshot with hash, versions, before/after file content and ten-minute expiration; does not execute'}
+        '409': {description: Reused client id with changed parameters}
+  /ai/tools/{execution}/{action}:
+    parameters:
+      - {name: execution, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: action, in: path, required: true, schema: {type: string, enum: [decide, execute, cancel]}}
+    post:
+      operationId: aiControlExecution
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision: {type: string, enum: [approve, reject]}
+                parameterHash: {type: string}
+                revision: {type: integer}
+      responses:
+        '200': {description: 'Decision/cancellation acknowledged or durable execution result; running/unknown effects are never automatically replayed'}
+        '403': {description: Current asset/session permission or AI gate denied}
+        '409': {description: Missing/expired/repeated approval or changed parameters/versions}
+  /ai/usage:
+    get:
+      operationId: aiGetUsage
+      parameters:
+        - {name: days, in: query, schema: {type: integer, minimum: 1, maximum: 365, default: 30}}
+        - {name: all, in: query, schema: {type: boolean, default: false}, description: Administrator only}
+      responses:
+        '200': {description: Up to 1000 UTC day/user/model aggregates including tokens, estimated micros, unknown usage and unpriced requests}
+  /ai/preferences:
+    get:
+      operationId: aiGetPreferences
+      responses:
+        '200': {description: Identity-owned per-user preferences and revision}
+    put:
+      operationId: aiSavePreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [displayLevel, version]
+              properties:
+                displayLevel: {type: string, enum: [compact, standard, detailed]}
+                includeCommandSnippets: {type: boolean}
+                defaultProfileId: {type: string}
+                version: {type: integer, minimum: 0}
+      responses:
+        '200': {description: Saved}
+        '409': {description: Stale revision}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+  parameters:
+    ID: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+  schemas:
+    ProfileWrite:
+      type: object
+      required: [name, baseUrl, model, maxOutputTokens]
+      properties:
+        name: {type: string, maxLength: 100}
+        baseUrl: {type: string, maxLength: 2048}
+        model: {type: string, maxLength: 200}
+        protocol: {type: string, enum: [openai, responses, anthropic]}
+        proxyUrl: {type: string, description: Optional HTTP CONNECT proxy; no URL credentials; DNS/IP restrictions apply to proxy and target}
+        temperature: {type: number, minimum: 0, maximum: 2}
+        inputMicrosPerThousand: {type: integer, minimum: 0, maximum: 1000000000}
+        outputMicrosPerThousand: {type: integer, minimum: 0, maximum: 1000000000}
+        apiKey: {type: string, maxLength: 4096, writeOnly: true}
+        clearKey: {type: boolean, default: false}
+        allowPrivate: {type: boolean, default: false}
+        enabled: {type: boolean, default: false}
+        maxOutputTokens: {type: integer, minimum: 64, maximum: 4096}
+        version: {type: integer, minimum: 0}

@@ -43,7 +43,7 @@ test('HTTP 400 登录失败保留异常，本地处理不跳转，全局处理�
         }};
         // 转换真实请求模块，仅替换 Node 不识别的路径别名。
         let source = await readFile(new URL('../src/api/core/requests.ts', import.meta.url), 'utf8');
-        for (const name of ['api-error', 'event-emitter', 'parse-response']) {
+        for (const name of ['api-error', 'event-emitter', 'parse-response', 'event-stream']) {
             source = source.replace(`@/api/core/${name}`, new URL(`../src/api/core/${name}.ts`, import.meta.url).href);
         }
         const outputText = stripTypeScriptTypes(source);

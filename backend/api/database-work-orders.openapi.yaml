@@ -1,0 +1,561 @@
+openapi: 3.1.0
+info:
+  title: Database SQL audit and approved work orders
+  version: r16-schema99
+  description: Audited against registered application handlers. Cookie mutations require
+    an allowed Origin. Coverage does not imply complete product acceptance.
+security:
+- session: []
+paths:
+  /api/admin/database-sql-logs:
+    get:
+      summary: Search SQL audit
+      description: Requires database.audit. Search SQL/user/asset; exact optional
+        state. Invalid page size falls back to20; page>100000 rejected.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SQLLog'
+                  total: &id001
+                    type: integer
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - &id002
+        name: current
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 1
+      - &id003
+        name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+      - name: state
+        in: query
+        schema: &id004
+          type: string
+  /api/admin/database-work-orders:
+    get:
+      summary: List SQL work orders
+      description: Requires database.approve. Admin endpoint lists all orders; portal
+        only requester-owned orders.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkOrder'
+                  total: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id002
+      - *id003
+      - name: state
+        in: query
+        schema: *id004
+  /api/portal/database-work-orders:
+    get:
+      summary: List SQL work orders
+      description: Requires authenticated. Admin endpoint lists all orders; portal
+        only requester-owned orders.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkOrder'
+                  total: *id001
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - *id002
+      - *id003
+      - name: state
+        in: query
+        schema: *id004
+  /api/database-work-orders:
+    post:
+      summary: Submit SQL approval request
+      description: Requires authenticated. Current resource grant, enabled MySQL asset
+        and independent write credential required. AST validates up to100 statements;
+        transactional DML/read and DDL cannot mix. DDL requires explicit acknowledgement.
+        Snapshots SQL hash, asset and credential versions; no execution before independent
+        approval.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id005
+                    type: string
+                    format: uuid
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assetId: *id005
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                sql:
+                  type: string
+                  maxLength: 1048576
+                acknowledgeDdl: &id006
+                  type: boolean
+              required:
+              - assetId
+              - title
+              - sql
+  /api/database-work-orders/{id}/review:
+    post:
+      summary: Approve or reject SQL work order
+      description: Requires database.approve and asset grant. Cannot review own request.
+        Pending state/current version required; approval rechecks requester access,
+        SQL hash, asset and credential versions. Worker performs separate execution
+        checks.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version: *id001
+                approve: *id006
+                reason:
+                  type: string
+                  maxLength: 2000
+              required:
+              - version
+              - approve
+  /api/database-work-orders/{id}/cancel:
+    post:
+      summary: Request work order cancellation
+      description: Requires authenticated. Requester or database.approve; pending/approved
+        become cancelled, running sets cancelRequested. Not a promise of rollback;
+        uncertain outcomes remain unknown.
+      responses:
+        '204':
+          description: Success
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version: *id001
+              required:
+              - version
+  /api/database-work-orders/{id}/results:
+    get:
+      summary: Read retained statement result
+      description: Requires authenticated. Requester or database.approve. Selects
+        at most one statement, pages retained rows only; does not rerun SQL.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkResult'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+      - *id002
+      - *id003
+      - name: statement
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 99
+          default: 0
+  /api/database-proxy/certificate:
+    get:
+      summary: Download effective proxy public certificate
+      description: Requires authenticated. Returns404 until proxy certificate ready.
+        Cache-Control:no-store; no private key.
+      responses:
+        '200':
+          description: next-terminal-mysql.pem attachment
+          content:
+            application/x-pem-file:
+              schema:
+                type: string
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version/state conflict or engine unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Problem:
+      type: object
+      properties:
+        reason: *id004
+        message: *id004
+    SQLLog:
+      type: object
+      properties:
+        workOrderId: *id004
+        parameters:
+          description: Parameter metadata only; bound values are not returned.
+        sanitized: *id006
+        id: *id004
+        sessionId: *id004
+        user: *id004
+        asset: *id004
+        sql: *id004
+        hash: *id004
+        command: *id001
+        state: *id004
+        rows: *id001
+        durationMs: *id001
+        createdAt: &id007
+          type: string
+          format: date-time
+        finishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    WorkOrder:
+      type: object
+      properties:
+        id: *id004
+        assetId: *id004
+        requesterId: *id004
+        reviewerId: *id004
+        title: *id004
+        sql: *id004
+        hash: *id004
+        mode: *id004
+        assetVersion: *id001
+        credentialVersion: *id001
+        state: *id004
+        version: *id001
+        runId: *id004
+        cancelRequested: *id006
+        reason: *id004
+        createdAt: *id007
+        reviewedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        startedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        finishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    WorkResult:
+      type: object
+      properties:
+        index: *id001
+        state: *id004
+        affectedRows: *id001
+        data:
+          type: object
+          description: Retained result columns/rows and truncation metadata; row pagination
+            adds retainedRows.
+        durationMs: *id001

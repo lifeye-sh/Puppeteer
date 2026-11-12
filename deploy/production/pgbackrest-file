@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+# Keep the encryption key out of command arguments and Compose environment.
+key=/run/secrets/wal_cipher_pass
+if [ ! -f "$key" ] || [ "$(wc -c < "$key")" -gt 1024 ]; then
+    echo 'WAL repository key missing or oversized' >&2
+    exit 1
+fi
+PGBACKREST_REPO1_CIPHER_PASS=$(cat "$key")
+if [ "${#PGBACKREST_REPO1_CIPHER_PASS}" -lt 32 ]; then
+    echo 'WAL repository key must contain at least 32 characters' >&2
+    exit 1
+fi
+export PGBACKREST_REPO1_CIPHER_PASS
+exec pgbackrest "$@"

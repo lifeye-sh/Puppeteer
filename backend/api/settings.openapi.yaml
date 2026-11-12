@@ -1,0 +1,1045 @@
+openapi: 3.1.0
+info:
+  title: Runtime configuration revisions
+  version: r16-federation-default-departments
+  description: 'oidc-department and wechat-work-department select an existing department
+    for explicit administrator pre-provisioning of new ordinary users. Empty disables
+    this preparation shortcut. A foreign key protects referenced departments. Changes
+    never alter existing membership or bind an external subject. Automatic public
+    registration is not enabled. OAuth signing and HMAC key import/regeneration require
+    administrator password and fresh bound MFA. RSA accepts a single unencrypted PKCS1/PKCS8
+    key, 2048..4096 bits; automatic generation uses RSA3072. HMAC accepts canonical
+    unpadded Base64URL of 32 random bytes and rejects platform encryption-key reuse.
+    Secrets never return plaintext. Empty/mask keeps a key; clearSecrets explicitly
+    generates a fresh automatic key, even if already automatic. New grants use the
+    new key immediately; old grants retain their original expiry. Old signing public
+    keys remain for 61 minutes; old HMAC keys verify their associated rows. Isolation
+    restore clears configured references, retires keys and revokes grants. oidc-server-enabled,
+    oidc-server-issuer and native-client-enabled configure the existing OIDC server
+    and fixed native client through the same versioned owner. Upgrade preserves existing
+    switches and issuer. Administrator password/fresh bound MFA is mandatory; CLI
+    bypass is denied. First issuer must be a deployment-allowed HTTPS Origin and is
+    immutable thereafter. Disabling is immediate, each enablement waits for live node
+    ACKs. Desired-only changes also advance the legacy domain version, preventing
+    stale editors from replacing pending state. Old grants are invalidated by entry
+    changes. Isolated restore disables both. recording-enabled defaults true and is
+    captured once per newly reserved session. Disabling requires administrator password/fresh
+    bound MFA and waits for online ACKs; re-enabling is immediate for new sessions.
+    Existing sessions and recordings are unchanged. Access and SSH command audit/quota
+    checks remain active even when display recording is disabled. Such sessions cannot
+    use recording-backed observation/sharing/replay/download. Native RDP checks/clears
+    frames in memory without invoking FFmpeg or creating video/manifest files. CLI
+    mutation is denied; isolated restore re-enables recording for future sessions.
+    session-saved-limit-days expires recording, commands and forwarding detail earlier
+    than the parent access summary. Upgrade inherits existing access retention (new
+    installs 31 days). -1 disables early payload cleanup but does not override parent
+    access expiry. Shortening requires a matching preview. Access holds protect both
+    lifecycles; active sessions are excluded.
+
+    SSH forwarding settings publish into the existing native-forward policy. Rules
+    are a JSON string array of assetId/host/port (maximum 100); no caller-supplied
+    DNS pins. Saving enabled rules re-resolves with server-side checks, invalidates
+    stream versions and waits for online ACKs, including same-host refresh. Disabled
+    settings never require live DNS or existing targets. Password/fresh bound MFA
+    and admin type are required; CLI mutation is denied. Isolation restore disables
+    both desired and runtime forwarding. Default OIDC and WeCom configuration manages
+    one provider of each kind. Independent providers are not adopted. Every write
+    requires administrator password and fresh bound MFA; CLI mutation is denied. Issuer
+    remains globally unique and immutable after creation; WeCom corporation ID is
+    immutable. Changing OIDC client ID requires a new secret or explicit clear. Existing
+    external login sessions and pending authorizations are invalidated by provider-version
+    changes. Login/binding enablement waits for all online ACKs; disable is immediate.
+    Final administrator login path protection remains enforced. Isolation restore
+    disables these providers and retains encrypted secret history. Only pre-bound
+    users can log in; department provisioning is not implemented by these settings.
+    OIDC scopes are space separated, require openid, contain at most 32 unique printable
+    ASCII tokens (no quotes/backslashes), and are transmitted to the provider. Default
+    openid preserves minimal existing requests. WeCom API and authorization URLs support
+    a separately trusted private test issuer, retaining HTTPS verification; no skip-TLS
+    setting is provided. Existing issuer conflicts return 409, never silently adopt
+    or overwrite a provider. OAuth lifetime settings require administrator password
+    and fresh bound TOTP; generic CLI changes are denied. Values apply to newly issued
+    codes/tokens only. Existing deadlines remain unchanged; refresh rotation does
+    not extend the original family deadline. Native clients cap access/ID tokens at
+    300 seconds, codes at 60 seconds and refresh families at seven days. Access expiry
+    and expires_in are capped by remaining family lifetime. Signing-key rotation retains
+    prior public keys for 3660 seconds, covering the maximum ID-token lifetime. These
+    settings do not enable any login entry point. Passkey settings require administrator
+    password and fresh bound MFA. passkey-enabled defaults true for deployment compatibility
+    but without a valid RP no login is available. Empty RP and JSON-encoded empty
+    origin list inherit deployment values. Explicit RP requires 1..16 exact HTTPS
+    origins, all within deployment API allowed origins. Any real change invalidates
+    outstanding ceremonies, preserves credentials and protects the final administrator
+    login path. Disable is immediate, enable waits for ACK; existing authenticated
+    sessions remain. Generic CLI mutation is denied. Idle timeout accepts -1 or 1..86400
+    seconds. Tightening applies at lease renewal (about two seconds); relaxing waits
+    for online ACK. Accepted terminal input, web graphics keyboard/mouse and paste,
+    and client-to-target forwarding bytes are activity. Heartbeats, resize, remote
+    output and observers are not. Current native RDP is view-only and expires without
+    input. This does not govern independent file requests, database or login sessions.
+    One hundred thirteen editable runtime settings and five separate read-only projections
+    are registered, including extensions. This is not all 103 documented legacy keys.
+    Eleven LDAP properties configure one default directory; existing independent directories
+    remain separate. Every LDAP write requires an administrator password and fresh
+    bound TOTP. Login and binding enablement wait for all required online ACKs; disabling
+    is immediate. Generic CLI edits are denied. LDAP URL, base DN and stable identity
+    attribute are immutable after creation. Changing bind DN requires a new secret
+    or explicit clear. Reads mask secrets. Isolated restore disables both login and
+    binding in a new revision while retaining encrypted history. LDAP requires LDAPS
+    or mandatory StartTLS and verified certificates. Mapping is a JSON-encoded object
+    with username required and nickname/mail optional; unknown keys and invalid attribute
+    names are rejected. Directory previews are complete-or-fail, paged and capped
+    at 1..10000 entries. New imported accounts are disabled ordinary users; mapped
+    email is an unverified preview claim, never an account contact or recovery address.
+    Read-only metadata (version, security-level=custom, ssh-server-private-key-exists)
+    is returned separately from immutable values. The legacy property map includes
+    these keys and accepts unchanged round-trips only; native PATCH rejects them.
+    No predefined security level silently changes other policies. An optional encrypted
+    SSH gateway host key is installed only when the listener generation commits. The
+    actual active public key is advertised to clients. Supports one unencrypted OpenSSH/PEM
+    Ed25519, ECDSA or RSA>=2048 private key; DSA, multiple blocks, leading/trailing
+    content and password-protected keys are rejected. Explicit clear restores the
+    preserved auto-generated key, never silently rotates it. Isolated restore clears
+    the custom reference in a new revision and regenerates platform identity; old
+    encrypted history remains protected in the backup. A separate managed default
+    model uses eleven connection/secret/price properties; independent profiles are
+    never adopted or overwritten. API keys are encrypted references and require password/TOTP
+    proof to set or clear. Repointing base/proxy URLs requires a new key or explicit
+    clear, even when disabled. Reads mask secrets, managed profile editing/deletion
+    uses the unified settings API. HTTPS is required unless private access is explicitly
+    enabled; DNS is checked and pinned before dialing. HTTP(S) CONNECT and SOCKS5/SOCKS5h
+    proxies cannot contain credentials. SOCKS requires an explicit port; both proxy
+    and target addresses are validated and pinned locally, including SOCKS5h. Temperature
+    accepts -1 (omit) or 0..2, including decimals; max output is bounded to 64..4096.
+    Initial managed profile is disabled, and isolated restore disables it while preserving
+    encrypted history. Five global AI keys project transactionally to the existing
+    assistant policy. Independent profiles, API keys, budgets, readonly-context consent
+    and asset access are preserved. Prompts are supplemental plain Unicode text up
+    to 32768 characters, not executable authorization. Both admin API paths share
+    versions and history; ordinary users cannot modify AI policy. Quarantine appends
+    a revision disabling assistant, shell and audit tools. Settings HTTP and CLI JSON
+    bodies are bounded at 512 KiB. disable-password-login shares the identity login-policy
+    transaction and version. Changing it requires admin password and fresh bound TOTP;
+    disabling additionally requires a recent successful alternate admin login and
+    preserves the last verified login path. Reopening waits for online ACK; the explicit
+    local recovery command and isolated restore can restore only password login immediately.
+    Generic settings CLI cannot change this field. Security tightening is enforced
+    immediately from a database snapshot. Relaxation retains the stricter intersection
+    until required online nodes ACK. Nodes lose membership after a 30-second heartbeat
+    lease; disconnected nodes cannot authorize from cached policy. securityPending
+    reports this barrier separately from configuration publication. Unknown or corrupt
+    desired/enforced values deny authorization. API source-IP extraction supports
+    direct, x-forwarded-for and a single-IP custom header. Headers are read only from
+    explicitly trusted CIDRs; XFF walks right to left. Duplicate, invalid and oversized
+    headers fall back to the socket peer. Trust expansion waits for ACK and direct
+    mode immediately stops accepting headers. Website traffic retains its independent
+    proxy trust settings. The legacy website-settings API atomically publishes a configuration
+    revision for API trust changes and retains optimistic version checks. SMTP secrets
+    are encrypted immutable references internally; all public reads and diffs redact
+    them. Empty text or ***** keeps the old value. Explicit clearSecrets removes it.
+    Set/clear requires current admin password and fresh bound TOTP. Changes atomically
+    update a dedicated managed SMTP channel; other channels are preserved. Isolated
+    restore disables the managed channel and appends a matching configuration revision.
+    SMTP requires verified implicit TLS or STARTTLS; mail-insecure-skip-verify must
+    remain false. Private PEM CA certificates are accepted, private keys and non-certificate
+    content are rejected. SSH/MySQL/PostgreSQL listener updates prepare new sockets
+    before switching, preserve existing streams and require matching deployment port
+    mappings. Database TLS rotation applies to new connections; invalid or revoked
+    certificates fail preparation and pause new connections. Password strength applies
+    to password creation/reset; local password expiry requires authenticated self-service
+    change. Global TOTP applies to browser login and native SSH public-key authentication.
+    External identities retain their upstream password lifecycle. Six watermark properties
+    are captured on new host sessions. Browser terminals, graphics and observers use
+    this snapshot; existing sessions, raw recordings and native client displays are
+    not modified. Watermark content is plain text with only {user}, {assetUser} and
+    {asset} variables; unknown braces and HTML delimiters are rejected. Colors must
+    be bounded RGB/RGBA or six/eight digit hex literals. Seven audit retention keys
+    accept -1 or 1..3650 days (never zero), effective on the next cleanup. Shortening
+    requires a ten-minute same-actor, same-revision, same-value preview; missing proof
+    returns retention_preview_required 409. Legacy access-retention-days is an explicit
+    alias of access-log-saved-limit-days on PUT /admin/properties; supplying both
+    is rejected. Lock controls are read on the next failed password/LDAP/privileged
+    password proof check. Existing lock deadlines are preserved; zero account-lock
+    duration only prevents new locks. IP failures are counted for local and LDAP passwords.
+    The master switch pauses lock checks and counts without deleting active deadlines.
+    IP duration defaults to zero for safe proxy rollout. Captcha/rate limits remain
+    independent. Saving is distinct from consumer ACK. Existing connections and login
+    sessions retain their snapshot. Login duration is measured in minutes and starts
+    at session issuance; no sliding renewal. MFA pending/enrollment sessions remain
+    five minutes. Cookie persistence is captured at issuance; browser session restore
+    may preserve session cookies. Browser login capacity defaults to disabled to preserve
+    the existing unlimited behavior. When enabled, a per-user row lock serializes
+    counts and issuance across all identity methods; exhausted capacity returns login_session_limit
+    (409). Existing sessions are preserved, temporary MFA phases are excluded, and
+    revoked/expired/invalid-provider sessions do not consume slots. Logo references
+    must identify uploaded sanitized PNG objects; empty restores the default. Upload
+    alone does not select a logo. Arbitrary URLs and SVG uploads are rejected. Other
+    domain configuration continues using its existing API.'
+servers:
+- url: https://backend.localhost:5174/api
+security:
+- session: []
+paths:
+  /settings/revisions:
+    get:
+      description: settings.read; immutable metadata only, descending keyset pagination.
+        Later saves do not displace older pages.
+      parameters:
+      - name: before
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: Exclusive revision cursor; zero starts at current head. Canonical
+          integer, no duplicates.
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+      responses:
+        '200':
+          description: items (id, previousId, actor, changedKeys, legacyWrite, createdAt),
+            currentId, hasMore, nextBefore. No snapshot values.
+        '401':
+          description: Login required
+        '403':
+          description: Missing settings.read
+        '422':
+          description: Malformed or duplicate pagination parameter
+  /settings/revisions/{id}/diff:
+    parameters:
+    - $ref: '#/components/parameters/ID'
+    get:
+      description: settings.read; compares registered properties, masks secret values
+        (rotation can show two masks). No mutation or rollback. Unknown historical
+        keys are excluded.
+      parameters:
+      - name: from
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+        description: Omitted uses real preceding revision; zero uses empty baseline;
+          explicit positive ID must exist.
+      responses:
+        '200':
+          description: fromId, toId, changes[{key,label,type,unit,before,after,beforePresent,afterPresent}].
+            Presence flags distinguish missing from false, zero and empty text.
+        '401':
+          description: Login required
+        '403':
+          description: Missing settings.read
+        '404':
+          description: Baseline or target revision not found
+        '422':
+          description: Invalid or duplicate revision parameter
+  /settings/schema:
+    get:
+      responses:
+        '200':
+          description: settings.read; scope, properties and separate readOnlyProperties
+            definitions (key, label, type, effect, default, min, max, unit)
+        '403':
+          description: Missing permission
+  /settings:
+    get:
+      responses:
+        '200':
+          description: settings.read; immutable current snapshot with node ACKs and
+            aggregate state. ETag settings-N (quoted), X-Settings-Revision N.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+    patch:
+      description: identity.manage; allowed Origin and If-Match required. Atomic validation,
+        optimistic concurrency, operation audit.
+      parameters:
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - set
+              properties:
+                set:
+                  $ref: '#/components/schemas/Patch'
+                clearSecrets:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    enum:
+                    - mail-password
+                    - ssh-server-private-key
+                    - llm-api-key
+                    - ldap-password
+                    - oidc-client-secret
+                    - wechat-work-secret
+                    - oidc-server-signing-key
+                    - oidc-server-hmac-secret
+                password:
+                  type: string
+                  maxLength: 1024
+                  writeOnly: true
+                  description: Required for secret set/clear
+                totp:
+                  type: string
+                  pattern: ^\d{6}$
+                  writeOnly: true
+                  description: Fresh unused TOTP when bound
+      responses:
+        '202':
+          description: Saved revision and ETag; not proof of runtime application.
+            No-op retains revision.
+        '400':
+          description: Incorrect password or missing/invalid/used TOTP proof
+        '403':
+          description: Missing permission or invalid Origin
+        '409':
+          description: Stale version; refresh before resubmitting
+        '422':
+          description: Invalid batch; nothing changed
+        '428':
+          description: If-Match missing
+  /settings/revisions/{id}:
+    parameters:
+    - $ref: '#/components/parameters/ID'
+    get:
+      responses:
+        '200':
+          description: settings.read; historical immutable values with current node
+            liveness and ACKs for this revision
+        '404':
+          description: Revision not found
+  /settings/revisions/{id}/retry:
+    parameters:
+    - $ref: '#/components/parameters/ID'
+    - $ref: '#/components/parameters/IfMatch'
+    post:
+      responses:
+        '202':
+          description: identity.manage; failed ACKs of current revision reset to requested;
+            audited
+        '409':
+          description: Not current revision or mismatched version
+        '428':
+          description: If-Match missing
+  /admin/properties:
+    get:
+      responses:
+        '200':
+          description: Existing typed property map; now includes ETag and X-Settings-Revision
+            for this configuration scope
+    put:
+      description: identity.manage. Optional If-Match; absent means serialized legacy
+        write without optimistic protection. Only registered keys accepted. Secret
+        replacement accepts an additional reauth object containing password and optional
+        fresh totp; empty/masked values keep existing secret. Explicit clear is available
+        only through PATCH /settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Patch'
+      responses:
+        '204':
+          description: Empty response with ETag and X-Settings-Revision
+        '409':
+          description: Stale If-Match
+        '422':
+          description: Invalid property batch
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  parameters:
+    ID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        example: '"settings-1"'
+  schemas:
+    Patch:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      description: Canonical decimal integer strings and lowercase true/false boolean
+        strings are accepted for compatibility. Null, wrong types, fractional integers,
+        control characters and unknown keys are rejected.
+      properties:
+        ip-extractor:
+          type: string
+          minLength: 1
+          maxLength: 64
+          default: direct
+          description: Lowercase HTTP header name or direct. Authentication/Cookie/internal
+            headers are prohibited.
+        ip-trust-list:
+          type: string
+          maxLength: 65536
+          default: ''
+          description: Comma-separated IPv4/IPv6 CIDRs, at most 1024 entries; required
+            when extractor is not direct.
+        mail-enabled:
+          type: boolean
+          default: false
+        mail-use-ssl:
+          type: boolean
+          default: true
+        mail-host:
+          type: string
+          maxLength: 253
+        mail-port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          default: 465
+        mail-username:
+          type: string
+          maxLength: 254
+        mail-password:
+          type: string
+          maxLength: 8192
+          description: Write plaintext only with proof; reads return ***** or empty,
+            never the secret or reference.
+        mail-insecure-skip-verify:
+          type: boolean
+          const: false
+          default: false
+        mail-from:
+          type: string
+          maxLength: 254
+        mail-ca-pem:
+          type: string
+          maxLength: 65536
+        ssh-server-enabled:
+          type: boolean
+          default: true
+        oidc-department:
+          type: string
+          maxLength: 36
+          description: Empty or an existing canonical department UUID; administrator
+            password/fresh MFA required
+        wechat-work-department:
+          type: string
+          maxLength: 36
+          description: Empty or an existing canonical department UUID; administrator
+            password/fresh MFA required
+        oidc-server-signing-key:
+          type: string
+          maxLength: 8192
+          description: Unencrypted RSA PKCS1/PKCS8 PEM on write; masked on read; empty/mask
+            keeps existing key
+        oidc-server-hmac-secret:
+          type: string
+          maxLength: 43
+          description: Canonical unpadded Base64URL of 32 random bytes on write; masked
+            on read; empty/mask keeps existing key
+        oidc-server-enabled:
+          type: boolean
+          default: false
+        oidc-server-issuer:
+          type: string
+          maxLength: 512
+          description: Empty when unconfigured; otherwise an immutable deployment-allowed
+            HTTPS Origin
+        native-client-enabled:
+          type: boolean
+          default: false
+        access-require-mfa:
+          type: boolean
+          default: false
+          description: Remote host session access TOTP; administrator password/fresh
+            MFA required
+        access-mfa-expires-at:
+          type: integer
+          minimum: 0
+          maximum: 1440
+          default: 5
+          description: Minutes; zero requires one-use proof for each new session
+        recording-enabled:
+          type: boolean
+          default: true
+        session-saved-limit-days:
+          type: integer
+          default: 31
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          description: Session payload retention; -1 means no early cleanup, parent
+            access expiry still applies
+        ssh-server-port-forwarding-enabled:
+          type: boolean
+          default: false
+        ssh-server-port-forwarding-host-port:
+          type: string
+          default: '[]'
+          maxLength: 65536
+          description: JSON array of {assetId,host,port}; maximum 100 unique exact
+            targets; assetId is required to preserve resource authorization
+        http-server-addr:
+          type: string
+          maxLength: 260
+          description: Management IP:port; empty inherits deployment. Bootstrap remains on deployment address until successful apply. Cannot disable management.
+        login-captcha-enabled:
+          type: boolean
+          default: true
+          description: Requires administrator password and fresh bound MFA. Enabling immediately protects newly started login requests; disabling awaits online node ACK. Existing authenticated sessions are retained. Unused CAPTCHA proofs are invalidated on changes. Restore re-enables CAPTCHA.
+        website-server-enabled:
+          type: boolean
+          default: true
+        website-server-addr:
+          type: string
+          maxLength: 260
+          description: Website TLS IP:port; empty inherits deployment; certificates selected by website SNI.
+        native-rdp-enabled:
+          type: boolean
+          default: true
+        native-rdp-addr:
+          type: string
+          maxLength: 260
+          description: Requires deployment-owned worker and certificates; loopback unless explicitly deployed in local container profile.
+        native-rdp-public-address:
+          type: string
+          maxLength: 260
+          description: Client host:port must match valid deployment TLS certificate SAN. Empty inherits advertised deployment address.
+        ssh-server-addr:
+          type: string
+          maxLength: 260
+          description: Literal IP:port; empty inherits deployment configuration
+        ssh-server-private-key:
+          type: string
+          maxLength: 8192
+          description: One unencrypted OpenSSH/PEM private key on write with proof;
+            empty/mask keeps existing value. Reads return a mask, never the private
+            key or secret reference.
+        db-proxy-enabled:
+          type: boolean
+          default: true
+        db-proxy-addr:
+          type: string
+          maxLength: 260
+        postgres-proxy-enabled:
+          type: boolean
+          default: true
+        postgres-proxy-addr:
+          type: string
+          maxLength: 260
+        db-proxy-certificate-id:
+          type: string
+          maxLength: 36
+        llm-profile-enabled:
+          type: boolean
+          default: false
+        agent-gateway-endpoint:
+          type: string
+          maxLength: 2048
+          description: HTTPS origin for new Agent installations only; empty requires
+            an explicit per-install endpoint. Existing devices retain their own configuration.
+        ldap-enabled:
+          type: boolean
+          default: false
+        ldap-binding-enabled:
+          type: boolean
+          default: false
+        ldap-url:
+          type: string
+          maxLength: 2048
+          description: LDAPS or LDAP with mandatory StartTLS; immutable once the managed
+            directory exists.
+        ldap-user:
+          type: string
+          maxLength: 1024
+          description: Service-account DN; changes require a fresh secret or explicit
+            clear.
+        ldap-password:
+          type: string
+          maxLength: 65536
+          description: Encrypted with administrator proof; empty/mask keeps, clearSecrets
+            removes; NUL rejected.
+        ldap-base-dn:
+          type: string
+          maxLength: 1024
+        ldap-user-search-size-limit:
+          type: integer
+          minimum: 1
+          maximum: 10000
+          default: 1000
+        ldap-user-search-filter:
+          type: string
+          maxLength: 4096
+          default: (objectClass=inetOrgPerson)
+        ldap-user-property-mapping:
+          type: string
+          maxLength: 1024
+          description: JSON-encoded object with username required, nickname and mail
+            optional; only valid LDAP attribute names.
+        ldap-identity-attribute:
+          enum:
+          - entryUUID
+          - objectGUID
+          default: entryUUID
+        ldap-ca-pem:
+          type: string
+          maxLength: 65536
+        llm-base-url:
+          type: string
+          maxLength: 2048
+        llm-model:
+          type: string
+          maxLength: 200
+        llm-api-key:
+          type: string
+          maxLength: 4096
+          description: Write with admin proof; reads masked. Empty/mask preserves;
+            clearSecrets explicitly removes.
+        llm-temperature:
+          type: number
+          minimum: -1
+          maximum: 2
+          default: -1
+          oneOf:
+          - const: -1
+          - minimum: 0
+            maximum: 2
+        llm-max-tokens:
+          type: integer
+          minimum: 64
+          maximum: 4096
+          default: 1024
+        llm-proxy-url:
+          type: string
+          maxLength: 2048
+        llm-allow-private:
+          type: boolean
+          default: false
+        llm-protocol:
+          enum:
+          - openai
+          - responses
+          - anthropic
+          default: openai
+        llm-input-rate:
+          type: integer
+          minimum: 0
+          maximum: 1000000000
+          default: 0
+        llm-output-rate:
+          type: integer
+          minimum: 0
+          maximum: 1000000000
+          default: 0
+        llm-enabled:
+          type: boolean
+          default: false
+        llm-shell-enabled:
+          type: boolean
+          default: false
+        llm-audit-enabled:
+          type: boolean
+          default: false
+        llm-shell-prompt:
+          type: string
+          maxLength: 32768
+          default: ''
+        llm-audit-prompt:
+          type: string
+          maxLength: 32768
+          default: ''
+        disable-password-login:
+          type: boolean
+          default: false
+          description: Admin proof and recent alternate login required to disable.
+        login-force-totp-enabled:
+          type: boolean
+          default: false
+        password-expiration-period:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        password-strength-type:
+          enum:
+          - recommend
+          - customize
+          default: recommend
+        password-strength-policy:
+          type: string
+          maxLength: 1024
+          description: Strict JSON string containing minLength, minCharacterType,
+            mustNotContainUsername, mustNotWeak, mustNotBePalindrome.
+        access-log-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: 31
+        login-log-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        cron-log-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        db-sql-log-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        operation-log-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        filesystem-log-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        system-event-saved-limit-days:
+          type: integer
+          minimum: -1
+          maximum: 3650
+          not:
+            const: 0
+          default: -1
+        oidc-enabled:
+          type: boolean
+          default: false
+        oidc-binding-enabled:
+          type: boolean
+          default: false
+        oidc-issuer:
+          type: string
+          maxLength: 2048
+          default: ''
+        oidc-client-id:
+          type: string
+          maxLength: 512
+          default: ''
+        oidc-client-secret:
+          type: string
+          maxLength: 8192
+          writeOnly: true
+        oidc-redirect-uri:
+          type: string
+          maxLength: 2048
+          default: ''
+        oidc-scopes:
+          type: string
+          maxLength: 4096
+          default: openid
+        wechat-work-enabled:
+          type: boolean
+          default: false
+        wechat-work-binding-enabled:
+          type: boolean
+          default: false
+        wechat-work-corp-id:
+          type: string
+          maxLength: 128
+          default: ''
+        wechat-work-agent-id:
+          type: string
+          maxLength: 32
+          default: ''
+        wechat-work-secret:
+          type: string
+          maxLength: 8192
+          writeOnly: true
+        wechat-work-redirect-uri:
+          type: string
+          maxLength: 2048
+          default: ''
+        wechat-work-api-url:
+          type: string
+          maxLength: 2048
+          default: https://qyapi.weixin.qq.com
+        wechat-work-authorization-url:
+          type: string
+          maxLength: 2048
+          default: https://login.work.weixin.qq.com/wwlogin/sso/login
+        oidc-server-access-token-ttl:
+          type: integer
+          minimum: 60
+          maximum: 3600
+          default: 300
+        oidc-server-refresh-token-ttl:
+          type: integer
+          minimum: 3600
+          maximum: 2592000
+          default: 2592000
+        oidc-server-id-token-ttl:
+          type: integer
+          minimum: 60
+          maximum: 3600
+          default: 300
+        oidc-server-auth-code-ttl:
+          type: integer
+          minimum: 30
+          maximum: 300
+          default: 60
+        passkey-enabled:
+          type: boolean
+          default: true
+        passkey-domain:
+          type: string
+          maxLength: 253
+          default: ''
+        passkey-origins:
+          type: string
+          maxLength: 32768
+          default: '[]'
+          description: JSON-encoded HTTPS origin array
+        access-max-idle-second:
+          type: integer
+          minimum: -1
+          maximum: 86400
+          not:
+            const: 0
+          default: 900
+        watermark-enabled:
+          type: boolean
+          default: true
+        watermark-content:
+          type: string
+          maxLength: 256
+          default: 受控访问
+        watermark-content-asset-username:
+          type: boolean
+          default: false
+        watermark-content-user-account:
+          type: boolean
+          default: true
+        watermark-font-color:
+          type: string
+          maxLength: 40
+          default: rgba(128, 128, 128, 0.3)
+        watermark-font-size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 16
+        user-default-storage-size:
+          type: integer
+          minimum: 0
+          maximum: 1099511627776
+          default: 5368709120
+          description: Byte; initial personal storage only. Existing quotas are preserved;
+            zero grants no write capacity.
+        user-client-cert-valid-days:
+          type: integer
+          minimum: 1
+          maximum: 825
+          default: 90
+          description: Used by client issuance/reissue when days omitted or zero.
+            Issuer expiry is an additional cap. Existing certificates are unchanged.
+        system-name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        system-copyright:
+          type: string
+          maxLength: 160
+        system-icp:
+          type: string
+          maxLength: 64
+        system-logo:
+          type: string
+          maxLength: 36
+          description: Existing sanitized image UUID or empty string
+        login-lock-enabled:
+          type: boolean
+          default: true
+        login-lock-ip-duration:
+          type: integer
+          minimum: 0
+          maximum: 10080
+          default: 0
+        login-session-browser-close-logout:
+          type: boolean
+          default: false
+        login-session-count-custom:
+          type: boolean
+          default: false
+        login-session-count-limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 5
+        login-lock-failed-duration:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 15
+          description: Minutes since last failure; inactivity resets count.
+        login-lock-failed-times:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 5
+        login-lock-account-duration:
+          type: integer
+          minimum: 0
+          maximum: 10080
+          default: 15
+          description: Minutes; 0 prevents new locks, not existing locks.
+        login-session-duration:
+          type: integer
+          minimum: 1
+          maximum: 525600
+          default: 480
+        postgres-query-timeout-seconds:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 10
+        postgres-result-max-rows:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 100000
+        postgres-result-max-mib:
+          type: integer
+          minimum: 1
+          maximum: 64
+          default: 64
+        ssh-server-disable-password-auth:
+          type: boolean
+          default: true
+          description: Admin password and fresh bound MFA required. True disables
+            native SSH password and terminates password leases; false waits for consumers
+            to ACK. Global local-password policy, lockout, expiry and MFA still apply.
+            Restore sets true.
+        db-proxy-block-dml:
+          type: boolean
+          default: true
+          description: Administrator password and fresh bound MFA proof required.
+            false waits for live-node ACK and permits only opted-in MySQL native DML
+            credentials plus database.write permission. true takes effect immediately;
+            existing write sessions close on next command or lease. PostgreSQL remains
+            readonly; approved work orders are independent.
+    View:
+      type: object
+      properties:
+        id:
+          type: integer
+        values:
+          $ref: '#/components/schemas/Patch'
+        readOnly:
+          type: object
+          properties:
+            version:
+              type: string
+            security-level:
+              const: custom
+            ssh-server-private-key-exists:
+              type: boolean
+            asset-group-tree:
+              type: string
+              description: 'JSON array of current shared resource groups: id, name,
+                parentId, children.'
+            website-group-tree:
+              type: string
+              description: Same current shared resource directory; not a historical
+                snapshot.
+          description: Current operational metadata, not historical editable values.
+        secrets:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              hasValue:
+                type: boolean
+        changedKeys:
+          type: array
+          items:
+            type: string
+        actor:
+          type: string
+        legacyWrite:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        state:
+          enum:
+          - requested
+          - applying
+          - effective
+          - failed
+          - stalled
+        securityPending:
+          type: boolean
+          description: A stricter policy intersection remains enforced until required
+            live consumers ACK.
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              state:
+                enum:
+                - requested
+                - effective
+                - failed
+              error:
+                type: string
+              attempts:
+                type: integer
+              lastAppliedRevision:
+                type: integer
+                minimum: 0
+                description: Latest revision with an effective ACK for this node,
+                  across all revisions; 0 if none. This is a confirmation record,
+                  not a claim that existing sessions changed. Offline nodes remain
+                  excluded from aggregate state.
+              online:
+                type: boolean
+              lastSeen:
+                type: string
+                format: date-time
+              updatedAt:
+                type:
+                - string
+                - 'null'
+                format: date-time

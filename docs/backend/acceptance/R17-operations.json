@@ -1,0 +1,48 @@
+{
+  "round": "R17",
+  "date": "2026-11-12",
+  "productionReady": false,
+  "userAccepted": false,
+  "image": "sha256:ce6017b7c08fecce90d8f5e40dd60a603cb218ae4f8ba411f78703b7c336aa58",
+  "agent": {
+    "version": "r17-operations-preview",
+    "sequence": 1,
+    "bytes": 15377125,
+    "sha256": "0e02e09a738b6c5cf6299fe1cda3a706e787f75f358806ed5f80e53df9d3546a",
+    "realTUFClient": true,
+    "httpsVerified": true,
+    "privatePaths404": true,
+    "realNodeRolloutTested": false,
+    "metadataLifetimeHours": 24
+  },
+  "backup": {
+    "scope": "full",
+    "encrypted": true,
+    "bytes": 756088,
+    "sha256": "5c16a1a1892bd449b80523c1cb7fc6b780037a90d57d6daa1ab054d291410706",
+    "activeWriterFenceRejected": true,
+    "sourceProject": "puppeteer-r17-core",
+    "sourceServicesResumed": true
+  },
+  "restore": {
+    "database": "nt_restore_r17",
+    "separateContainerAndNetwork": true,
+    "ownerSuperuser": false,
+    "state": "prepared",
+    "switched": false,
+    "schemaVersion": 103,
+    "users": 1,
+    "sessions": 0,
+    "quarantineRecords": 1,
+    "nonemptyTargetRejected": true,
+    "keysAndObjectsVerified": true
+  },
+  "regressions": {
+    "agentupdate": "passed",
+    "deployment": "passed",
+    "ntCLI": "passed",
+    "encryptedRoundTripAndQuarantineSeconds": 50.622,
+    "frontendAndScriptTests": 63
+  },
+  "remaining": ["real Agent canary rollout", "root rotation publishing workflow", "trusted production certificates and browser journeys", "proxy client IP trust", "offsite backups and WAL/PITR", "capacity and recovery targets", "full deployment cutover rehearsal", "user signoff"]
+}

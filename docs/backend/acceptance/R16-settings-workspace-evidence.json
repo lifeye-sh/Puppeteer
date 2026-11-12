@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-11",
+  "release": "r16-settings-workspace",
+  "schema": 70,
+  "capabilitiesRevision": 46,
+  "registeredProperties": 23,
+  "currentConfiguration": 26,
+  "configurationState": "effective",
+  "testValuesRestoredToRevision": 23,
+  "backend": [
+    "TestR16ConfigurationRevisionAndApply",
+    "TestR16ConfigurationHistoryAndDiff",
+    "internal/modules/system",
+    "cmd/nt",
+    "go vet ./..."
+  ],
+  "frontendTests": 23,
+  "browser": [
+    "seven sections",
+    "SPA timeOrigin unchanged",
+    "two-column scoped editor",
+    "cancel and unsaved confirmation",
+    "scoped save",
+    "history keyset page 2",
+    "previous/current diff",
+    "snapshot",
+    "feature search",
+    "dark mode",
+    "390px viewport",
+    "console no errors after fixes"
+  ],
+  "serverSHA256": "6deb83975b3c364f1cc89dda59e77b864dbdcfeaaa323c04e4c1aef19e44da90",
+  "cliSHA256": "ee13d6750ca65b4cb2789a68dcfda05ade9b6187e1ca2c0c79f5656894f62e1f",
+  "roundComplete": false
+}

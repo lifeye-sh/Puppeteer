@@ -1,5 +1,13 @@
 declare module '@dushixiang/guacamole-common-js' {
     namespace Guacamole {
+        class Tunnel {
+            constructor(...args: any[]);
+            [key: string]: any;
+        }
+        class Parser {
+            constructor(...args: any[]);
+            [key: string]: any;
+        }
         class Status {
             [key: string]: any;
         }

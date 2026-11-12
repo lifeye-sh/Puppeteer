@@ -1,0 +1,4480 @@
+openapi: 3.1.0
+info:
+  title: Puppeteer independent backend — R16
+  version: puppeteer-branding
+  description: R16 development contract index. Current settings, AI, PostgreSQL assets,
+    entitlements, statistics and retention use the referenced module contracts. Earlier
+    session/resource definitions remain for compatibility and are not a claim of complete
+    R16 acceptance. Native R14 exclusions, PostgreSQL readonly-preview limits and
+    outstanding functional checks are tracked in docs/backend/acceptance/R16.md. All
+    cookie-authenticated mutations require an allowed Origin; credential-only native
+    protocol exceptions are enforced by the application.
+servers:
+- url: https://backend.localhost:5174
+security:
+- session: []
+paths:
+  /api/native/v1/assets:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1v1~1assets
+  /api/native/v1/connect:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1v1~1connect
+  /api/native/v1/bridge:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1v1~1bridge
+  /api/native/v1/rdp-file:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1v1~1rdp-file
+  /api/native/v1/sessions/{id}:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1v1~1sessions~1{id}
+  /api/native/ssh-gateway:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1ssh-gateway
+  /api/native/ssh-launch/{id}:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1native~1ssh-launch~1{id}
+  /api/sessions/{id}/forward-streams:
+    $ref: ./native-sessions.openapi.yaml#/paths/~1api~1sessions~1{id}~1forward-streams
+  /api/admin/approval-scopes:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1approval-scopes
+  /api/admin/approval-scopes/{id}:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1approval-scopes~1{id}
+  /api/portal/requestable-assets:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1portal~1requestable-assets
+  /api/access-requests:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1access-requests
+  /api/access-requests/{id}/decision:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1access-requests~1{id}~1decision
+  /api/admin/policies/access-policy:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1access-policy
+  /api/admin/policies/access-policy/{id}:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1access-policy~1{id}
+  /api/admin/policies/strategy:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1strategy
+  /api/admin/policies/strategy/{id}:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1strategy~1{id}
+  /api/admin/policies/command-filter:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1command-filter
+  /api/admin/policies/command-filter/{id}:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1command-filter~1{id}
+  /api/admin/policies/ip-set:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1ip-set
+  /api/admin/policies/ip-set/{id}:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1ip-set~1{id}
+  /api/admin/policies/explain:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1policies~1explain
+  /api/admin/geodata:
+    $ref: ./access-control.openapi.yaml#/paths/~1api~1admin~1geodata
+  /api/account/access-mfa:
+    $ref: ./access-mfa.openapi.yaml#/paths/~1api~1account~1access-mfa
+  /api/native/v1/access-mfa:
+    $ref: ./access-mfa.openapi.yaml#/paths/~1api~1native~1v1~1access-mfa
+  /api/account/api-keys:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1api-keys
+  /api/account/api-keys/{id}:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1api-keys~1{id}
+  /api/account/ssh-keys:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1ssh-keys
+  /api/account/ssh-keys/{id}:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1ssh-keys~1{id}
+  /api/account/password:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1password
+  /api/account/certificates:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1certificates
+  /api/account/certificates/{id}/p12:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1certificates~1{id}~1p12
+  /api/account/certificates/{id}/revoke:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1certificates~1{id}~1revoke
+  /api/account/contacts:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1contacts
+  /api/account/contacts/{id}:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1contacts~1{id}
+  /api/account/contacts/start:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1contacts~1start
+  /api/account/contacts/finish:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1contacts~1finish
+  /api/account/ldap-identities:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1ldap-identities
+  /api/account/ldap-providers/{id}/bind:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1ldap-providers~1{id}~1bind
+  /api/account/ldap-identities/{id}:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1ldap-identities~1{id}
+  /api/account/native-devices:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1native-devices
+  /api/account/native-devices/{id}:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1native-devices~1{id}
+  /api/account/notifications:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1notifications
+  /api/account/notifications/preference:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1notifications~1preference
+  /api/account/notifications/bindings/{id}:
+    $ref: ./account-credentials.openapi.yaml#/paths/~1api~1account~1notifications~1bindings~1{id}
+  /.well-known/openid-configuration:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1.well-known~1openid-configuration
+  /api/oidc/server/.well-known/openid-configuration:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1.well-known~1openid-configuration
+  /api/oidc/server/jwks:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1jwks
+  /api/oidc/server/authorize:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1authorize
+  /api/oidc/server/consent:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1consent
+  /api/oidc/server/token:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1token
+  /api/oidc/server/userinfo:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1userinfo
+  /api/oidc/server/revoke:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1revoke
+  /api/oidc/server/introspect:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1oidc~1server~1introspect
+  /api/account/oauth-consents:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1account~1oauth-consents
+  /api/account/oauth-consents/{id}:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1account~1oauth-consents~1{id}
+  /api/admin/oauth-clients:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1admin~1oauth-clients
+  /api/admin/oauth-clients/{id}:
+    $ref: ./oauth-protocol.openapi.yaml#/paths/~1api~1admin~1oauth-clients~1{id}
+  /api/admin/oauth-server:
+    $ref: ./oauth-server.openapi.yaml#/paths/~1api~1admin~1oauth-server
+  /api/admin/native-forward:
+    $ref: ./native-forward.openapi.yaml#/paths/~1api~1admin~1native-forward
+  /api/admin/oidc-providers:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1admin~1oidc-providers
+  /api/admin/oidc-providers/{id}:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1admin~1oidc-providers~1{id}
+  /api/admin/oidc-providers/{id}/test:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1admin~1oidc-providers~1{id}~1test
+  /api/admin/oidc-providers/{id}/authorize-test:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1admin~1oidc-providers~1{id}~1authorize-test
+  /api/account/oidc-identities:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1account~1oidc-identities
+  /api/account/oidc-providers/{id}/bind:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1account~1oidc-providers~1{id}~1bind
+  /api/account/oidc-identities/{id}:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1account~1oidc-identities~1{id}
+  /api/oidc/login/providers:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1oidc~1login~1providers
+  /api/oidc/login/{id}/start:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1oidc~1login~1{id}~1start
+  /api/oidc/callback:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1oidc~1callback
+  /api/wechat-work/callback:
+    $ref: ./federation.openapi.yaml#/paths/~1api~1wechat-work~1callback
+  /api/account/passkeys:
+    $ref: ./passkeys.openapi.yaml#/paths/~1api~1account~1passkeys
+  /api/account/passkeys/start:
+    $ref: ./passkeys.openapi.yaml#/paths/~1api~1account~1passkeys~1start
+  /api/account/passkeys/finish:
+    $ref: ./passkeys.openapi.yaml#/paths/~1api~1account~1passkeys~1finish
+  /api/account/passkeys/{id}:
+    $ref: ./passkeys.openapi.yaml#/paths/~1api~1account~1passkeys~1{id}
+  /api/passkey/login/start:
+    $ref: ./passkeys.openapi.yaml#/paths/~1api~1passkey~1login~1start
+  /api/passkey/login/finish:
+    $ref: ./passkeys.openapi.yaml#/paths/~1api~1passkey~1login~1finish
+  /api/admin/ldap-providers:
+    $ref: ./ldap.openapi.yaml#/paths/~1api~1admin~1ldap-providers
+  /api/admin/ldap-providers/{id}:
+    $ref: ./ldap.openapi.yaml#/paths/~1api~1admin~1ldap-providers~1{id}
+  /api/admin/ldap-providers/{id}/test:
+    $ref: ./ldap.openapi.yaml#/paths/~1api~1admin~1ldap-providers~1{id}~1test
+  /api/admin/ldap-providers/{id}/sync-preview:
+    $ref: ./ldap.openapi.yaml#/paths/~1api~1admin~1ldap-providers~1{id}~1sync-preview
+  /api/admin/ldap-sync:
+    $ref: ./ldap.openapi.yaml#/paths/~1api~1admin~1ldap-sync
+  /healthz:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Process alive
+      operationId: get_healthz
+      tags:
+      - F00
+  /readyz:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Database and instance state readable
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_readyz
+      tags:
+      - F00
+  /api/branding:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Public branding
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - name
+                - version
+                - copyright
+                - icp
+                - debug
+                properties:
+                  name:
+                    type: string
+                  version:
+                    const: r07.3-preview
+                  copyright:
+                    type: string
+                  icp:
+                    type: string
+                  debug:
+                    const: true
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_branding
+      tags:
+      - M18
+  /api/logo:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Local brand logo
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+      operationId: get_api_logo
+      tags:
+      - M18
+  /api/setup-status:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Whether the first administrator is still needed
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - needSetup
+                properties:
+                  needSetup:
+                    type: boolean
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_setup_status
+      tags:
+      - M01
+  /api/setup-user:
+    post:
+      security: []
+      description: Single transactional initialization. Always creates an admin; compatibility
+        type/recording/watermark inputs do not grant additional features.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - username
+              - password
+              - newPassword2
+              properties:
+                username:
+                  type: string
+                  pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]{2,63}$
+                password:
+                  type: string
+                  minLength: 12
+                  description: Maximum 1024 UTF-8 bytes
+                newPassword2:
+                  type: string
+                  description: Must equal password
+                type:
+                  type: string
+                recording:
+                  type: string
+                watermark:
+                  type: string
+      responses:
+        '204':
+          description: Administrator and setup audit committed
+        '409':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_setup_user
+      tags:
+      - M01
+  /api/login-status:
+    get:
+      security: []
+      responses:
+        '200':
+          description: Password login, captcha and phase-aware MFA; pending/enrollment
+            sessions cannot access business APIs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - status
+                - passwordEnabled
+                - captchaEnabled
+                properties:
+                  status:
+                    enum:
+                    - Unlogged
+                    - Logged In
+                    - OTP Required
+                    - MFA Enrollment Required
+                  passwordEnabled:
+                    const: true
+                  captchaEnabled:
+                    const: true
+                  ldapEnabled:
+                    const: false
+                  smsEnabled:
+                    const: false
+                  webauthnEnabled:
+                    const: false
+                  wechatWorkEnabled:
+                    const: false
+                  oidcEnabled:
+                    const: false
+                  phase:
+                    enum:
+                    - ''
+                    - authenticated
+                    - mfa_pending
+                    - mfa_enroll
+        '418':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_login_status
+      tags:
+      - M01
+  /api/login:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - username
+              - password
+              properties:
+                username:
+                  type: string
+                  maxLength: 64
+                password:
+                  type: string
+                  description: Maximum 1024 UTF-8 bytes
+                source:
+                  enum:
+                  - ''
+                  - password
+                key:
+                  type: string
+                  description: Required one-use captcha proof bound to nt_captcha
+                    cookie; expires in 120 seconds.
+      responses:
+        '200':
+          description: New opaque session in Set-Cookie; no bearer token in JSON
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - token
+                - needTotp
+                properties:
+                  token:
+                    const: ''
+                  needTotp:
+                    type: boolean
+                  needRebind:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+      description: Five failed passwords lock the normalized username for 15 minutes
+        in PostgreSQL. Full session 8 hours; MFA pending/enrollment session 5 minutes.
+      operationId: post_api_login
+      tags:
+      - M01
+  /api/logout:
+    post:
+      security: []
+      description: Revoke supplied session and expire cookie; idempotent even if unauthenticated.
+        Requires allowed Origin.
+      responses:
+        '204':
+          description: Logged out
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_logout
+      tags:
+      - M01
+  /api/account/info:
+    get:
+      responses:
+        '200':
+          description: Current fully authenticated account; actions is authoritative
+            for UI visibility. Server rechecks permissions independently.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - id
+                - username
+                - nickname
+                - type
+                - permissions
+                - menus
+                - actions
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  username:
+                    type: string
+                  nickname:
+                    type: string
+                  type:
+                    enum:
+                    - admin
+                    - user
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                  permissions:
+                    type: array
+                    maxItems: 0
+                  menus:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                        checked:
+                          type: boolean
+                  enabledTotp:
+                    type: boolean
+                  mfaEnabled:
+                    type: boolean
+                  language:
+                    const: zh-CN
+                  forceTotpEnabled:
+                    const: false
+                  needChangePassword:
+                    const: false
+                  accessRequestEnabled:
+                    const: false
+                  apiKeyAccessEnabled:
+                    const: false
+                  dev:
+                    const: true
+                  passwordSet:
+                    const: true
+                  actions:
+                    type: array
+                    items:
+                      type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_account_info
+      tags:
+      - M01
+  /api/license:
+    get:
+      responses:
+        '200':
+          description: Independent local product descriptor; not an official license
+            validation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    const: free
+                  source:
+                    const: local
+                  oem:
+                    const: false
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_license
+      tags:
+      - M18
+  /api/system/runtime:
+    get:
+      responses:
+        '200':
+          description: Authenticated backend identity
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - backendId
+                - instanceId
+                - release
+                - contractVersion
+                - schemaVersion
+                - capabilitiesRevision
+                - round
+                - environment
+                properties:
+                  backendId:
+                    const: nt-go
+                  instanceId:
+                    type: string
+                    format: uuid
+                  release:
+                    const: r07.3-preview
+                  contractVersion:
+                    const: 1
+                  schemaVersion:
+                    const: 19
+                  capabilitiesRevision:
+                    const: 9
+                  round:
+                    const: R07
+                  environment:
+                    const: development
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_system_runtime
+      tags:
+      - M18
+  /api/system/capabilities:
+    get:
+      responses:
+        '200':
+          description: R07 capabilities include terminal sessions, SFTP, readonly
+            observation and recipient-bound sharing. Graphical sessions are available
+            when guacd is configured. Platform storage remains pending.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - schemaVersion
+                - revision
+                - backendId
+                - features
+                properties:
+                  schemaVersion:
+                    const: 1
+                  revision:
+                    const: 9
+                  backendId:
+                    const: nt-go
+                  features:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      required:
+                      - state
+                      - reason
+                      properties:
+                        state:
+                          enum:
+                          - available
+                          - not_implemented
+                        reason:
+                          type:
+                          - string
+                          - 'null'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_system_capabilities
+      tags:
+      - M18
+  /api/admin/properties:
+    $ref: ./settings.openapi.yaml#/paths/~1admin~1properties
+  /api/system/audit/recent:
+    get:
+      description: Requires audit.read. Latest 20 authentication and management events,
+        including target and reset reason. Actor is a user UUID or empty for declared
+        local CLI operators.
+      responses:
+        '200':
+          description: Sanitized audit events, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 20
+                items:
+                  type: object
+                  required:
+                  - id
+                  - action
+                  - outcome
+                  - requestId
+                  - createdAt
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    action:
+                      type: string
+                    outcome:
+                      type: string
+                    requestId:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    actor:
+                      type: string
+                    details:
+                      type: object
+                      additionalProperties:
+                        type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_system_audit_recent
+      tags:
+      - M08
+  /api/captcha:
+    get:
+      description: Creates a 120-second slider challenge bound to host-only HttpOnly
+        nt_captcha cookie. Response never contains target X. Development anti-replay
+        control; not a production anti-bot service.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled: &id003
+                    type: boolean
+                  key: &id001
+                    type: string
+                  image: *id001
+                  tile: *id001
+                  width: &id002
+                    type: integer
+                  height: *id002
+                  tileWidth: *id002
+                  tileHeight: *id002
+                  tileY: *id002
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_captcha
+      security: []
+      tags:
+      - M01
+  /api/captcha/verify:
+    post:
+      description: Allowed Origin and nt_captcha required. Challenge is consumed on
+        first bound attempt, including wrong position. Returns a one-use login proof.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key: *id001
+                  expiresIn:
+                    const: 120
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_captcha_verify
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key: *id001
+                purpose:
+                  const: login
+                x: *id002
+              required:
+              - key
+              - purpose
+              - x
+              additionalProperties: false
+      tags:
+      - M01
+  /api/validate-totp:
+    post:
+      description: Requires mfa_pending session. Exactly one of totp or recoveryCode.
+        TOTP is 6-digit SHA1/30s ±1 step with replay prevention. Recovery atomically
+        consumes one code, revokes all sessions, and only grants mfa_enroll; rebind
+        before business access. Five invalid proofs revoke the pending session.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  needRebind: *id003
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_validate_totp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totp: *id001
+                recoveryCode: *id001
+              additionalProperties: false
+      tags:
+      - M01
+  /api/account/mfa:
+    get:
+      description: Requires authenticated or mfa_enroll session; mfa_pending is denied.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled: *id003
+                  required: *id003
+                  phase: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_account_mfa
+      tags:
+      - M01
+  /api/account/mfa/enroll:
+    post:
+      description: Reauthenticate password. Requires authenticated (first enrollment)
+        or mfa_enroll session. Returns a fresh pending secret valid for 5 minutes;
+        encrypted at rest. Active factor replacement requires recovery/reset.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret: *id001
+                  uri: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_account_mfa_enroll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: *id001
+              required:
+              - password
+              additionalProperties: false
+      tags:
+      - M01
+  /api/account/mfa/confirm:
+    post:
+      description: Confirm pending secret. Returns 10 one-time recovery codes only
+        once, replaces previous codes, revokes all sessions and issues a full session.
+        Only SHA-256 code digests persist.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recoveryCodes:
+                    type: array
+                    minItems: 10
+                    maxItems: 10
+                    items: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_account_mfa_confirm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totp: *id001
+              required:
+              - totp
+              additionalProperties: false
+      tags:
+      - M01
+  /api/admin/users/paging:
+    get:
+      description: Requires user.read. Paginated users, roles and departments; excludes
+        deleted users.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total: *id002
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_admin_users_paging
+      parameters:
+      - name: current
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+      - name: search
+        in: query
+        schema: *id001
+      tags:
+      - M01
+  /api/admin/users:
+    post:
+      description: System administrator only (identity.manage). PUT requires current
+        version; stale version returns 409. Department cycles and unknown permission
+        actions are rejected. User edits revoke all target sessions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_admin_users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+      tags:
+      - M01
+  /api/admin/users/{id}:
+    put:
+      description: System administrator only (identity.manage). PUT requires current
+        version; stale version returns 409. Department cycles and unknown permission
+        actions are rejected. User edits revoke all target sessions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: put_api_admin_users_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+    delete:
+      description: System administrator only. Referenced departments/roles and the
+        last enabled administrator cannot be deleted (409). User deletion is soft
+        and revokes sessions.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: delete_api_admin_users_id
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+  /api/admin/departments:
+    get:
+      description: Requires department.read
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Department'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_admin_departments
+      tags:
+      - M01
+    post:
+      description: System administrator only (identity.manage). PUT requires current
+        version; stale version returns 409. Department cycles and unknown permission
+        actions are rejected. User edits revoke all target sessions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_admin_departments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+      tags:
+      - M01
+  /api/admin/departments/{id}:
+    put:
+      description: System administrator only (identity.manage). PUT requires current
+        version; stale version returns 409. Department cycles and unknown permission
+        actions are rejected. User edits revoke all target sessions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: put_api_admin_departments_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+    delete:
+      description: System administrator only. Referenced departments/roles and the
+        last enabled administrator cannot be deleted (409). User deletion is soft
+        and revokes sessions.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: delete_api_admin_departments_id
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+  /api/admin/roles:
+    get:
+      description: Requires role.read
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_admin_roles
+      tags:
+      - M02
+    post:
+      description: System administrator only (identity.manage). PUT requires current
+        version; stale version returns 409. Department cycles and unknown permission
+        actions are rejected. User edits revoke all target sessions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_admin_roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      tags:
+      - M02
+  /api/admin/roles/{id}:
+    put:
+      description: System administrator only (identity.manage). PUT requires current
+        version; stale version returns 409. Department cycles and unknown permission
+        actions are rejected. User edits revoke all target sessions.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: put_api_admin_roles_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M02
+    delete:
+      description: System administrator only. Referenced departments/roles and the
+        last enabled administrator cannot be deleted (409). User deletion is soft
+        and revokes sessions.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: delete_api_admin_roles_id
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M02
+  /api/admin/users/{id}/revoke-sessions:
+    post:
+      description: System administrator only. Revoke all target sessions and audit
+        atomically.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_admin_users_id_revoke_sessions
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+  /api/admin/users/{id}/reset-mfa:
+    post:
+      description: System administrator only. Reauthenticate own password and own
+        fresh TOTP if enrolled; reason is 5–500 characters. Revoke all target sessions,
+        delete old factor/codes, require re-enrollment on next password login. Operator/target/reason
+        are audited.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: post_api_admin_users_id_reset_mfa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: *id001
+                totp: *id001
+                reason:
+                  type: string
+                  minLength: 5
+                  maxLength: 500
+              required:
+              - password
+              - reason
+              additionalProperties: false
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+  /api/admin/permissions:
+    get:
+      description: Requires role.read. Ten assignable read permissions. identity.manage
+        remains administrator-only.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Permission'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_admin_permissions
+      tags:
+      - M02
+  /api/admin/login-locked:
+    get:
+      description: Requires lock.read; returns currently locked usernames.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoginLock'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: get_api_admin_login_locked
+      tags:
+      - M01
+  /api/admin/login-locked/{id}:
+    delete:
+      description: System administrator only. Unlock normalized username and audit
+        atomically.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: delete_api_admin_login_locked_id
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+        description: Username for login-locked; UUID otherwise.
+      tags:
+      - M01
+  /api/admin/assets/paging:
+    get:
+      operationId: get_api_admin_assets_paging
+      tags:
+      - M03
+      description: Requires asset.read; returns inventory including disabled assets.
+        Authorization filters apply before count/search/pagination. Group filter matches
+        the direct group; tags match exactly.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  total: &id006
+                    type: integer
+        default:
+          $ref: '#/components/responses/Error'
+      parameters: &id007
+      - name: current
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - &id009
+        name: search
+        in: query
+        schema: &id004
+          type: string
+      - &id010
+        name: groupId
+        in: query
+        schema: *id004
+      - &id011
+        name: tag
+        in: query
+        schema: *id004
+  /api/admin/assets/{id}:
+    get:
+      operationId: get_api_admin_assets_id
+      tags:
+      - M03
+      description: Requires asset.read; returns inventory including disabled assets.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: &id005
+          type: string
+          format: uuid
+    put:
+      operationId: put_api_admin_assets_id
+      tags:
+      - M03
+      description: Administrator only. SSH direct target with shared credential reference;
+        no inline secrets. PUT requires current version. Unknown fields/unsupported
+        protocols are rejected.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetWrite'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+    delete:
+      operationId: delete_api_admin_assets_id
+      tags:
+      - M03
+      description: Administrator only; tombstone registry, remove asset and tags,
+        keep grant/audit history. Existing grants no longer resolve.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/portal/assets:
+    get:
+      operationId: get_api_portal_assets
+      tags:
+      - M03
+      description: Any fully authenticated user; only enabled assets granted directly
+        or via their direct departments/groups. Admin sees all enabled assets. Authorization
+        filters apply before count/search/pagination. Group filter matches the direct
+        group; tags match exactly.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  total: *id006
+        default:
+          $ref: '#/components/responses/Error'
+      parameters: *id007
+  /api/portal/assets/{id}:
+    get:
+      operationId: get_api_portal_assets_id
+      tags:
+      - M03
+      description: Any fully authenticated user; only enabled assets granted directly
+        or via their direct departments/groups. Admin sees all enabled assets. Unauthorized
+        or unknown resource returns 403. credentialId is omitted.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/admin/assets:
+    post:
+      operationId: post_api_admin_assets
+      tags:
+      - M03
+      description: Administrator only. SSH direct target with shared credential reference;
+        no inline secrets. PUT requires current version. Unknown fields/unsupported
+        protocols are rejected.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetWrite'
+  /api/admin/assets/{id}/probe:
+    post:
+      operationId: post_api_admin_assets_id_probe
+      tags:
+      - M03
+      description: Administrator only, saved enabled target only. DNS resolved once
+        then dial selected IP, 3-second timeout, at most 4 concurrent probes and 20/min/source
+        IP. Block unspecified/multicast/link-local addresses. Private and loopback
+        targets are allowed for bastion development. TCP reachability never proves
+        SSH authentication.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reachable: &id008
+                    type: boolean
+                  kind:
+                    const: tcp
+                  durationMs: *id006
+                  message: *id004
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/admin/assets/import:
+    post:
+      operationId: post_api_admin_assets_import
+      tags:
+      - M03
+      description: Administrator only. JSON <=1 MiB, 1–100 items. Same validator as
+        single create. Each row commits independently with its audit; failure leaves
+        no partial row. Existing assets are not overwritten; item.id must be empty.
+        Returns sanitized row-level errors.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        row: *id006
+                        success: *id008
+                        message: *id004
+                        id: *id004
+                  succeeded: *id006
+                  failed: *id006
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    $ref: '#/components/schemas/AssetWrite'
+              required:
+              - items
+              additionalProperties: false
+  /api/admin/assets/export:
+    get:
+      operationId: get_api_admin_assets_export
+      tags:
+      - M03
+      description: Requires asset.read. Filtered metadata export, <=10000 rows or
+        422. Same-instance group/credential UUID references, no credential plaintext;
+        ID/version cleared so import creates new records. Rename duplicate names/aliases
+        before importing. Export is audited.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - *id009
+      - *id010
+      - *id011
+  /api/admin/resource-groups:
+    get:
+      operationId: get_api_admin_resource_groups
+      tags:
+      - M03
+      description: Requires asset.read. Global unique group names; hierarchy uses
+        recursive traversal, not closure table.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceGroup'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      operationId: post_api_admin_resource_groups
+      tags:
+      - M03
+      description: Administrator only; cycle prevention and optimistic version. Moving
+        groups changes inherited resource visibility immediately on subsequent requests.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceGroup'
+  /api/admin/resource-groups/{id}:
+    put:
+      operationId: put_api_admin_resource_groups_id
+      tags:
+      - M03
+      description: Administrator only; cycle prevention and optimistic version. Moving
+        groups changes inherited resource visibility immediately on subsequent requests.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceGroup'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+    delete:
+      operationId: delete_api_admin_resource_groups_id
+      tags:
+      - M03
+      description: Administrator only; groups containing child groups/assets cannot
+        be deleted (409).
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/portal/facets:
+    get:
+      operationId: get_api_portal_facets
+      tags:
+      - M03
+      description: Same authorization scope as portal assets; only groups and tags
+        occurring on visible enabled assets, without unrelated group/tag leakage.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResourceGroup'
+                  tags:
+                    type: array
+                    items: *id004
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/credentials:
+    get:
+      operationId: get_api_admin_credentials
+      tags:
+      - M04
+      description: Requires credential.read. Metadata/public key/reference count only;
+        never decrypts secrets.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CredentialMetadata'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      operationId: post_api_admin_credentials
+      tags:
+      - M04
+      description: Administrator only. JSON <=64 KiB. Password or parsed SSH private
+        key (encrypted PEM supported with passphrase). Generate=true creates Ed25519
+        private key in vault; response is ID only. Omit secret on edit to retain active
+        secret. Kind immutable; PUT requires version. New secret creates an immutable
+        envelope-encrypted version with random DEK, local KEK, and credential/version
+        AAD.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialWrite'
+  /api/admin/credentials/{id}:
+    put:
+      operationId: put_api_admin_credentials_id
+      tags:
+      - M04
+      description: Administrator only. JSON <=64 KiB. Password or parsed SSH private
+        key (encrypted PEM supported with passphrase). Generate=true creates Ed25519
+        private key in vault; response is ID only. Omit secret on edit to retain active
+        secret. Kind immutable; PUT requires version. New secret creates an immutable
+        envelope-encrypted version with random DEK, local KEK, and credential/version
+        AAD.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialWrite'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+    delete:
+      operationId: delete_api_admin_credentials_id
+      tags:
+      - M04
+      description: Administrator only. 409 if any current asset references the credential.
+        Otherwise soft delete, retain encrypted version and access history.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/admin/credentials/{id}/references:
+    get:
+      operationId: get_api_admin_credentials_id_references
+      tags:
+      - M04
+      description: Administrator only. Asset names referencing this credential. Gateway
+        references will be introduced with the gateway module.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assetNames:
+                    type: array
+                    items: *id004
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/admin/credentials/{id}/reveal:
+    post:
+      operationId: post_api_admin_credentials_id_reveal
+      tags:
+      - M04
+      description: Administrator full session + password + mandatory fresh TOTP. Unbound
+        MFA returns 403 mfa_required. Recovery codes cannot reveal. Atomic secret_access_events
+        and operation audit. Cache-Control:no-store. No secret in URL or logs.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialSecret'
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: *id004
+                totp: *id004
+              required:
+              - password
+              - totp
+              additionalProperties: false
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/admin/grants:
+    get:
+      operationId: get_api_admin_grants
+      tags:
+      - M02
+      description: Requires grant.read. Returns non-revoked grants, including future/expired
+        grants for administration.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceGrant'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      operationId: post_api_admin_grants
+      tags:
+      - M02
+      description: Administrator only. Exactly one of userId/departmentId. Target
+        must be active asset/group registry entry. Department applies to direct membership
+        (not descendant department inheritance). Group includes descendants dynamically.
+        Optional future validFrom/expiry; expiresAt > validFrom. PUT uses optimistic
+        version. Revoke expired duplicate grants before creating another.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceGrant'
+  /api/admin/grants/{id}:
+    put:
+      operationId: put_api_admin_grants_id
+      tags:
+      - M02
+      description: Administrator only. Exactly one of userId/departmentId. Target
+        must be active asset/group registry entry. Department applies to direct membership
+        (not descendant department inheritance). Group includes descendants dynamically.
+        Optional future validFrom/expiry; expiresAt > validFrom. PUT uses optimistic
+        version. Revoke expired duplicate grants before creating another.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id005
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceGrant'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+    delete:
+      operationId: delete_api_admin_grants_id
+      tags:
+      - M02
+      description: Administrator only; soft revoke and audit. Subsequent portal list/detail/facets
+        queries exclude this source.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id005
+  /api/admin/assets/{id}/host-key:
+    get:
+      operationId: get_api_admin_assets_id_host_key
+      tags:
+      - M05
+      description: Administrator only. Current pinned public key and host:port; JSON
+        null when no key has been trusted.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/SSHHostTrust'
+                - type: 'null'
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: &id012
+          type: string
+          format: uuid
+    put:
+      operationId: put_api_admin_assets_id_host_key
+      tags:
+      - M05
+      description: Administrator only. Explicit human-verified trust, canonical authorized-key
+        format, no certificates. Compare assetVersion, endpoint and current trust
+        version (0 for first insert). Audit fingerprint; changes invalidate existing
+        leases.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assetId: *id012
+                host: &id013
+                  type: string
+                port: &id014
+                  type: integer
+                publicKey: *id013
+                fingerprint: *id013
+                version: *id014
+                assetVersion: *id014
+              required:
+              - host
+              - port
+              - publicKey
+              - version
+              - assetVersion
+              additionalProperties: false
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+  /api/admin/assets/{id}/host-key/discover:
+    post:
+      operationId: post_api_admin_assets_id_host_key_discover
+      tags:
+      - M05
+      description: Administrator only, enabled saved asset. Resolve once and reject
+        unspecified/multicast/link-local IPs; private targets allowed. Abort handshake
+        before authentication, never trust automatically. 5s, four concurrent probes,
+        20/min/IP. Compare observed fingerprint out of band.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  observed:
+                    $ref: '#/components/schemas/SSHHostTrust'
+                  trusted:
+                    $ref: '#/components/schemas/SSHHostTrust'
+                  assetVersion: *id014
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+  /api/sessions/{id}/files:
+    get:
+      operationId: get_api_sessions_id_files
+      tags:
+      - M07
+      description: Live session owner only, current login/asset/credential/host trust
+        rechecked. SFTP root pinned to the root exposed by the remote server (/);
+        remote user permissions apply. Reject traversal, backslash, reserved temp
+        names and all symlinks; remote chroot is needed for hostile concurrent target
+        mutations. At most 2000 entries, 4 concurrent file operations globally. Read-only
+        sessions may list/read. A writable listing reclaims tracked orphan temp files
+        for this actor/asset/root only. 60s subsystem operation timeout.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: path
+        in: query
+        schema:
+          type: string
+          maxLength: 1024
+          default: ''
+      responses:
+        '200':
+          description: Root and directory entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: string
+                  path:
+                    type: string
+                  readonly:
+                    type: boolean
+                  maxFileBytes:
+                    const: 16777216
+                  maxChunkBytes:
+                    const: 1048576
+                  items:
+                    type: array
+                    maxItems: 2000
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        size:
+                          type: integer
+                        directory:
+                          type: boolean
+                        symlink:
+                          type: boolean
+                        mode:
+                          type: string
+                        modified:
+                          type: integer
+                          description: Unix seconds
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions/{id}/files/content:
+    get:
+      operationId: get_api_sessions_id_files_content
+      tags:
+      - M07
+      description: Same live-owner authorization. Regular files only. 16MiB binary
+        attachment with Content-Disposition filename; text=true limits to 256KiB valid
+        UTF-8 without NUL and returns content plus SHA256 for optimistic edit. No-store
+        and nosniff. Download audit confirms target bytes read, not browser save.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: path
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: text
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: File bytes or editable text
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+                  sha256:
+                    type: string
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions/{id}/files/actions:
+    post:
+      operationId: post_api_sessions_id_files_actions
+      tags:
+      - M07
+      description: Live writable owner only. mkdir, non-overwriting rename, delete
+        regular file or empty directory. Root mutation and symlinks denied. Serialize
+        platform mutations per asset with a database lock; log attempt and final outcome.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - action
+              - path
+              properties:
+                action:
+                  type: string
+                  enum:
+                  - mkdir
+                  - rename
+                  - delete
+                path:
+                  type: string
+                destination:
+                  type: string
+      responses:
+        '200':
+          description: Completed
+          empty body: null
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions/{id}/uploads:
+    post:
+      operationId: post_api_sessions_id_uploads
+      tags:
+      - M07
+      description: Live writable owner. Reserve bounded PostgreSQL staging, 16MiB
+        per file, 64MiB and 4 active tasks per actor, 256MiB globally. Client UUID
+        is idempotent for identical pending metadata. Task lifetime 15min. Empty expectedHash
+        creates only; existing file requires matching content SHA256 (also rechecked
+        at commit). Limits are staging/transfer limits, not remote filesystem disk
+        quotas.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - id
+              - path
+              - size
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                path:
+                  type: string
+                  maxLength: 1024
+                size:
+                  type: integer
+                  minimum: 0
+                  maximum: 16777216
+                expectedHash:
+                  type: string
+                  default: ''
+      responses:
+        '200': &id015
+          description: Durable upload status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  sessionId:
+                    type: string
+                    format: uuid
+                  path:
+                    type: string
+                  size:
+                    type: integer
+                  received:
+                    type: integer
+                  state:
+                    type: string
+                    enum:
+                    - receiving
+                    - transferring
+                    - committing
+                    - succeeded
+                    - failed
+                    - canceled
+                    - interrupted
+                  message:
+                    type: string
+                  sha256:
+                    type: string
+                  cancelRequested:
+                    type: boolean
+                  cleanupNeeded:
+                    type: boolean
+                  createdAt:
+                    type: string
+                    format: date-time
+        default:
+          $ref: '#/components/responses/Error'
+  /api/uploads/{task}:
+    get:
+      operationId: get_api_uploads_task
+      tags:
+      - M07
+      description: Task owner only; readable after session closure to resolve uncertain
+        completion.
+      parameters:
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200': *id015
+        default:
+          $ref: '#/components/responses/Error'
+  /api/uploads/{task}/chunks:
+    put:
+      operationId: put_api_uploads_task_chunks
+      tags:
+      - M07
+      description: Live writable task owner. Raw 1..1048576 bytes, sequential offset.
+        Same offset and bytes are idempotent; gaps, different repeated bytes, overflow
+        or finalized state return 409. Browser completion means staging only.
+      parameters:
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: offset
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200': *id015
+        default:
+          $ref: '#/components/responses/Error'
+  /api/uploads/{task}/commit:
+    post:
+      operationId: post_api_uploads_task_commit
+      tags:
+      - M07
+      description: Live writable task owner; already succeeded returns stored result
+        only. Claim once, write exclusive sibling temp file, chmod 0600 before payload,
+        fsync when supported, close, read back SHA256, recheck destination and grant,
+        then rename. Existing text edit preserves permission bits, not ACL/owner or
+        inode metadata; requires posix-rename extension. Cancellation before committing
+        blocks rename; committing cannot be canceled. Uncertain commit is interrupted,
+        never retried automatically. Terminal tasks release staging; crash orphans
+        are tracked for cleanup on next writable authorized mount. No credential in
+        task.
+      parameters:
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200': *id015
+        default:
+          $ref: '#/components/responses/Error'
+  /api/uploads/{task}/cancel:
+    post:
+      operationId: post_api_uploads_task_cancel
+      tags:
+      - M07
+      description: Owner only, including disconnected sessions. Receiving releases
+        chunks; transferring requests cancellation. Committing/succeeded returns 409
+        without deleting final file.
+      parameters:
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200': *id015
+        default:
+          $ref: '#/components/responses/Error'
+  /api/filesystem-logs:
+    get:
+      operationId: get_api_filesystem_logs
+      tags:
+      - M08
+      description: Own file operations, or all=true with audit.read. Newest first,
+        20 per page. No file contents stored in logs.
+      parameters:
+      - name: all
+        in: query
+        schema:
+          type: boolean
+          default: false
+      - name: current
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '200':
+          description: items (id/sessionId/actor/action/path/destination/state/bytes/message/createdAt)
+            and total
+        default:
+          $ref: '#/components/responses/Error'
+  /api/recordings/retention-preview:
+    get:
+      operationId: get_api_recordings_retention_preview
+      tags:
+      - M08
+      description: audit.read required. Count and bytes of finished recordings older
+        than days. Preview only, no deletion or scheduled retention.
+      parameters:
+      - name: days
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 3650
+      responses:
+        '200':
+          description: days, recordings, bytes, previewOnly=true
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions:
+    post:
+      operationId: post_api_sessions
+      tags:
+      - M06
+      description: Full login and current enabled asset grant required, including
+        inherited groups/direct departments. 256-bit one-use ticket bound to website
+        login; SHA256 only in DB. TTL30s. Global16/user4 reservations, create20/min/user.
+        readonly immutable. Unknown/changed-endpoint host key creates failed access
+        record and 409. Credential metadata/version pinned, plaintext not returned.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id012
+                  ticket: *id013
+                  expiresIn:
+                    const: 30
+                  readonly: &id016
+                    type: boolean
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assetId: *id012
+                readonly: *id016
+              required:
+              - assetId
+              additionalProperties: false
+    get:
+      operationId: get_api_sessions
+      tags:
+      - M06
+      description: Own sessions by default. all=true requires session.read. Includes
+        access/recording metadata only. 20 per page, newest first.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SSHSessionDetail'
+                  total: *id014
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: all
+        in: query
+        schema: *id016
+      - name: online
+        in: query
+        schema: *id016
+      - name: current
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+  /api/sessions/{id}:
+    get:
+      operationId: get_api_sessions_id
+      tags:
+      - M06
+      description: Owner or session.read. Persisted access snapshot and recording
+        counters; excludes connection ticket, auth hash and credential references.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SSHSessionDetail'
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+  /api/sessions/{id}/recording/segments/{seq}:
+    $ref: ./recording-exports.openapi.yaml#/paths/~1api~1sessions~1{id}~1recording~1segments~1{seq}
+  /api/sessions/{id}/recording/download:
+    $ref: ./recording-exports.openapi.yaml#/paths/~1api~1sessions~1{id}~1recording~1download
+  /api/sessions/{id}/recording/mp4:
+    $ref: ./recording-exports.openapi.yaml#/paths/~1api~1sessions~1{id}~1recording~1mp4
+  /api/sessions/{id}/recording/mp4/download:
+    $ref: ./recording-exports.openapi.yaml#/paths/~1api~1sessions~1{id}~1recording~1mp4~1download
+  /api/sessions/{id}/recording:
+    get:
+      operationId: get_api_sessions_id_recording
+      tags:
+      - M08
+      description: Owner or audit.read, checked on every page. Only finalized recordings;
+        writing, disabled and expired content return 409. Interrupted recordings expose
+        only persisted events. Ordered cursor pages of at most 64 events, raw payload
+        base64 encoded. Begin at after=0 and continue using next until next equals
+        total. Default terminal is 80x24; resize payload is UTF-8 cols,rows. Duration
+        is the last recorded event offset, excluding trailing idle time. Cache-Control
+        no-store; initial page writes recording.viewed operation audit. Native media
+        requires after=0 and returns segment metadata with an empty events array.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+      - name: after
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      responses:
+        '200':
+          description: Recording page
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - state
+                - bytes
+                - total
+                - durationMs
+                - next
+                - events
+                - format
+                properties:
+                  state:
+                    type: string
+                    enum:
+                    - complete
+                    - interrupted
+                  bytes:
+                    type: integer
+                    minimum: 0
+                  total:
+                    type: integer
+                    minimum: 0
+                  durationMs:
+                    type: integer
+                    minimum: 0
+                  next:
+                    type: integer
+                    minimum: 0
+                  events:
+                    type: array
+                    maxItems: 64
+                    items:
+                      type: object
+                      required:
+                      - sequence
+                      - elapsedMs
+                      - kind
+                      - payload
+                      properties:
+                        sequence:
+                          type: integer
+                          minimum: 1
+                        elapsedMs:
+                          type: integer
+                          minimum: 0
+                        kind:
+                          type: string
+                          enum:
+                          - output
+                          - exec-output
+                          - resize
+                          - graphics
+                        payload:
+                          type: string
+                          contentEncoding: base64
+                  format:
+                    type: string
+                    enum:
+                    - terminal-events-v1
+                    - guacamole-events-v1
+                    - native-rdp-mp4-v1
+                  segments:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - sequence
+                      - startMs
+                      - durationMs
+                      - bytes
+                      properties:
+                        sequence:
+                          type: integer
+                          minimum: 1
+                          maximum: 2048
+                        startMs:
+                          type: integer
+                          minimum: 0
+                        durationMs:
+                          type: integer
+                          minimum: 0
+                        bytes:
+                          type: integer
+                          minimum: 0
+                          maximum: 16777216
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions/{id}/terminate:
+    post:
+      operationId: post_api_sessions_id_terminate
+      tags:
+      - M06
+      description: Owner or administrator. Persist termination request + audit atomically,
+        cancel local connection immediately; lease workers observe termination. 204
+        acknowledges request, observe final closed state. 409 if already closed.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+  /api/sessions/{id}/commands:
+    get:
+      operationId: get_api_sessions_id_commands
+      tags:
+      - M08
+      description: Owner or audit.read. Includes explicit SSH exec and terminal input
+        submissions. Terminal text is inferred only from visible PTY echo, never raw
+        keystrokes; unrecognized entries have empty command text and a note. No remote
+        execution or exit-code guarantee for terminal-input. With current, returns
+        a page object; without current, retains the legacy newest-100 array response.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/SSHCommand'
+                - type: object
+                  required:
+                  - items
+                  - total
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/SSHCommand'
+                    total:
+                      type: integer
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+      - name: current
+        in: query
+        description: Enables paginated object response; 1-based page.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+    post:
+      operationId: post_api_sessions_id_commands
+      tags:
+      - M06
+      description: Owner only, connected writable session, current grant/login/versions/lease
+        rechecked. Independent SSH exec channel, one at a time per session,20/min/user.
+        Command text logged as intentionally submitted, not a secret input field.
+        <=4096 bytes,10s timeout,64KiB output. Output recorded then sent over existing
+        WS; exit code persisted. Timeout closes SSH transport, no automatic replay,
+        remote process cleanup not guaranteed.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id012
+                  state: *id013
+                  exitCode: *id014
+                  message: *id013
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+              required:
+              - command
+              additionalProperties: false
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+  /api/sessions/{id}/ws:
+    get:
+      operationId: get_api_sessions_id_ws
+      tags:
+      - M06
+      description: 'WS upgrade: owner cookie AND exact allowed Origin required, reserved
+        state only;20 attempts/min/user. First text frame within5s is 3 followed by64
+        hexadecimal ticket chars; token never in URL. Atomic consume checks login
+        hash+owner+expiry. After attach, client frames 1+UTF8 input, 2+cols,rows (2..500,2..300),9+heartbeat.
+        Server3+sessionId connected,6+base64 raw output,0+safe error,4+exit,9+pong.
+        Max32KiB frame; client silence20s, writer3s. Readonly rejects1/2 and exec.
+        No automatic reconnect/resume/replay. Lease10s,check2s with1s DB budget; login/grant/asset/credential/host-trust
+        changes or storage errors close socket. Session <=4h. Persist raw output/resize
+        before forwarding;64MiB/session. SSH setup after authentication <=10s. Browser
+        WS errors do not revoke site login. Graphics uses the same first-message ticket.
+        Server/client frame 7 contains base64 of one Guacamole instruction, frame
+        9 is heartbeat. Handshake secrets stay server-side. Only key/mouse/size/sync/nop/ack/disconnect
+        are accepted; readonly rejects key/mouse/size; file/clipboard/pipe/object
+        inputs rejected. Display instructions are persisted before forwarding.'
+      responses:
+        '101':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id012
+  /api/admin/agent-registration-tokens:
+    get:
+      tags:
+      - M05
+      description: R06 identity preview. Requires identity.manage. Lists return at
+        most the latest 100 items; no credential hashes or plaintext secrets.
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags:
+      - M05
+      description: R06 identity preview. Requires identity.manage. Lists return at
+        most the latest 100 items; no credential hashes or plaintext secrets.
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/agent-registration-tokens/{id}/revoke:
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      tags:
+      - M05
+      description: R06 identity preview. Requires identity.manage. Lists return at
+        most the latest 100 items; no credential hashes or plaintext secrets.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/agent-gateways:
+    get:
+      tags:
+      - M05
+      description: R06 identity preview. Requires identity.manage. Lists return at
+        most the latest 100 items; no credential hashes or plaintext secrets.
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/agent-gateways/{id}/revoke:
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      tags:
+      - M05
+      description: R06 identity preview. Requires identity.manage. Lists return at
+        most the latest 100 items; no credential hashes or plaintext secrets.
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/agent/v1/enroll:
+    post:
+      tags:
+      - M05
+      description: Native one-time registration, limited by source. Ten-minute single-use
+        token; credentials returned only once. Self-owned Agent protocol, not official
+        legacy Agent compatibility.
+      security: []
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/agent/v1/connect:
+    get:
+      tags:
+      - M05
+      security: []
+      description: Native WebSocket endpoint. Requires Authorization Bearer deviceKey
+        and nt-agent.v1 subprotocol; rejects browser Origin and session cookies. WSS/yamux
+        control handshake, 30s heartbeats and negotiated dial.v1 streams. Each stream
+        requires a target-bound control lease; maximum 64 streams per Agent. New epochs
+        replace old connections; database revalidation every 2s fails closed. Heartbeat
+        10–60s negotiated, default 30s. Metrics, key-rotation.v1 and managed-update.v1
+        negotiated separately. With front-proxy Basic auth, device key is sent in
+        X-NT-Agent-Key; otherwise Bearer. TLS/mTLS verified.
+      responses:
+        '101':
+          description: Authenticated binary WebSocket upgraded
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/agent-binary/linux-amd64:
+    get:
+      tags:
+      - M05
+      description: Requires identity.manage. Linux amd64 Agent supporting dial, metrics,
+        key rotation and managed TUF updates. See deploy/README.md for supervisor
+        and pinned root setup.
+      responses:
+        '200':
+          description: Linux amd64 executable
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/ssh-jumps:
+    get:
+      tags:
+      - M05
+      description: Requires identity.manage. Up to four SSH jumps; cycles and over-depth
+        descendant chains rejected; changes audited. Endpoint edits clear trust; configuration
+        and credential changes close active streams.
+      responses:
+        '200':
+          description: Success. GET lists jump configurations; create/update returns
+            id. Stale versions return 409.
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage. Up to four SSH jumps; cycles and over-depth
+        descendant chains rejected; changes audited. Endpoint edits clear trust; configuration
+        and credential changes close active streams.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SSHJump'
+      responses:
+        '200':
+          description: Success. GET lists jump configurations; create/update returns
+            id. Stale versions return 409.
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/ssh-jumps/{id}:
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    put:
+      tags:
+      - M05
+      description: Requires identity.manage. Up to four SSH jumps; cycles and over-depth
+        descendant chains rejected; changes audited. Endpoint edits clear trust; configuration
+        and credential changes close active streams.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SSHJump'
+      responses:
+        '200':
+          description: Success. GET lists jump configurations; create/update returns
+            id. Stale versions return 409.
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/ssh-jumps/{id}/discover:
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage. Up to four SSH jumps; cycles and over-depth
+        descendant chains rejected; changes audited. Endpoint edits clear trust; configuration
+        and credential changes close active streams.
+      responses:
+        '200':
+          description: Observed public key and fingerprint plus configuration version;
+            verify independently before trust.
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/ssh-jumps/{id}/trust:
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage. Up to four SSH jumps; cycles and over-depth
+        descendant chains rejected; changes audited. Endpoint edits clear trust; configuration
+        and credential changes close active streams.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - version
+              - publicKey
+              properties:
+                version:
+                  type: integer
+                publicKey:
+                  type: string
+      responses:
+        '204':
+          description: Success. GET lists jump configurations; create/update returns
+            id. Stale versions return 409.
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/gateway-groups:
+    get:
+      tags:
+      - M05
+      description: Requires identity.manage and browser Origin for mutation. Configuration
+        changes are audited and close affected live transports. No direct fallback.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GatewayGroup'
+        default: &id017
+          $ref: '#/components/responses/Error'
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage and browser Origin for mutation. Configuration
+        changes are audited and close affected live transports. No direct fallback.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayGroup'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id018
+                    type: string
+        default: *id017
+  /api/admin/gateway-groups/{id}:
+    parameters:
+    - &id019
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    put:
+      tags:
+      - M05
+      description: Requires identity.manage and browser Origin for mutation. Configuration
+        changes are audited and close affected live transports. No direct fallback.
+        Version conflict returns 409. Disable instead of physical deletion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GatewayGroup'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id018
+        default: *id017
+  /api/admin/network-proxies:
+    get:
+      tags:
+      - M05
+      description: Requires identity.manage and browser Origin for mutation. Configuration
+        changes are audited and close affected live transports. No direct fallback.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NetworkProxy'
+        default: *id017
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage and browser Origin for mutation. Configuration
+        changes are audited and close affected live transports. No direct fallback.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkProxy'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id018
+        default: *id017
+  /api/admin/network-proxies/{id}:
+    parameters:
+    - *id019
+    put:
+      tags:
+      - M05
+      description: Requires identity.manage and browser Origin for mutation. Configuration
+        changes are audited and close affected live transports. No direct fallback.
+        Version conflict returns 409. Disable instead of physical deletion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkProxy'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id018
+        default: *id017
+  /api/admin/agent-observations:
+    get:
+      tags:
+      - M05
+      description: Requires identity.manage. Latest snapshots for at most 1000 non-revoked
+        devices; online reflects current process channels, not historical heartbeats.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentObservation'
+        default: *id017
+  /api/admin/agent-gateways/{id}/rotate:
+    parameters:
+    - *id019
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage and Origin. Audited asynchronous request;
+        observe completion through agent-observations. Requires negotiated capability.
+        Rotation interrupts old streams; update drains existing streams before replacement.
+      responses:
+        '204':
+          description: Success
+        default: *id017
+  /api/admin/agent-gateways/{id}/update:
+    parameters:
+    - *id019
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage and Origin. Audited asynchronous request;
+        observe completion through agent-observations. Requires negotiated capability.
+        Rotation interrupts old streams; update drains existing streams before replacement.
+      responses:
+        '204':
+          description: Success
+        default: *id017
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - action
+              properties:
+                action:
+                  enum:
+                  - check
+                  - install
+  /api/agent/v1/rotate:
+    post:
+      tags:
+      - M05
+      security: []
+      description: Native device-key authentication; rejects Origin and browser cookies.
+        Idempotent old-to-same-next retry for five minutes. New-key hello confirmation
+        invalidates old key. Device secrets never returned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - nextKey
+              properties:
+                nextKey:
+                  type: string
+                  minLength: 64
+                  maxLength: 64
+      responses:
+        '204':
+          description: Success
+        default: *id017
+  /api/admin/agent-installations:
+    get:
+      tags:
+      - M05
+      description: Requires identity.manage. Latest 100 persistent installation jobs;
+        no secrets. Interrupted jobs older than four minutes are failed and their
+        devices revoked.
+      responses:
+        '200':
+          description: Jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: &id020
+                      type: string
+                    assetId: *id020
+                    assetName: *id020
+                    agentId: *id020
+                    step: *id020
+                    message: *id020
+                    state:
+                      enum:
+                      - running
+                      - succeeded
+                      - failed
+                    createdAt:
+                      type: string
+                      format: date-time
+        default: &id021
+          $ref: '#/components/responses/Error'
+    post:
+      tags:
+      - M05
+      description: Requires identity.manage and allowed Origin. Existing enabled SSH
+        asset, credential and trusted host key required. Asynchronous Linux amd64
+        systemd installation over the configured route. Root or passwordless sudo
+        required; refuses existing paths/service. Maximum four active jobs, one per
+        asset; job timeout three minutes. Failure revokes new device credentials;
+        partial remote files require operator inspection.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - assetId
+              - name
+              - endpoint
+              - networkScope
+              properties:
+                assetId:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                  maxLength: 200
+                endpoint:
+                  type: string
+                  maxLength: 2048
+                  description: Backend HTTPS origin reachable from target; never frontend
+                    Vite URL
+                allowInsecureDevelopment:
+                  type: boolean
+                  default: false
+                networkScope:
+                  type: object
+                  required:
+                  - cidrs
+                  - ports
+                  properties:
+                    cidrs:
+                      type: array
+                      minItems: 1
+                      maxItems: 64
+                      items: *id020
+                    ports:
+                      type: array
+                      minItems: 1
+                      maxItems: 64
+                      items:
+                        type: integer
+                        minimum: 1
+                        maximum: 65535
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        default: *id021
+  /api/sessions/{id}/shares:
+    get:
+      operationId: get__api_sessions_id_shares
+      tags:
+      - M06
+      description: Owner or administrator only. No tokens are returned.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: &id022
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: *id022
+                    recipientId: *id022
+                    username:
+                      type: string
+                    expiresAt:
+                      type: string
+                      format: date-time
+                    claimedAt:
+                      type:
+                      - string
+                      - 'null'
+                    revokedAt:
+                      type:
+                      - string
+                      - 'null'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      operationId: post__api_sessions_id_shares
+      tags:
+      - M06
+      description: Connected session owner/admin. Recipient must be enabled and authorized
+        for asset. 1-30 minute lifetime; one-time token stored only as hash. Returned
+        path contains token in URL fragment. Maximum 64 issued shares per source session.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id022
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id022
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  path:
+                    type: string
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - minutes
+              additionalProperties: false
+              properties:
+                username:
+                  type: string
+                  maxLength: 100
+                minutes:
+                  type: integer
+                  minimum: 1
+                  maximum: 30
+  /api/sessions/{id}/shares/{share}:
+    delete:
+      operationId: delete__api_sessions_id_shares_share
+      tags:
+      - M06
+      description: Owner/admin revocation. Existing observers fail their next authorized
+        poll; original source session is unaffected.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id022
+      - name: share
+        in: path
+        required: true
+        schema: *id022
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions/{id}/observers:
+    post:
+      operationId: post__api_sessions_id_observers
+      tags:
+      - M06
+      description: 'Join without ticket: source owner or administrator. With ticket:
+        recipient identity and current asset grant required. Atomic single-use claim,
+        bound to current login hash. Maximum 8 active/256 total observers per session.
+        Absolute expiry 30 minutes or share expiry; idle heartbeat expiry 30 seconds.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id022
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id022
+                  protocol:
+                    type: string
+                    enum:
+                    - ssh
+                    - telnet
+                    - rdp
+                    - vnc
+        default:
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                ticket:
+                  type: string
+                  description: Empty for authorized direct observation, otherwise
+                    64-character share token.
+  /api/sessions/{id}/observers/{observer}/events:
+    get:
+      operationId: get__api_sessions_id_observers_observer_events
+      tags:
+      - M06
+      description: Readonly durable output prefix. Each poll rechecks login binding,
+        role or asset grant, share revocation/expiry and source lease. No remote input
+        or connection is opened. 64 events/page, sequence bounded by metadata total;
+        poll once per second after catching up. Stop after non-writing state and next==total.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id022
+      - name: observer
+        in: path
+        required: true
+        schema: *id022
+      - name: after
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - state
+                - bytes
+                - total
+                - durationMs
+                - next
+                - events
+                - format
+                properties:
+                  state:
+                    type: string
+                    enum:
+                    - complete
+                    - interrupted
+                    - writing
+                  bytes:
+                    type: integer
+                    minimum: 0
+                  total:
+                    type: integer
+                    minimum: 0
+                  durationMs:
+                    type: integer
+                    minimum: 0
+                  next:
+                    type: integer
+                    minimum: 0
+                  events:
+                    type: array
+                    maxItems: 64
+                    items:
+                      type: object
+                      required:
+                      - sequence
+                      - elapsedMs
+                      - kind
+                      - payload
+                      properties:
+                        sequence:
+                          type: integer
+                          minimum: 1
+                        elapsedMs:
+                          type: integer
+                          minimum: 0
+                        kind:
+                          type: string
+                          enum:
+                          - output
+                          - exec-output
+                          - resize
+                          - graphics
+                        payload:
+                          type: string
+                          contentEncoding: base64
+                  format:
+                    type: string
+                    enum:
+                    - terminal-events-v1
+                    - guacamole-events-v1
+                    - native-rdp-mp4-v1
+                  segments:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - sequence
+                      - startMs
+                      - durationMs
+                      - bytes
+                      properties:
+                        sequence:
+                          type: integer
+                          minimum: 1
+                          maximum: 2048
+                        startMs:
+                          type: integer
+                          minimum: 0
+                        durationMs:
+                          type: integer
+                          minimum: 0
+                        bytes:
+                          type: integer
+                          minimum: 0
+                          maximum: 16777216
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sessions/{id}/observers/{observer}:
+    delete:
+      operationId: delete__api_sessions_id_observers_observer
+      tags:
+      - M06
+      description: Release the current login-bound observer slot. Does not terminate
+        source session.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id022
+      - name: observer
+        in: path
+        required: true
+        schema: *id022
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/Error'
+  /api/admin/rdp/certificate:
+    post:
+      summary: Discover the remote RDP certificate through the selected asset route
+        (identity.manage required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetWrite'
+      responses:
+        '200':
+          description: TLS leaf certificate SHA-256 pin, subject, issuer, notBefore
+            and notAfter; no asset is saved
+        '403':
+          description: Permission denied
+        '422':
+          description: Invalid asset or RDP TLS discovery failed
+        '429':
+          description: Rate or concurrency limit
+  /api/storage:
+    get:
+      summary: List current user private storage and quota; creates root on first
+        use
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+  /api/storage/folders:
+    post:
+      summary: Create an owned directory
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+  /api/storage/upload:
+    post:
+      summary: Upload owned file; raw body, Content-Length required, maximum 1 GiB
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+  /api/storage/files/{id}:
+    get:
+      summary: Download owned file
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+    delete:
+      summary: Delete owned file or empty directory
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+  /api/admin/users/{id}/storage:
+    get:
+      summary: Read user quota (identity.manage)
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+    put:
+      summary: Set user quotaBytes, default 5368709120 (identity.manage)
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: Mutation succeeded
+        '403':
+          description: Permission denied
+        '404':
+          description: Owned node not found
+        '422':
+          description: Invalid operation or quota exceeded
+  /api/ai/status:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1status
+  /api/admin/ai/settings:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1admin~1ai~1settings
+  /api/admin/ai/profiles:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1admin~1ai~1profiles
+  /api/admin/ai/profiles/{id}:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1admin~1ai~1profiles~1{id}
+  /api/ai/profiles:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1profiles
+  /api/ai/conversations:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations
+  /api/ai/conversations/{id}:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}
+  /api/ai/conversations/{id}/messages:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}~1messages
+  /api/ai/conversations/{id}/messages/stream:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}~1messages~1stream
+  /api/ai/conversations/{id}/turns/{turn}/cancel:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}~1turns~1{turn}~1cancel
+  /api/ai/context:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1context
+  /api/admin/ai/assets/{id}:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1admin~1ai~1assets~1{id}
+  /api/admin/ai/profiles/{id}/models:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1admin~1ai~1profiles~1{id}~1models
+  /api/ai/conversations/{id}/messages/queued:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}~1messages~1queued
+  /api/ai/ws:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1ws
+  /api/ai/conversations/{id}/history/{action}:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}~1history~1{action}
+  /api/ai/conversations/{id}/tools:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1conversations~1{id}~1tools
+  /api/ai/tools/{execution}/{action}:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1tools~1{execution}~1{action}
+  /api/ai/usage:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1usage
+  /api/ai/preferences:
+    $ref: ./ai-chat.openapi.yaml#/paths/~1ai~1preferences
+  /api/admin/audit-retention:
+    $ref: ./audit-retention.openapi.yaml#/paths/~1admin~1audit-retention
+  /api/admin/audit-retention/preview:
+    $ref: ./audit-retention.openapi.yaml#/paths/~1admin~1audit-retention~1preview
+  /api/admin/audit-holds:
+    $ref: ./audit-retention.openapi.yaml#/paths/~1admin~1audit-holds
+  /api/admin/access-retention:
+    $ref: ./audit-retention.openapi.yaml#/paths/~1admin~1access-retention
+  /api/admin/database-assets:
+    $ref: ./database-assets.openapi.yaml#/paths/~1admin~1database-assets
+  /api/admin/database-assets/{id}:
+    $ref: ./database-assets.openapi.yaml#/paths/~1admin~1database-assets~1{id}
+  /api/admin/database-assets/{id}/test:
+    $ref: ./database-assets.openapi.yaml#/paths/~1admin~1database-assets~1{id}~1test
+  /api/portal/database-assets:
+    $ref: ./database-assets.openapi.yaml#/paths/~1portal~1database-assets
+  /api/account/database-password:
+    $ref: ./database-assets.openapi.yaml#/paths/~1account~1database-password
+  /api/database-proxy/status:
+    $ref: ./database-assets.openapi.yaml#/paths/~1database-proxy~1status
+  /api/admin/entitlements:
+    $ref: ./entitlements.openapi.yaml#/paths/~1api~1admin~1entitlements
+  /api/admin/agent-installations/config:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1agent-installations~1config
+  /api/admin/branding/logo:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1branding~1logo
+  /api/admin/branding/logo/{id}:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1branding~1logo~1{id}
+  /api/admin/diagnostics/source:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1diagnostics~1source
+  /api/admin/diagnostics/stream:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1diagnostics~1stream
+  /api/admin/monitoring/overview:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1monitoring~1overview
+  /api/statistics/sessions:
+    $ref: ./operations.openapi.yaml#/paths/~1statistics~1sessions
+  /api/statistics/assets:
+    $ref: ./operations.openapi.yaml#/paths/~1statistics~1assets
+  /api/admin/monitor-metrics:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1monitor-metrics
+  /api/admin/monitor-rules:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1monitor-rules
+  /api/admin/monitor-rules/{id}:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1monitor-rules~1{id}
+  /api/admin/system-events:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1system-events
+  /api/admin/system-events/{id}/acknowledge:
+    $ref: ./operations.openapi.yaml#/paths/~1admin~1system-events~1{id}~1acknowledge
+  /api/settings/revisions:
+    $ref: ./settings.openapi.yaml#/paths/~1settings~1revisions
+  /api/settings/revisions/{id}/diff:
+    $ref: ./settings.openapi.yaml#/paths/~1settings~1revisions~1{id}~1diff
+  /api/settings/schema:
+    $ref: ./settings.openapi.yaml#/paths/~1settings~1schema
+  /api/settings:
+    $ref: ./settings.openapi.yaml#/paths/~1settings
+  /api/settings/revisions/{id}:
+    $ref: ./settings.openapi.yaml#/paths/~1settings~1revisions~1{id}
+  /api/settings/revisions/{id}/retry:
+    $ref: ./settings.openapi.yaml#/paths/~1settings~1revisions~1{id}~1retry
+  /api/admin/backup/status:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1status
+  /api/admin/backup/config:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1config
+  /api/admin/backup/tasks:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1tasks
+  /api/admin/backup/tasks/{id}/retry:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1tasks~1{id}~1retry
+  /api/admin/backup/files:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1files
+  /api/admin/backup/files/{id}/export-ticket:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1files~1{id}~1export-ticket
+  /api/admin/backup/files/{id}/download:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1files~1{id}~1download
+  /api/admin/backup/destinations:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1destinations
+  /api/admin/backup/destinations/{id}/test:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1destinations~1{id}~1test
+  /api/admin/backup/copies:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1copies
+  /api/admin/backup/recipient-challenge:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1recipient-challenge
+  /api/admin/backup/restores:
+    $ref: ./backup.openapi.yaml#/paths/~1api~1admin~1backup~1restores
+  /api/admin/notifications:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications
+  /api/admin/notifications/channels:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1channels
+  /api/admin/notifications/channels/{id}:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1channels~1{id}
+  /api/admin/notifications/rules:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1rules
+  /api/admin/notifications/rules/{id}:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1rules~1{id}
+  /api/admin/notifications/bindings:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1bindings
+  /api/admin/notifications/channels/{id}/test:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1channels~1{id}~1test
+  /api/admin/notifications/deliveries/{id}/retry:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1notifications~1deliveries~1{id}~1retry
+  /api/admin/contact-settings:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1contact-settings
+  /api/admin/login-policy:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1admin~1login-policy
+  /api/contact/start:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1contact~1start
+  /api/contact/finish:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1contact~1finish
+  /api/ldap/login/providers:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1ldap~1login~1providers
+  /api/ldap/login:
+    $ref: ./identity-notifications.openapi.yaml#/paths/~1api~1ldap~1login
+  /api/storage/spaces:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1spaces
+  /api/storage/default:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1default
+  /api/admin/storages:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1admin~1storages
+  /api/admin/storages/{id}:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1admin~1storages~1{id}
+  /api/admin/storages/{id}/acl:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1admin~1storages~1{id}~1acl
+  /api/admin/users/{id}/channels:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1admin~1users~1{id}~1channels
+  /api/storage/files/{id}/name:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1files~1{id}~1name
+  /api/storage/files/{id}/text:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1files~1{id}~1text
+  /api/storage/uploads:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1uploads
+  /api/storage/uploads/{id}:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1uploads~1{id}
+  /api/storage/uploads/{id}/parts:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1uploads~1{id}~1parts
+  /api/storage/uploads/{id}/complete:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1uploads~1{id}~1complete
+  /api/storage/events:
+    $ref: ./storage-management.openapi.yaml#/paths/~1api~1storage~1events
+  /api/snippets:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1snippets
+  /api/snippets/{id}:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1snippets~1{id}
+  /api/admin/snippets:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1admin~1snippets
+  /api/admin/snippets/{id}:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1admin~1snippets~1{id}
+  /api/tasks:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1tasks
+  /api/tasks/preview:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1tasks~1preview
+  /api/tasks/{id}:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1tasks~1{id}
+  /api/tasks/{id}/trigger:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1tasks~1{id}~1trigger
+  /api/task-runs:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1task-runs
+  /api/task-runs/{id}:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1task-runs~1{id}
+  /api/task-runs/{id}/cancel:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1task-runs~1{id}~1cancel
+  /api/rotation-runs:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1rotation-runs
+  /api/rotation-runs/{id}:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1rotation-runs~1{id}
+  /api/rotation-runs/{id}/cancel:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1rotation-runs~1{id}~1cancel
+  /api/rotation-runs/{id}/targets/{target}/reconcile:
+    $ref: ./automation.openapi.yaml#/paths/~1api~1rotation-runs~1{id}~1targets~1{target}~1reconcile
+  /api/admin/certificates:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1certificates
+  /api/admin/certificates/{id}/revoke:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1certificates~1{id}~1revoke
+  /api/admin/certificates/{id}/reissue:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1certificates~1{id}~1reissue
+  /api/admin/certificates/{id}/p12:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1certificates~1{id}~1p12
+  /api/admin/acme:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme
+  /api/admin/acme/accounts:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1accounts
+  /api/admin/acme/accounts/{id}:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1accounts~1{id}
+  /api/admin/acme/providers:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1providers
+  /api/admin/acme/providers/{id}:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1providers~1{id}
+  /api/admin/acme/orders:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1orders
+  /api/admin/acme/orders/{id}:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1orders~1{id}
+  /api/admin/acme/orders/{id}/retry:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1orders~1{id}~1retry
+  /api/admin/acme/orders/{id}/events:
+    $ref: ./pki-management.openapi.yaml#/paths/~1api~1admin~1acme~1orders~1{id}~1events
+  /api/admin/websites:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1admin~1websites
+  /api/admin/websites/{id}:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1admin~1websites~1{id}
+  /api/admin/websites/{id}/logs:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1admin~1websites~1{id}~1logs
+  /api/portal/websites:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1portal~1websites
+  /api/portal/websites/{id}/login-code:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1portal~1websites~1{id}~1login-code
+  /api/portal/websites/{id}/temporary-ips:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1portal~1websites~1{id}~1temporary-ips
+  /api/portal/websites/{id}/temporary-ips/{ip}:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1portal~1websites~1{id}~1temporary-ips~1{ip}
+  /api/admin/website-settings:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1admin~1website-settings
+  /api/admin/website-settings/preview:
+    $ref: ./websites.openapi.yaml#/paths/~1api~1admin~1website-settings~1preview
+  /api/admin/database-sql-logs:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1admin~1database-sql-logs
+  /api/admin/database-work-orders:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1admin~1database-work-orders
+  /api/portal/database-work-orders:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1portal~1database-work-orders
+  /api/database-work-orders:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1database-work-orders
+  /api/database-work-orders/{id}/review:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1database-work-orders~1{id}~1review
+  /api/database-work-orders/{id}/cancel:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1database-work-orders~1{id}~1cancel
+  /api/database-work-orders/{id}/results:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1database-work-orders~1{id}~1results
+  /api/database-proxy/certificate:
+    $ref: ./database-work-orders.openapi.yaml#/paths/~1api~1database-proxy~1certificate
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  responses:
+    Error:
+      description: HTTP status is authoritative. Unknown authenticated /api/ paths
+        return 501; missing setup/session returns 418/401 first.
+      headers:
+        X-Request-ID:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - code
+            - reason
+            - message
+            - requestId
+            properties:
+              code:
+                const: 0
+              reason:
+                type: string
+              message:
+                type: string
+              requestId:
+                type: string
+  schemas:
+    SSHJump:
+      type: object
+      required:
+      - name
+      - host
+      - port
+      - credentialId
+      - enabled
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        host:
+          type: string
+          maxLength: 253
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        parentId:
+          type: string
+          description: Empty for backend direct connection or upstream jump UUID.
+            Changes clear host trust.
+        credentialId:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+        version:
+          type: integer
+          description: Required current version for updates
+        publicKey:
+          type: string
+          readOnly: true
+        fingerprint:
+          type: string
+          readOnly: true
+    User:
+      type: object
+      properties:
+        id: *id001
+        username: *id001
+        nickname: *id001
+        type: &id023
+          enum:
+          - admin
+          - user
+        status: &id024
+          enum:
+          - enabled
+          - disabled
+        mail: *id001
+        remark: *id001
+        version: *id002
+        createdAt: &id025
+          type: string
+          format: date-time
+        roleIds: &id026
+          type: array
+          items: *id001
+        departmentIds: &id027
+          type: array
+          items: *id001
+        enabledTotp: *id003
+    UserWrite:
+      type: object
+      properties:
+        id: *id001
+        username: *id001
+        nickname: *id001
+        type: *id023
+        status: *id024
+        mail: *id001
+        remark: *id001
+        version: *id002
+        createdAt: *id025
+        roleIds: *id026
+        departmentIds: *id027
+        enabledTotp: *id003
+        defaultDepartmentSource:
+          enum:
+          - ''
+          - oidc
+          - wecom
+          writeOnly: true
+          description: Optional explicit administrator pre-provisioning; create only,
+            type=user, no roleIds or departmentIds. Does not bind an external identity.
+        defaultDepartmentId:
+          type: string
+          writeOnly: true
+          description: Required with source; must equal its current configured department.
+            Mismatch or missing configuration returns 409. Must be absent otherwise.
+        password:
+          type: string
+          writeOnly: true
+          description: Required on creation, 12+ characters and <=1024 UTF-8 bytes.
+            Empty on edit retains password.
+      required:
+      - username
+      - nickname
+      - type
+      - status
+      additionalProperties: false
+    Department:
+      type: object
+      properties:
+        id: *id001
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        parentId:
+          type: string
+          description: Empty for root, otherwise department UUID
+        weight:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        version: *id002
+      required:
+      - name
+      additionalProperties: false
+    Role:
+      type: object
+      properties:
+        id: *id001
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        version: *id002
+        permissions:
+          type: array
+          items:
+            enum:
+            - user.read
+            - department.read
+            - role.read
+            - lock.read
+            - audit.read
+            - settings.read
+            - asset.read
+            - credential.read
+            - grant.read
+            - session.read
+      required:
+      - name
+      additionalProperties: false
+    Permission:
+      type: object
+      properties:
+        action: *id001
+        menu: *id001
+        label: *id001
+    LoginLock:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Normalized username
+        failures: *id002
+        lockedUntil:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    Asset:
+      type: object
+      properties: &id028
+        id: *id004
+        name:
+          type: string
+          maxLength: 100
+        protocol:
+          type: string
+          enum:
+          - ssh
+          - telnet
+          - rdp
+          - vnc
+        alias:
+          type: string
+          description: Empty or letter followed by letters/digits/_/-, maximum 64
+            chars
+        host: *id004
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        groupId: *id004
+        jumpId:
+          type: string
+          description: Optional final SSH jump UUID, at most four hops. Mutually exclusive
+            with all other route selectors.
+        agentId:
+          type: string
+          description: Empty for direct backend connection; otherwise a non-revoked
+            Agent UUID. Offline Agents never fall back to direct dialing.
+        credentialId: *id005
+        description:
+          type: string
+          maxLength: 2000
+        enabled: *id008
+        version: *id006
+        connectTimeout:
+          type: integer
+          minimum: 1
+          maximum: 300
+        tags:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 40
+        gatewayGroupId:
+          type: string
+          description: Optional route UUID. agentId, jumpId, gatewayGroupId and proxyId
+            are mutually exclusive; empty all means direct.
+        proxyId:
+          type: string
+          description: Optional route UUID. agentId, jumpId, gatewayGroupId and proxyId
+            are mutually exclusive; empty all means direct.
+        certFingerprint:
+          type: string
+          maxLength: 512
+          description: RDP SHA-256 certificate pin. Normal asset create/update automatically
+            discovers it when omitted; changing endpoint or route forces rediscovery.
+            Import retains the explicit pin contract. Existing sessions never silently
+            trust a replacement certificate.
+    AssetWrite:
+      type: object
+      properties: *id028
+      required:
+      - name
+      - protocol
+      - host
+      - port
+      - credentialId
+      - connectTimeout
+      additionalProperties: false
+    ResourceGroup:
+      type: object
+      properties:
+        id: *id004
+        name: *id004
+        parentId: *id004
+        version: *id006
+      required:
+      - name
+      additionalProperties: false
+    CredentialMetadata:
+      type: object
+      properties:
+        id: *id005
+        name: *id004
+        kind: &id029
+          enum:
+          - password
+          - private-key
+        username: *id004
+        version: *id006
+        activeVersion: *id006
+        publicKey: *id004
+        assetCount: *id006
+    CredentialSecret:
+      type: object
+      properties:
+        password:
+          type: string
+          maxLength: 4096
+        privateKey:
+          type: string
+          description: PEM private key, max 32768 UTF-8 bytes
+        passphrase:
+          type: string
+          maxLength: 4096
+      additionalProperties: false
+    CredentialWrite:
+      type: object
+      properties:
+        id: *id005
+        name: *id004
+        kind: *id029
+        username: *id004
+        version: *id006
+        activeVersion: *id006
+        publicKey: *id004
+        assetCount: *id006
+        generate: *id008
+        secret:
+          $ref: '#/components/schemas/CredentialSecret'
+      required:
+      - name
+      - kind
+      - username
+      additionalProperties: false
+    ResourceGrant:
+      type: object
+      properties:
+        id: *id004
+        userId: *id004
+        departmentId: *id004
+        resourceId: *id005
+        validFrom:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        version: *id006
+      required:
+      - resourceId
+      additionalProperties: false
+    SSHHostTrust:
+      type: object
+      properties:
+        assetId: *id012
+        host: *id013
+        port: *id014
+        publicKey: *id013
+        fingerprint: *id013
+        version: *id014
+    RemoteSession:
+      type: object
+      properties:
+        id: *id012
+        actorId: *id012
+        assetId: *id012
+        readonly: *id016
+        state:
+          enum:
+          - reserved
+          - connecting
+          - connected
+          - closed
+          - failed
+          - interrupted
+        reason: *id013
+        createdAt: &id030
+          type: string
+          format: date-time
+        connectedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        leaseExpiresAt: *id030
+    SSHAccess:
+      type: object
+      properties:
+        sessionId: *id012
+        username: *id013
+        assetName: *id013
+        target: *id013
+        state: *id013
+        reason: *id013
+        createdAt: *id030
+        endedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        recordingState:
+          type: string
+          enum:
+          - writing
+          - complete
+          - interrupted
+          - disabled
+          - expired
+          description: Disabled at creation or expired content has no replay/download;
+            access summary remains visible.
+        recordingBytes: *id014
+        recordingEvents: *id014
+        recordingFormat:
+          type: string
+          enum:
+          - terminal-events-v1
+          - guacamole-events-v1
+          - native-rdp-mp4-v1
+    SSHSessionDetail:
+      type: object
+      properties:
+        session:
+          $ref: '#/components/schemas/RemoteSession'
+        access:
+          $ref: '#/components/schemas/SSHAccess'
+    SSHCommand:
+      type: object
+      properties:
+        id: *id012
+        sessionId: *id012
+        command: *id013
+        source:
+          type: string
+          enum:
+          - explicit-exec
+          - terminal-input
+        note:
+          type: string
+          description: Recognition limitations; command is empty for unrecognized
+            input.
+        state: *id013
+        exitCode:
+          type:
+          - integer
+          - 'null'
+        createdAt: *id030
+    GatewayGroup:
+      type: object
+      required:
+      - name
+      - enabled
+      - members
+      properties:
+        id: *id018
+        name: *id018
+        enabled: &id031
+          type: boolean
+        version:
+          type: integer
+          description: Required current version on update; stale update returns 409
+        members:
+          type: array
+          minItems: 1
+          maxItems: 32
+          items:
+            type: object
+            required:
+            - kind
+            - id
+            properties:
+              kind:
+                enum:
+                - agent
+                - jump
+              id:
+                type: string
+                format: uuid
+    NetworkProxy:
+      type: object
+      required:
+      - name
+      - scheme
+      - host
+      - port
+      - enabled
+      properties:
+        id: *id018
+        name: *id018
+        scheme:
+          enum:
+          - http
+          - https
+          - socks5
+          - socks5h
+        host: *id018
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        credentialId:
+          type: string
+          description: Optional password-kind vault credential UUID; no plaintext
+            secret
+        enabled: *id031
+        version:
+          type: integer
+          description: Required current version on update
+    AgentObservation:
+      type: object
+      properties:
+        id: *id018
+        name: *id018
+        version: *id018
+        online: *id031
+        stale: *id031
+        rotationRequested: *id031
+        updateCapable: *id031
+        credentialVersion:
+          type: integer
+        streams:
+          type: integer
+        updateRequest:
+          enum:
+          - ''
+          - check
+          - install
+        receivedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        metrics:
+          type:
+          - object
+          - 'null'
+          description: 'Latest bounded sample: collectedAt, intervalSeconds, CPU percent,
+            memoryTotal/memoryUsed bytes, disks[{path,total,used}], networks[{name,sent,received}]
+            cumulative bytes, errors, optional update{state,version,sequence,error,checkedAt}.
+            Missing measurements are null, not zero. Stale after three collection
+            intervals.'
+x-contract-status: partial; route-contract audit enumerates undocumented operations

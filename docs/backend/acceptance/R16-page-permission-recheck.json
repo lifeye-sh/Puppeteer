@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-12",
+  "release": "r16-login-captcha",
+  "scope": "Rechecks supersede entries for these paths in R16-page-permission-matrix.json",
+  "checks": [
+    {
+      "path": "/website-setting",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/website-setting",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\nAgent 网关\nSSH 跳板\n网关组\n网络代理\nWeb 接入设置\n应用与原生接入\n访问控制\n会话审计\n身份认证\n系统运维\n任务调度\n系统命令片段\n凭据轮换\n监控与告警\n链路诊断\n备份与恢复\n通知配置\n平台设置\n首页\n/\n接入管理\n/\nWeb 接入设置\n简体中文\nA\naccept-admin\n网站网关设置\nAPI 与网站分别配置可信代理；默认不信任转发 IP。仅填写实际反向代理的 IP / CIDR。修改默认服务器证书前请预览受影响的网站。\n载入当前设置\n管理控制台地址\n默认服务器证书\nAPI 可信代理\n网站可信代理\n预览影响\n保存设置\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/authorised-website",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/authorised-website",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\nAgent 网关\nSSH 跳板\n网关组\n网络代理\nWeb 接入设置\n应用与原生接入\n访问控制\n资源授权\n访问策略\n动作策略\n命令过滤\nIP 集合\n访问审批\nSQL 工单审批\n会话审计\n身份认证\n系统运维\n首页\n/\n访问控制\n/\n资源授权\n简体中文\nA\naccept-admin\n资源授权\n授权到用户或其直接所属部门；资源分组授权动态覆盖其全部子分组。撤销、到期、移出分组或禁用后，后续目录请求立即按新权限过滤。\n普通用户不需要资产管理权限即可进入“我的资产”。已到期但未撤销的授权仍显示在此，可编辑有效期或撤销。\n新建授权\n主体\t资源\t开始时间\t到期时间\t操作\n\n主体\n\t\n资源\n\t\n开始时间\n\t\n到期时间\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/storage",
+      "permission": [],
+      "capabilities": [
+        "storage.spaces"
+      ],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/storage",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n资源管理\n接入管理\n访问控制\n资源授权\n访问策略\n动作策略\n命令过滤\nIP 集合\n访问审批\nSQL 工单审批\n会话审计\n身份认证\n系统运维\n首页\n/\n工作台\n/\n存储空间\n简体中文\nA\naccept-admin\n存储\n我的文件\n存储管理\n共享盘文件审计\n个人存储 · RDP 默认\n设为 RDP 默认存储\n刷新空间\n默认存储在新建 RDP 连接时挂载，已有会话保留原空间。\n我的文件\n用户独立存储，可在网页上传和下载。RDP 共享盘尚未启用。\n已用 0.00 GiB / 5.00 GiB · 单文件最大 1 GiB\n上一级\n刷 新\n新建目录\n0 / 0 项 · 不区分大小写\n名称\t大小\t操作\n此目录为空\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/gateway-group",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/gateway-group",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n资源管理\n接入管理\nAgent 网关\nSSH 跳板\n网关组\n网络代理\nWeb 接入设置\n应用与原生接入\n访问控制\n会话审计\n身份认证\n系统运维\n首页\n/\n接入管理\n/\n网关组\n简体中文\nA\naccept-admin\n网关组 · 按成员顺序尝试\n创建组后在资产连接路径中选择。仅新建连接时按顺序尝试成员，不重放已建立会话；停用或修改组会关闭其会话。成员按选择顺序保存，可移除后重新选择调整顺序。\n新建网关组\n刷 新\n名称\t成员顺序\t状态\t操作\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/network-proxy",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/network-proxy",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\nAgent 网关\nSSH 跳板\n网关组\n网络代理\nWeb 接入设置\n应用与原生接入\n访问控制\n会话审计\n身份认证\n系统运维\n首页\n/\n接入管理\n/\n网络代理\n简体中文\nA\naccept-admin\n网络代理 · HTTP CONNECT / SOCKS5\n凭据从加密凭据库引用，使用密码类型。SOCKS5 在后端解析目标，SOCKS5H 和 HTTP CONNECT 在代理解析目标。停用代理或更新凭据会断开其会话。\n新建网络代理\n刷 新\n名称\t代理地址\t状态\t操作\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/monitoring",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/monitoring",
+      "tail": "\n平台与业务指标\n进程、数据库连接池和系统指标属于当前处理请求的后端节点；系统指标来自其操作系统命名空间，不代表容器配额。业务统计来自平台数据库。每 10 秒刷新，采集失败显示未知。\n刷 新\n节点 e81a25e473194617c2f909dc · 2026/11/12 12:38:21\n有效会话\n0\n已连接\n0\n待连接预约\n0\n存储空间\n1\n后端进程与系统\n系统 CPU（100ms 采样）\n8.5%\n\t\n系统内存\n6199.3 MiB / 15848.4 MiB\n\t\nGo 堆内存\n8.2 MiB\n\n\nGo 运行时管理内存\n211.0 MiB\n\t\nGoroutine\n14\n数据库连接池\n当前 / 上限\n5 / 16\n\t\n占用 / 空闲\n0 / 5\n\t\n累计获取次数\n4716\n\n\n累计空池等待次数\n5\n\t\n累计取消次数\n0\n\t\n累计获取耗时\n62 ms\n累计计数从本节点进程启动时开始，重启后重置。\n存储账本\n共享文件逻辑大小\n0.0 MiB\n\t\n各空间配额合计\n5120.0 MiB\n\n\n原始录屏逻辑大小\n0.0 MiB\n\t\n平台数据库物理大小\n126.7 MiB\n空间配额合计不代表磁盘剩余容量。原始录屏不包含 MP4 导出和外部备份，数据库物理大小含索引。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/tools",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "release": "r16-login-captcha",
+      "navigation": "history-route",
+      "url": "/tools",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\nAgent 网关\nSSH 跳板\n网关组\n网络代理\nWeb 接入设置\n应用与原生接入\n访问控制\n会话审计\n身份认证\n系统运维\n任务调度\n系统命令片段\n凭据轮换\n监控与告警\n链路诊断\n备份与恢复\n通知配置\n平台设置\n首页\n/\n系统运维\n/\n链路诊断\n简体中文\nA\naccept-admin\n网络与来源 IP\nSSH 握手与指纹\n受控网络诊断\n仅探测已保存且启用的资产。TCP 沿用资产的网关、跳板或代理路径；ICMP Ping 仅支持直连。最多 10 次，每次超时 3 秒，停止或离开页面会取消探测。连通不等于凭据和远端服务正常。\n探测目标\n搜索并选择资产\nTCP 连通\n次\n开始探测\n停 止\n序号\t结果\t耗时\t说明\n\n暂无数据\n当前请求来源\n刷 新\n平台识别 IP\n172.23.0.1\n\t\n直接连接 IP\n172.23.0.1\n\t\n可信代理提取\n未应用\n来源 IP 由平台可信代理策略提取；不代表浏览器所在网络的公网地址。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-login-captcha\n嗨，需要帮忙吗？\nAI 助手",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    }
+  ],
+  "captcha": {
+    "missingPassword": "form rejected",
+    "disabledRevision": 39,
+    "restoredRevision": 40,
+    "state": "effective",
+    "finalValue": true,
+    "businessUnchanged": true,
+    "loginProof": "enforcement validated in API tests with CaptchaRequired=true; browser fixture uses synthetic captcha-free login"
+  }
+}

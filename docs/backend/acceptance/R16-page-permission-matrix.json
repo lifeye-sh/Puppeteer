@@ -1,0 +1,1331 @@
+{
+  "date": "2026-11-12",
+  "release": "r16-unified-listeners",
+  "scope": "Browser route rendering and permission gates only; not every action or business workflow. Synthetic users; graphics unavailable because fixture has no guacd.",
+  "admin": [
+    {
+      "path": "/access-log-stats",
+      "permission": [],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/ai",
+      "permission": [],
+      "capabilities": [
+        "ai.chat"
+      ],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "支持问答、上下文分析和逐项审批的工具操作。请勿输入密码及密钥；工具结果不会自动发送给模型。",
+        "AI 对话尚未启用，历史记录仍可查看。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/oidc-client",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [
+        "identity.oidc-server"
+      ],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "授权码 + PKCE、刷新令牌轮换和客户端凭据\n固定 Issuer、严格回调地址及显式用户授权。客户端凭据仅提供 service scope，不获得用户身份或平台管理权限。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/db-work-order",
+      "permission": [
+        "database.approve"
+      ],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/x-db-work-order",
+      "permission": [],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/database-sql-log",
+      "permission": [
+        "database.audit"
+      ],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/authorised-database-asset",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "授权到用户或其直接所属部门；资源分组授权动态覆盖其全部子分组。撤销、到期、移出分组或禁用后，后续目录请求立即按新权限过滤。\n普通用户不需要资产管理权限即可进入“我的资产”。已到期但未撤销的授权仍显示在此，可编辑有效期或撤销。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/database-asset",
+      "permission": [
+        "database.read"
+      ],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "MySQL 代理尚未就绪\n客户端请选择 caching_sha2_password 与 VERIFY_IDENTITY；密码在“我的账号”创建。\n下载代理证书\n我的 SQL 工单",
+        "PostgreSQL 代理尚未就绪\nTLS verify-full / SCRAM-SHA-256；支持查询、参数绑定与取消。SQL 工单尚未开放。\n下载代理证书（两种协议通用）"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/x-database-asset",
+      "permission": [],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "MySQL 代理尚未就绪\n客户端请选择 caching_sha2_password 与 VERIFY_IDENTITY；密码在“我的账号”创建。\n下载代理证书\n我的 SQL 工单",
+        "PostgreSQL 代理尚未就绪\nTLS verify-full / SCRAM-SHA-256；支持查询、参数绑定与取消。SQL 工单尚未开放。\n下载代理证书（两种协议通用）"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/credential-rotation",
+      "permission": [
+        "credential.rotate"
+      ],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "Linux SSH 密码与密钥轮换\n自动生成独立凭据，验证成功后切换对应资产，保留原共享凭据。密钥使用标准 ~/.ssh/authorized_keys，保留原有访问限制。结果不明时只做认证核对，不自动重复修改。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/scheduled-task",
+      "permission": [
+        "task.manage"
+      ],
+      "capabilities": [],
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "SSH 批量任务按资产顺序执行；执行前重新检查权限。相同任务不重叠运行。结果不明时暂停自动调度，请核对远端后再执行。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/snippet",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "片段仅保存命令文本，不会自动执行。请勿保存密码、令牌或私钥。系统片段对所有登录用户可见。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/x-snippet",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "片段仅保存命令文本，不会自动执行。请勿保存密码、令牌或私钥。系统片段对所有登录用户可见。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/access-policy",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "策略按服务端时间和连接来源地址判断。地域规则缺少匹配数据时拒绝访问。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/strategy",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "动作限制与资产授权共同生效。未配置的动作不增加限制，拒绝规则优先。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/command-filter",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "启用命令过滤后，SSH 仅允许使用受审计的命令执行框；原始终端输入被禁用。正则规则无法约束脚本内部执行的命令。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/ip-set",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "策略按服务端时间和连接来源地址判断。地域规则缺少匹配数据时拒绝访问。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/access-request",
+      "permission": [
+        "approval.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "授权仅在批准的时间范围内有效。审批人不能批准自己的申请；撤销和到期会收回临时授权。通知投递失败不改变审批结果。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/x-access-request",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "授权仅在批准的时间范围内有效。审批人不能批准自己的申请；撤销和到期会收回临时授权。通知投递失败不改变审批结果。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/setting",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "通知异步投递，失败自动重试；审批结果不受投递状态影响。接收地址由管理员配置，用户可停用通知或设置免打扰。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/notification-preferences",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "通知异步投递，失败自动重试；审批结果不受投递状态影响。接收地址由管理员配置，用户可停用通知或设置免打扰。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/identity-settings",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [
+        "identity.oidc-config"
+      ],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "本地密码登录：开启\n关闭前，当前管理员须在 15 分钟内使用 LDAP、OIDC、企业微信、短信或 Passkey 完成登录及 MFA。系统会阻止移除最后一个已验证的管理员登录通路。关闭不影响敏感操作的密码复核。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/system-event",
+      "permission": [
+        "backup.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "备份服务尚未就绪\n请完成部署配置后再创建备份。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/website",
+      "permission": [
+        "website.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "网站通过独立 HTTPS 入口访问。私有网站需要平台授权；临时 IP 授权有固定最晚到期时间，成功访问可按配置续期。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/x-website",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "网站通过独立 HTTPS 入口访问。私有网站需要平台授权；临时 IP 授权有固定最晚到期时间，成功访问可按配置续期。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/certificate",
+      "permission": [
+        "certificate.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "ACME 使用 DNS-01 验证与 RFC2136 TSIG 更新。私钥加密保存，续签失败保留原证书。客户端证书仅证明身份，仍需网站资源授权。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/website-setting",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/authorised-website",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "API 与网站分别配置可信代理；默认不信任转发 IP。仅填写实际反向代理的 IP / CIDR。修改默认服务器证书前请预览受影响的网站。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/storage",
+      "permission": [],
+      "capabilities": [
+        "storage.spaces"
+      ],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "API 与网站分别配置可信代理；默认不信任转发 IP。仅填写实际反向代理的 IP / CIDR。修改默认服务器证书前请预览受影响的网站。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/gateway-group",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "网关组 · 按成员顺序尝试\n创建组后在资产连接路径中选择。仅新建连接时按顺序尝试成员，不重放已建立会话；停用或修改组会关闭其会话。成员按选择顺序保存，可移除后重新选择调整顺序。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/network-proxy",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "网络代理 · HTTP CONNECT / SOCKS5\n凭据从加密凭据库引用，使用密码类型。SOCKS5 在后端解析目标，SOCKS5H 和 HTTP CONNECT 在代理解析目标。停用代理或更新凭据会断开其会话。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/monitoring",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "平台与业务指标\n进程、数据库连接池和系统指标属于当前处理请求的后端节点；系统指标来自其操作系统命名空间，不代表容器配额。业务统计来自平台数据库。每 10 秒刷新，采集失败显示未知。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/tools",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": false,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [
+        "受控网络诊断\n仅探测已保存且启用的资产。TCP 沿用资产的网关、跳板或代理路径；ICMP Ping 仅支持直连。最多 10 次，每次超时 3 秒，停止或离开页面会取消探测。连通不等于凭据和远端服务正常。"
+      ],
+      "errors": []
+    },
+    {
+      "path": "/ssh-gateway",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/ssh-gateway",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/agent-gateway",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/agent-gateway",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/user",
+      "permission": [
+        "user.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/user",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/department",
+      "permission": [
+        "department.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/department",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/role",
+      "permission": [
+        "role.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/role",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/login-locked",
+      "permission": [
+        "lock.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/login-locked",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/asset",
+      "permission": [
+        "asset.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/asset",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/credential",
+      "permission": [
+        "credential.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/credential",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n主机资产\n数据库资产\nWeb 资产\n授权凭据\n证书管理\n接入管理\n访问控制\n会话审计\n身份认证\n系统运维\n首页\n/\n资源管理\n/\n授权凭据\n简体中文\nA\naccept-admin\n授权凭据\n秘密加密保存，留空保留原版本。查看秘密必须重新验证管理员密码及已绑定的 TOTP；共享凭据修改会影响所有引用资产。\n新建凭据\n名称\t类型\t用户名\t秘密\t版本\t引用资产\t操作\nR04 credential\tpassword\ttester\t••••••（已加密）\t1\t1\t\n编 辑\n引 用\n查看秘密\n删 除\n1\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/authorised-asset",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/authorised-asset",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n主机资产\n数据库资产\nWeb 资产\n授权凭据\n证书管理\n接入管理\n访问控制\n资源授权\n访问策略\n动作策略\n命令过滤\nIP 集合\n访问审批\nSQL 工单审批\n会话审计\n身份认证\n系统运维\n首页\n/\n访问控制\n/\n资源授权\n简体中文\nA\naccept-admin\n资源授权\n授权到用户或其直接所属部门；资源分组授权动态覆盖其全部子分组。撤销、到期、移出分组或禁用后，后续目录请求立即按新权限过滤。\n普通用户不需要资产管理权限即可进入“我的资产”。已到期但未撤销的授权仍显示在此，可编辑有效期或撤销。\n新建授权\n主体\t资源\t开始时间\t到期时间\t操作\n\n主体\n\t\n资源\n\t\n开始时间\n\t\n到期时间\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/access",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/access",
+      "tail": "R16 隔离验收\n工作区\n在线会话 ↗\n我的资产\n未分组\n1\nR04 test target\n1 台授权资产\nSSH / Telnet / RDP / VNC\n终端工作区\n选择资产，开始连接\n\n双击左侧“我的资产”开始连接，双击标签可重新连接\n\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": false,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/terminal",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/terminal",
+      "tail": "R16 隔离验收\n工作区\n在线会话 ↗\n我的资产\n未分组\n1\nR04 test target\n1 台授权资产\nSSH / Telnet / RDP / VNC\n终端工作区\n选择资产，开始连接\n\n双击左侧“我的资产”开始连接，双击标签可重新连接\n\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": false,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/graphics",
+      "permission": [],
+      "capabilities": [
+        "session.graphics"
+      ],
+      "navigation": "history-route",
+      "url": "/graphics",
+      "tail": "此功能本轮尚未开放\n当前后端尚未开放此能力，或所需服务尚未配置。请从首页使用已开放的功能。\n返回可用首页\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": false,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/online-session",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/online-session",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\n访问控制\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n数据库 SQL 审计\n身份认证\n系统运维\n首页\n/\n会话审计\n/\n在线会话\n简体中文\nA\naccept-admin\n在线会话\n访问历史\n查看全部用户\n刷 新\nMP4 由服务器后台生成，关闭页面也会继续。完成后可在此下载；转换缓存保留 7 天，失效后可重新生成。\n用户\t资产 / 目标\t状态\t模式\t开始时间\t操作时长\t录屏大小\t录屏\t操作\n\n用户\n\t\n资产 / 目标\n\t\n状态\n\t\n模式\n\t\n开始时间\n\t\n操作时长\n\t\n录屏大小\n\t\n录屏\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/access-log",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/access-log",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\n访问控制\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n数据库 SQL 审计\n身份认证\n系统运维\n首页\n/\n会话审计\n/\n访问记录\n简体中文\nA\naccept-admin\n访问记录与命令记录\n在线会话\n查看全部用户\n刷 新\nMP4 由服务器后台生成，关闭页面也会继续。完成后可在此下载；转换缓存保留 7 天，失效后可重新生成。\n用户\t资产 / 目标\t状态\t模式\t开始时间\t操作时长\t录屏大小\t录屏\t操作\n\n用户\n\t\n资产 / 目标\n\t\n状态\n\t\n模式\n\t\n开始时间\n\t\n操作时长\n\t\n录屏大小\n\t\n录屏\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/exec-command-log",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/exec-command-log",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\n访问控制\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n数据库 SQL 审计\n身份认证\n系统运维\n首页\n/\n会话审计\n/\n命令记录\n简体中文\nA\naccept-admin\n访问记录与命令记录\n在线会话\n查看全部用户\n刷 新\nMP4 由服务器后台生成，关闭页面也会继续。完成后可在此下载；转换缓存保留 7 天，失效后可重新生成。\n用户\t资产 / 目标\t状态\t模式\t开始时间\t操作时长\t录屏大小\t录屏\t操作\n\n用户\n\t\n资产 / 目标\n\t\n状态\n\t\n模式\n\t\n开始时间\n\t\n操作时长\n\t\n录屏大小\n\t\n录屏\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-asset",
+      "permission": [],
+      "capabilities": [
+        "assets.hosts"
+      ],
+      "navigation": "history-route",
+      "url": "/x-asset",
+      "tail": "的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n资源管理\n接入管理\n访问控制\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n数据库 SQL 审计\n身份认证\n系统运维\n首页\n/\n工作台\n/\n我的资产\n简体中文\nA\naccept-admin\n分组\n全部资产\n收起分组\n标签：\n全部\ntest\n···\n我的资产\n共 1 项\n刷新\n图标\t名称\t别名\t分组\t协议\t网络\t标签\t状态\t操作\n\n图标\n\t\n名称\n\t\n别名\n\t\n分组\n\t\n协议\n\t\n网络\n\t\n标签\n\t\n状态\n\t\n操作\n\n\n\t\nR04 test target\n\t—\t未分组\tSSH\t127.0.0.1:35153\ttest\t\n启用\n\t\n终端\n更多\n1\n10 条/页\n仅展示当前授权且启用的资产。SSH 首次连接须核验主机密钥；Telnet 无传输加密，请仅用于受控网络，连接后手动登录。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/",
+      "permission": [],
+      "capabilities": [
+        "system.runtime"
+      ],
+      "navigation": "history-route",
+      "url": "/",
+      "tail": "\n接入管理\n访问控制\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n数据库 SQL 审计\n身份认证\n系统运维\n首页\n/\n数据概览\n简体中文\nA\naccept-admin\n数据概览\n资产总数\n1\n在线会话\n0\n累计访问\n0\n资源分组\n0\n授权凭据\n1\n系统用户\n2\n活跃统计\n近 14 天 · 完整记录 · Asia/Shanghai · 访问统计\n访问次数访问用户访问资产\n10-30\n10-31\n11-01\n11-02\n11-03\n11-04\n11-05\n11-06\n11-07\n11-08\n11-09\n11-10\n11-11\n11-12\n0\n1\n2\n3\n4\n最新会话\n查看全部\n用户\t协议\t资产\t接入时间\t持续时长\t状态\n\n用户\n\t\n协议\n\t\n资产\n\t\n接入时间\n\t\n持续时长\n\t\n状态\n\n\n暂无数据\n资产类型\n资产目录\n1\n资产\nSSH 1\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/info",
+      "permission": [],
+      "capabilities": [
+        "identity.self"
+      ],
+      "navigation": "history-route",
+      "url": "/info",
+      "tail": "请在“我的数据库”查看。\n\n未启用或已失效\n\n当前登录密码\n动态口令（已启用双因素认证时必填）\n有效期（天）\n生成 / 重置密码\n吊销密码\n个人访问凭据\n登录设备\n已授权应用\nOIDC / 企业微信\nLDAP 账号\nPasskey\n邮箱 / 手机\nAPI Key\nSSH 公钥\n客户端证书\n管理原生客户端登录\n每次浏览器授权对应一条独立登录记录。撤销后，该记录的访问与刷新令牌立即失效，活动连接将在授权检查时断开；其他设备不受影响。设备名称、系统和版本由客户端上报，不代表可信硬件身份。\n共 0 条登录记录\n刷新\n设备 / 客户端\t授权范围\t登录来源\t最近使用 / 登记时间\t状态\t操作\n\n设备 / 客户端\n\t\n授权范围\n\t\n登录来源\n\t\n最近使用 / 登记时间\n\t\n状态\n\t\n操作\n\n\n暂无原生客户端登录。使用 nt-client 完成浏览器授权后自动登记。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-info",
+      "permission": [],
+      "capabilities": [
+        "identity.self"
+      ],
+      "navigation": "history-route",
+      "url": "/x-info",
+      "tail": "请在“我的数据库”查看。\n\n未启用或已失效\n\n当前登录密码\n动态口令（已启用双因素认证时必填）\n有效期（天）\n生成 / 重置密码\n吊销密码\n个人访问凭据\n登录设备\n已授权应用\nOIDC / 企业微信\nLDAP 账号\nPasskey\n邮箱 / 手机\nAPI Key\nSSH 公钥\n客户端证书\n管理原生客户端登录\n每次浏览器授权对应一条独立登录记录。撤销后，该记录的访问与刷新令牌立即失效，活动连接将在授权检查时断开；其他设备不受影响。设备名称、系统和版本由客户端上报，不代表可信硬件身份。\n共 0 条登录记录\n刷新\n设备 / 客户端\t授权范围\t登录来源\t最近使用 / 登记时间\t状态\t操作\n\n设备 / 客户端\n\t\n授权范围\n\t\n登录来源\n\t\n最近使用 / 登记时间\n\t\n状态\n\t\n操作\n\n\n暂无原生客户端登录。使用 nt-client 完成浏览器授权后自动登记。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/system-status",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/system-status",
+      "tail": "身份\nOAuth 密钥\n签名与 HMAC 轮换\nOAuth 时长\n授权码与令牌有效期\nPasskey\n通行密钥与 HTTPS 来源\nLDAP 目录\n默认身份源与属性映射\nAI 策略\n工具开关与提示词\n远程会话\n空闲超时与连接控制\n会话水印\n访问标识与显示样式\n资源默认值\n存储容量与证书期限\n会话录屏\n新会话录制与审计\n日志保留\n保留周期与保护\n许可配额\n许可状态与用量\n配置发布\n节点反馈与版本历史\n运行状态\n服务与协议能力\n品牌与外观\n编辑配置\n\n统一管理平台名称、Logo 与页脚信息。\n\nR16 隔离验收\n临时测试实例 · 30分钟自动关闭\n当前展示\n系统名称\nR16 隔离验收\n页脚说明\n临时测试实例 · 30分钟自动关闭\n备案信息\n未设置\n系统 Logo\n默认图标\n生效范围与注意事项\n配置按对应生效时机应用；保存后可在“配置发布”中查看节点反馈。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/filesystem-log",
+      "permission": [],
+      "capabilities": [
+        "files.sftp"
+      ],
+      "navigation": "history-route",
+      "url": "/filesystem-log",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n资源管理\n接入管理\n访问控制\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n数据库 SQL 审计\n身份认证\n系统运维\n任务调度\n系统命令片段\n凭据轮换\n监控与告警\n链路诊断\n备份与恢复\n通知配置\n平台设置\n首页\n/\n会话审计\n/\n文件审计\n简体中文\nA\naccept-admin\n文件审计\n查看全部用户\n刷 新\n用户\t操作\t路径\t状态\t字节\t时间\t会话\n\n用户\n\t\n操作\n\t\n路径\n\t\n状态\n\t\n字节\n\t\n时间\n\t\n会话\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "loaded": true,
+      "overflow": false,
+      "errors": []
+    }
+  ],
+  "memberDenied": [
+    {
+      "path": "/oidc-client",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [
+        "identity.oidc-server"
+      ],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/db-work-order",
+      "permission": [
+        "database.approve"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/database-sql-log",
+      "permission": [
+        "database.audit"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/authorised-database-asset",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/database-asset",
+      "permission": [
+        "database.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/credential-rotation",
+      "permission": [
+        "credential.rotate"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/scheduled-task",
+      "permission": [
+        "task.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/access-policy",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/strategy",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/command-filter",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/ip-set",
+      "permission": [
+        "policy.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/access-request",
+      "permission": [
+        "approval.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/identity-settings",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [
+        "identity.oidc-config"
+      ],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/system-event",
+      "permission": [
+        "backup.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/website",
+      "permission": [
+        "website.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "errors": []
+    },
+    {
+      "path": "/certificate",
+      "permission": [
+        "certificate.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/website-setting",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/authorised-website",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/gateway-group",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/network-proxy",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/monitoring",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/tools",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/ssh-gateway",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/agent-gateway",
+      "permission": [
+        "identity.manage"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/user",
+      "permission": [
+        "user.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/department",
+      "permission": [
+        "department.read"
+      ],
+      "capabilities": [],
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/role",
+      "permission": [
+        "role.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/login-locked",
+      "permission": [
+        "lock.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/asset",
+      "permission": [
+        "asset.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/credential",
+      "permission": [
+        "credential.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "path": "/authorised-asset",
+      "permission": [
+        "grant.read"
+      ],
+      "capabilities": [],
+      "navigation": "history-route",
+      "denied": true,
+      "loaded": true,
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    }
+  ],
+  "memberPublic": [
+    {
+      "path": "/access-log-stats",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/access-log-stats",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n会话审计\n/\n访问统计\n简体中文\nR\nR16 页面权限验收\n访问统计\n刷 新\n导出 CSV\n时区：Asia/Shanghai。统计所选日期内建立且仍在保留期内的主机会话，包含 SSH、Telnet、RDP、VNC；数据库与 Web 审计不计入。操作时长从实际连接成功开始计算。最多选择 366 天。\n访问次数\n0\n访问用户\n0\n访问资产\n0\n失败会话\n0\n操作时长（分钟）\n0\n日期\t访问次数\t访问用户\t访问资产\t失败会话\t操作时长（秒）\n\n日期\n\t\n访问次数\n\t\n访问用户\n\t\n访问资产\n\t\n失败会话\n\t\n操作时长（秒）\n\n2026-10-30\t0\t0\t0\t0\t0\n2026-10-31\t0\t0\t0\t0\t0\n2026-11-01\t0\t0\t0\t0\t0\n2026-11-02\t0\t0\t0\t0\t0\n2026-11-03\t0\t0\t0\t0\t0\n2026-11-04\t0\t0\t0\t0\t0\n2026-11-05\t0\t0\t0\t0\t0\n2026-11-06\t0\t0\t0\t0\t0\n2026-11-07\t0\t0\t0\t0\t0\n2026-11-08\t0\t0\t0\t0\t0\n2026-11-09\t0\t0\t0\t0\t0\n2026-11-10\t0\t0\t0\t0\t0\n2026-11-11\t0\t0\t0\t0\t0\n2026-11-12\t0\t0\t0\t0\t0\n1\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/ai",
+      "permission": [],
+      "capabilities": [
+        "ai.chat"
+      ],
+      "navigation": "history-route",
+      "url": "/ai",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n工作台\n/\nAI 助手\n简体中文\nR\nR16 页面权限验收\nAI 助手\n运维咨询与个人对话历史\n用量与费用\n个人偏好\n支持问答、上下文分析和逐项审批的工具操作。请勿输入密码及密钥；工具结果不会自动发送给模型。\nAI 对话尚未启用，历史记录仍可查看。\n我的对话\n新对话\n暂无对话\n开始新对话\n选择模型\n输入问题开始对话\n仅文本问答\n后台生成，刷新可恢复进度\n发 送\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-db-work-order",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/x-db-work-order",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n工作台\n/\n我的 SQL 工单\n简体中文\nR\nR16 页面权限验收\n我的 SQL 工单\n全部状态\n刷 新\n提交 SQL 工单\n工单\t数据库\t执行方式\t状态\t提交时间\t执行说明\t操作\n\n工单\n\t\n数据库\n\t\n执行方式\n\t\n状态\n\t\n提交时间\n\t\n执行说明\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-database-asset",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/x-database-asset",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n首页\n/\n工作台\n/\n我的数据库\n简体中文\nR\nR16 页面权限验收\n我的数据库\nMySQL 代理尚未就绪\n客户端请选择 caching_sha2_password 与 VERIFY_IDENTITY；密码在“我的账号”创建。\n下载代理证书\n我的 SQL 工单\nPostgreSQL 代理尚未就绪\nTLS verify-full / SCRAM-SHA-256；支持查询、参数绑定与取消。SQL 工单尚未开放。\n下载代理证书（两种协议通用）\n刷 新\n名称\t连接别名\t数据库\t目标地址\t协议\t状态\t连接身份\n\n名称\n\t\n连接别名\n\t\n数据库\n\t\n目标地址\n\t\n协议\n\t\n状态\n\t\n连接身份\n\n\n暂无数据\n数据库专用密码在 我的账号 中创建和撤销。连接使用平台代理地址，目标数据库凭据由平台保管。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/snippet",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/snippet",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n系统命令片段\n平台设置\n首页\n/\n系统运维\n/\n系统命令片段\n简体中文\nR\nR16 页面权限验收\n系统命令片段\n片段仅保存命令文本，不会自动执行。请勿保存密码、令牌或私钥。系统片段对所有登录用户可见。\n刷 新\n名称\t说明\t来源\t操作\n\n名称\n\t\n说明\n\t\n来源\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-snippet",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/x-snippet",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n系统命令片段\n平台设置\n首页\n/\n工作台\n/\n我的命令片段\n简体中文\nR\nR16 页面权限验收\n我的命令片段\n片段仅保存命令文本，不会自动执行。请勿保存密码、令牌或私钥。系统片段对所有登录用户可见。\n新建片段\n刷 新\n名称\t说明\t来源\t操作\n\n名称\n\t\n说明\n\t\n来源\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-access-request",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/x-access-request",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n首页\n/\n工作台\n/\n我的申请\n简体中文\nR\nR16 页面权限验收\n我的访问申请\n授权仅在批准的时间范围内有效。审批人不能批准自己的申请；撤销和到期会收回临时授权。通知投递失败不改变审批结果。\n申请访问权限\n刷 新\n申请编号\t申请者\t资源\t事由\t时长\t状态\t授权到期\t审批说明\t操作\n\n申请编号\n\t\n申请者\n\t\n资源\n\t\n事由\n\t\n时长\n\t\n状态\n\t\n授权到期\n\t\n审批说明\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/setting",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/notification-preferences",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n首页\n/\n工作台\n/\n通知偏好\n简体中文\nR\nR16 页面权限验收\n通知偏好\n通知中心\n通知异步投递，失败自动重试；审批结果不受投递状态影响。接收地址由管理员配置，用户可停用通知或设置免打扰。\n我的通知偏好\n载入当前偏好\n接收通知\n时区\n免打扰开始（留空关闭）\n免打扰结束\n保存偏好\n渠道\t接收地址\t接收\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/notification-preferences",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/notification-preferences",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n首页\n/\n工作台\n/\n通知偏好\n简体中文\nR\nR16 页面权限验收\n通知偏好\n通知中心\n通知异步投递，失败自动重试；审批结果不受投递状态影响。接收地址由管理员配置，用户可停用通知或设置免打扰。\n我的通知偏好\n载入当前偏好\n接收通知\n时区\n免打扰开始（留空关闭）\n免打扰结束\n保存偏好\n渠道\t接收地址\t接收\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-website",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/x-website",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n首页\n/\n工作台\n/\n我的 Web 资产\n简体中文\nR\nR16 页面权限验收\n我的网站\n网站通过独立 HTTPS 入口访问。私有网站需要平台授权；临时 IP 授权有固定最晚到期时间，成功访问可按配置续期。\n刷 新\n名称\t域名\t访问模式\t操作\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/storage",
+      "permission": [],
+      "capabilities": [
+        "storage.spaces"
+      ],
+      "navigation": "history-route",
+      "url": "/storage",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n系统运维\n首页\n/\n工作台\n/\n存储空间\n简体中文\nR\nR16 页面权限验收\n存储\n我的文件\n共享盘文件审计\n个人存储 · RDP 默认\n设为 RDP 默认存储\n刷新空间\n默认存储在新建 RDP 连接时挂载，已有会话保留原空间。\n我的文件\n用户独立存储，可在网页上传和下载。RDP 共享盘尚未启用。\n已用 0.00 GiB / 5.00 GiB · 单文件最大 1 GiB\n上一级\n刷 新\n新建目录\n0 / 0 项 · 不区分大小写\n名称\t大小\t操作\n此目录为空\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/access",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/access",
+      "tail": "R16 隔离验收\n工作区\n在线会话 ↗\n我的资产\n\n暂无已授权资产\n\n0 台授权资产\nSSH / Telnet / RDP / VNC\n终端工作区\n选择资产，开始连接\n\n双击左侧“我的资产”开始连接，双击标签可重新连接\n\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/terminal",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/terminal",
+      "tail": "R16 隔离验收\n工作区\n在线会话 ↗\n我的资产\n\n暂无已授权资产\n\n0 台授权资产\nSSH / Telnet / RDP / VNC\n终端工作区\n选择资产，开始连接\n\n双击左侧“我的资产”开始连接，双击标签可重新连接\n\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/graphics",
+      "permission": [],
+      "capabilities": [
+        "session.graphics"
+      ],
+      "navigation": "history-route",
+      "url": "/graphics",
+      "tail": "此功能本轮尚未开放\n当前后端尚未开放此能力，或所需服务尚未配置。请从首页使用已开放的功能。\n返回可用首页\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/online-session",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/online-session",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n会话审计\n/\n在线会话\n简体中文\nR\nR16 页面权限验收\n在线会话\n访问历史\n刷 新\nMP4 由服务器后台生成，关闭页面也会继续。完成后可在此下载；转换缓存保留 7 天，失效后可重新生成。\n用户\t资产 / 目标\t状态\t模式\t开始时间\t操作时长\t录屏大小\t录屏\t操作\n\n用户\n\t\n资产 / 目标\n\t\n状态\n\t\n模式\n\t\n开始时间\n\t\n操作时长\n\t\n录屏大小\n\t\n录屏\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/access-log",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/access-log",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n会话审计\n/\n访问记录\n简体中文\nR\nR16 页面权限验收\n访问记录与命令记录\n在线会话\n刷 新\nMP4 由服务器后台生成，关闭页面也会继续。完成后可在此下载；转换缓存保留 7 天，失效后可重新生成。\n用户\t资产 / 目标\t状态\t模式\t开始时间\t操作时长\t录屏大小\t录屏\t操作\n\n用户\n\t\n资产 / 目标\n\t\n状态\n\t\n模式\n\t\n开始时间\n\t\n操作时长\n\t\n录屏大小\n\t\n录屏\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/exec-command-log",
+      "permission": [],
+      "capabilities": [
+        "session.ssh"
+      ],
+      "navigation": "history-route",
+      "url": "/exec-command-log",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n会话审计\n/\n命令记录\n简体中文\nR\nR16 页面权限验收\n访问记录与命令记录\n在线会话\n刷 新\nMP4 由服务器后台生成，关闭页面也会继续。完成后可在此下载；转换缓存保留 7 天，失效后可重新生成。\n用户\t资产 / 目标\t状态\t模式\t开始时间\t操作时长\t录屏大小\t录屏\t操作\n\n用户\n\t\n资产 / 目标\n\t\n状态\n\t\n模式\n\t\n开始时间\n\t\n操作时长\n\t\n录屏大小\n\t\n录屏\n\t\n操作\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-asset",
+      "permission": [],
+      "capabilities": [
+        "assets.hosts"
+      ],
+      "navigation": "history-route",
+      "url": "/x-asset",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n工作台\n/\n我的资产\n简体中文\nR\nR16 页面权限验收\n分组\n全部资产\n收起分组\n标签：\n全部\n···\n我的资产\n共 0 项\n刷新\n图标\t名称\t别名\t分组\t协议\t网络\t标签\t状态\t操作\n\n图标\n\t\n名称\n\t\n别名\n\t\n分组\n\t\n协议\n\t\n网络\n\t\n标签\n\t\n状态\n\t\n操作\n\n\n暂无数据\n仅展示当前授权且启用的资产。SSH 首次连接须核验主机密钥；Telnet 无传输加密，请仅用于受控网络，连接后手动登录。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n0",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/",
+      "permission": [],
+      "capabilities": [
+        "system.runtime"
+      ],
+      "navigation": "history-route",
+      "url": "/",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n我的资产\nAI 助手\n我的数据库\n我的 Web 资产\n我的命令片段\n我的申请\n我的 SQL 工单\n存储空间\n通知偏好\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n首页\n/\n数据概览\n简体中文\nR\nR16 页面权限验收\n数据概览\n我的资产\n0\n我的在线会话\n0\n我的访问记录\n0\n资源分组\n0\n授权凭据\n—\n系统用户\n—\n活跃统计\n近 14 天 · 完整记录 · Asia/Shanghai · 仅本人 · 访问统计\n访问次数访问用户访问资产\n10-30\n10-31\n11-01\n11-02\n11-03\n11-04\n11-05\n11-06\n11-07\n11-08\n11-09\n11-10\n11-11\n11-12\n0\n1\n2\n3\n4\n最新会话\n查看全部\n用户\t协议\t资产\t接入时间\t持续时长\t状态\n\n用户\n\t\n协议\n\t\n资产\n\t\n接入时间\n\t\n持续时长\n\t\n状态\n\n\n暂无数据\n资产类型\n我的授权资产\n暂无资产\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/info",
+      "permission": [],
+      "capabilities": [
+        "identity.self"
+      ],
+      "navigation": "history-route",
+      "url": "/info",
+      "tail": "访问凭据\n旧登录会话、原生授权、Passkey、API Key、个人 SSH 公钥及个人数据库密码会被撤销；资产共享凭据不受影响。\n当前密码\n新密码\n确认新密码\n保存新密码并重新登录\n双因素认证与恢复码\n尚未启用 TOTP\n使用支持 TOTP 的验证器扫描二维码，或手动导入密钥。绑定成功后会撤销其他会话。\n当前登录密码\n开始绑定验证器\n个人数据库密码\n数据库代理尚未就绪；专用密码可先创建，连接状态请在“我的数据库”查看。\n\n未启用或已失效\n\n当前登录密码\n动态口令（已启用双因素认证时必填）\n有效期（天）\n生成 / 重置密码\n吊销密码\n个人访问凭据\n登录设备\n已授权应用\nOIDC / 企业微信\nLDAP 账号\nPasskey\n邮箱 / 手机\nAPI Key\nSSH 公钥\n客户端证书\n管理原生客户端登录\n每次浏览器授权对应一条独立登录记录。撤销后，该记录的访问与刷新令牌立即失效，活动连接将在授权检查时断开；其他设备不受影响。设备名称、系统和版本由客户端上报，不代表可信硬件身份。\n共 0 条登录记录\n刷新\n设备 / 客户端\t授权范围\t登录来源\t最近使用 / 登记时间\t状态\t操作\n\n设备 / 客户端\n\t\n授权范围\n\t\n登录来源\n\t\n最近使用 / 登记时间\n\t\n状态\n\t\n操作\n\n\n暂无原生客户端登录。使用 nt-client 完成浏览器授权后自动登记。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/x-info",
+      "permission": [],
+      "capabilities": [
+        "identity.self"
+      ],
+      "navigation": "history-route",
+      "url": "/x-info",
+      "tail": "访问凭据\n旧登录会话、原生授权、Passkey、API Key、个人 SSH 公钥及个人数据库密码会被撤销；资产共享凭据不受影响。\n当前密码\n新密码\n确认新密码\n保存新密码并重新登录\n双因素认证与恢复码\n尚未启用 TOTP\n使用支持 TOTP 的验证器扫描二维码，或手动导入密钥。绑定成功后会撤销其他会话。\n当前登录密码\n开始绑定验证器\n个人数据库密码\n数据库代理尚未就绪；专用密码可先创建，连接状态请在“我的数据库”查看。\n\n未启用或已失效\n\n当前登录密码\n动态口令（已启用双因素认证时必填）\n有效期（天）\n生成 / 重置密码\n吊销密码\n个人访问凭据\n登录设备\n已授权应用\nOIDC / 企业微信\nLDAP 账号\nPasskey\n邮箱 / 手机\nAPI Key\nSSH 公钥\n客户端证书\n管理原生客户端登录\n每次浏览器授权对应一条独立登录记录。撤销后，该记录的访问与刷新令牌立即失效，活动连接将在授权检查时断开；其他设备不受影响。设备名称、系统和版本由客户端上报，不代表可信硬件身份。\n共 0 条登录记录\n刷新\n设备 / 客户端\t授权范围\t登录来源\t最近使用 / 登记时间\t状态\t操作\n\n设备 / 客户端\n\t\n授权范围\n\t\n登录来源\n\t\n最近使用 / 登记时间\n\t\n状态\n\t\n操作\n\n\n暂无原生客户端登录。使用 nt-client 完成浏览器授权后自动登记。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/system-status",
+      "permission": [],
+      "capabilities": [],
+      "navigation": "history-route",
+      "url": "/system-status",
+      "tail": "配置，查看变更历史与应用结果。\n运行状态\n服务与协议能力\n服务实例\n发布版本\nr16-unified-listeners\n\t\n实例 ID\n93c6e7a9-286f-411a-8238-398b507cf9cc\n\n\n数据库版本\n101\n\t\n能力版本\n81\n协议能力\n\n协议可用性同时取决于部署配置、许可、用户授权与远端服务。\n\n协议\t连接\t录屏\t观察\t分享\t文件\t剪贴板\t调分辨率\n\n协议\n\t\n连接\n\t\n录屏\n\t\n观察\n\t\n分享\n\t\n文件\n\t\n剪贴板\n\t\n调分辨率\n\nRDP\t未开放\t未开放\t未开放\t未开放\t未开放\t未开放\t未开放\nSSH\t支持\t支持\t支持\t支持\t支持\t未开放\t支持\nTELNET\t支持\t支持\t支持\t支持\t未开放\t未开放\t未开放\nVNC\t未开放\t未开放\t未开放\t未开放\t未开放\t未开放\t未开放\n功能开放状态\n功能标识\t状态\t说明\n\n功能标识\n\t\n状态\n\t\n说明\n\nagent.gateway\t已开放\t—\nai.assistant\t已开放\t—\nai.budget\t已开放\t—\nai.chat\t已开放\t—\nai.history\t已开放\t—\nai.inference\t已开放\t—\nai.models\t已开放\t—\nai.profiles\t已开放\t—\n共 85 项\n1\n2\n3\n4\n5\n11\n配置按对应生效时机应用；保存后可在“配置发布”中查看节点反馈。\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "path": "/filesystem-log",
+      "permission": [],
+      "capabilities": [
+        "files.sftp"
+      ],
+      "navigation": "history-route",
+      "url": "/filesystem-log",
+      "tail": "R16 隔离验收\n数据概览\n工作台\n会话审计\n在线会话\n访问记录\n访问统计\n命令记录\n文件审计\n系统运维\n系统命令片段\n平台设置\n首页\n/\n会话审计\n/\n文件审计\n简体中文\nR\nR16 页面权限验收\n文件审计\n刷 新\n用户\t操作\t路径\t状态\t字节\t时间\t会话\n\n用户\n\t\n操作\n\t\n路径\n\t\n状态\n\t\n字节\n\t\n时间\n\t\n会话\n\n\n暂无数据\nR16 隔离验收 · 临时测试实例 · 30分钟自动关闭 · r16-unified-listeners\n嗨，需要帮忙吗？\nAI 助手\n5",
+      "overflow": false,
+      "errors": []
+    }
+  ],
+  "environmentInterruptions": []
+}

@@ -1,0 +1,47 @@
+{
+  "round": "R17",
+  "date": "2026-11-12",
+  "scope": "isolated deployment of graphics, renderer and protocol listeners",
+  "project": "puppeteer-r17-core",
+  "productionReady": false,
+  "userAccepted": false,
+  "checks": {
+    "fiveServicesHealthy": true,
+    "existingInstanceHealthy": true,
+    "privateServicePorts": true,
+    "linuxRendererSecretMode": "0400 uid10001",
+    "guacdWorkerUID": 1000,
+    "fuseOptions": ["nosuid", "nodev", "noexec"],
+    "rdpPluginHandshake": true,
+    "sshBanner": true,
+    "mysqlProtocol10": true,
+    "postgresSSLRequest": true,
+    "frontendAndScriptTests": 63,
+    "storageAndClipboardTests": 5,
+    "rendererTests": 4,
+    "recordingExportAPITests": 2,
+    "unauthorizedRendererStatus": 401,
+    "busyRendererStatus": 429,
+    "cancelAndConvertAgain": true
+  },
+  "failedAttempts": [
+    {
+      "scenario": "direct encoding tests and API export tests sharing one constrained renderer concurrently",
+      "result": "API test timed out; direct test process terminated by container restart, exit137",
+      "followup": "serial retests passed; retain capacity and overload recovery as outstanding gates"
+    }
+  ],
+  "images": {
+    "graphics": "sha256:c20c63352bd1cf8764ba9b47857d82957ac3785e9a21ab07a73eb79e20ceea22",
+    "renderer": "sha256:db46f3c6a42a626987fac1fc7fbb32a0454388d4057d4f683cbc240de151eb53"
+  },
+  "outstanding": [
+    "Agent production release chain",
+    "trusted certificate and browser full journey",
+    "production proxy client-IP trust",
+    "real target/client deployment acceptance",
+    "capacity and overload recovery",
+    "backup, restore and upgrade rehearsal",
+    "production rollout and user signoff"
+  ]
+}

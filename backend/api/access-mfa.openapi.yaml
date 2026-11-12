@@ -1,0 +1,87 @@
+openapi: 3.1.0
+info:
+  title: Remote asset access MFA
+  version: r16-remote-access-mfa
+  description: >-
+    Applies to new host sessions (SSH, Telnet, RDP, VNC), including native OAuth
+    reservations and the personal SSH key gateway. Database proxies, website
+    proxies and automation retain their separate authentication and authorization.
+    Proofs are bound to the current browser login or OAuth family, current user
+    version, MFA factor and instance authentication epoch. Recovery codes and
+    prior login MFA are not accepted as an access proof. Policy edits clear proofs.
+paths:
+  /api/account/access-mfa:
+    get:
+      security: [{session: []}]
+      summary: Read current browser login access proof status
+      responses:
+        '200': {$ref: '#/components/responses/Status'}
+        '401': {description: Authenticated browser login required}
+    post:
+      security: [{session: []}]
+      summary: Verify TOTP for this browser login
+      description: Allowed browser Origin required. At most 20 attempts per user per minute across both endpoints.
+      requestBody: {$ref: '#/components/requestBodies/TOTP'}
+      responses:
+        '200': {$ref: '#/components/responses/Status'}
+        '400': {description: Invalid, expired or already consumed TOTP}
+        '401': {description: Authenticated browser login required}
+        '403': {description: Browser Origin denied}
+        '409': {description: Enroll a TOTP factor in the personal account first}
+        '422': {description: TOTP must be six characters}
+        '429': {description: Verification rate limited}
+  /api/native/v1/access-mfa:
+    get:
+      security: [{native: []}]
+      summary: Read current native OAuth family access proof status
+      description: Requires sessions:connect. Rejects browser Cookie, Origin and query string.
+      responses:
+        '200': {$ref: '#/components/responses/Status'}
+        '400': {description: Invalid or revoked OAuth grant}
+        '401': {description: Native bearer authentication required}
+        '403': {description: Missing sessions:connect scope}
+    post:
+      security: [{native: []}]
+      summary: Verify TOTP for this native OAuth family
+      description: Requires sessions:connect. No browser Cookie, Origin or query string. Does not create a remote session.
+      requestBody: {$ref: '#/components/requestBodies/TOTP'}
+      responses:
+        '200': {$ref: '#/components/responses/Status'}
+        '400': {description: Invalid grant or invalid, expired or consumed TOTP}
+        '401': {description: Native bearer authentication required}
+        '403': {description: Missing scope or browser origin rejected}
+        '409': {description: Enroll TOTP in the personal account first}
+        '422': {description: TOTP must be six characters}
+        '429': {description: Verification rate limited}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+    native: {type: http, scheme: bearer}
+  requestBodies:
+    TOTP:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [totp]
+            properties:
+              totp: {type: string, pattern: '^[0-9]{6}$', writeOnly: true}
+  responses:
+    Status:
+      description: >-
+        No-store status. verified=true when not required. When freshnessSeconds
+        is zero, a proof can reserve one session within 60 seconds, with atomic
+        consumption and rollback on failed reservation. Otherwise proofs expire
+        after freshnessSeconds; reservations do not extend that lifetime.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [required, verified, enrolled, freshnessSeconds]
+            properties:
+              required: {type: boolean}
+              verified: {type: boolean}
+              enrolled: {type: boolean}
+              freshnessSeconds: {type: integer, minimum: 0, maximum: 86400}

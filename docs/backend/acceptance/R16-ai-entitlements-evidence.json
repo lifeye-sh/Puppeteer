@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-11",
+  "release": "r16-ai-entitlements",
+  "schema": 70,
+  "capabilitiesRevision": 47,
+  "controlledFeatures": 9,
+  "applicationRegression": {
+    "entries": 10,
+    "seconds": 89.979,
+    "skipped": 0
+  },
+  "additionalTests": [
+    "queued revocation audit",
+    "known usage preserved after answer revocation"
+  ],
+  "frontendTests": 24,
+  "typecheck": true,
+  "build": true,
+  "goVet": true,
+  "browserAcceptance": "passed: valid-license admin UI with internal model fixture",
+  "businessLicenseChanged": false,
+  "serverHealthy": true,
+  "serverSHA256": "6ad4efd3425512c17fa9434c1dd444205fee128d874e14fbcb56f792aa1c9725",
+  "cliSHA256": "7e4b4c775b3080061625858e3aa4bc6caa68e140ed600890f4f77fc3e7086df3",
+  "roundComplete": false,
+  "browserChecks": [
+    "license panel: nine features including AI enabled",
+    "model discovery: r15-protocol-fixture and r15-tool-fixture",
+    "queued send and real streaming response",
+    "history restored after reload",
+    "stop: interrupted / user_cancelled",
+    "completion/cancel race: real HTTP 409 followed by confirmed terminal state, no misleading UI error"
+  ],
+  "browserNegativeLicense": "not changed on business instance; covered by isolated application and frontend tests",
+  "browserCleanup": {
+    "temporaryProfileDeleted": true,
+    "temporaryConversationDeleted": true,
+    "fixtureRestoredStopped": true,
+    "originalModelVersion": 1,
+    "originalAISettingsVersion": 10,
+    "originalConversationsPreserved": 2
+  },
+  "browserConsole": "Expected HTTP 409 during completion/cancel race; no errors after cleanup and reload",
+  "frontendBuildSeconds": 10.7
+}

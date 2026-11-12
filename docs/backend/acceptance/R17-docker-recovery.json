@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-12",
+  "acceptanceEnvironment": "Docker simulated production, explicitly accepted by user",
+  "remoteWAL": {
+    "scope": "Docker simulated remote SSH WAL repository",
+    "checks": [
+      "SSH pinned host key and encrypted remote full/WAL archive",
+      "repository outage detected; source remains writable",
+      "repository restart, WAL retry and differential backup succeed",
+      "source offline; separate empty volume restored only from remote repository; target transaction verified"
+    ],
+    "passed": true,
+    "recoverySeconds": 15.568
+  },
+  "applicationPITR": {
+    "status": "passed",
+    "postgresMajor": 18,
+    "databaseBytes": 15832767,
+    "scope": "isolated full application database",
+    "recoveryTarget": "2026-11-12 09:37:05.085092+00",
+    "lastCommitArchiveLagSeconds": 0.43,
+    "recoveryPointAgeSeconds": 1.484,
+    "rtoSeconds": 26.666,
+    "checks": [
+      "target commit present",
+      "later commit absent",
+      "secret decryption",
+      "shared-file digest",
+      "old session revoked",
+      "old jobs quarantined",
+      "new login ready"
+    ]
+  },
+  "businessDatabaseModified": false
+}

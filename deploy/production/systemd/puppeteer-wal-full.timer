@@ -1,0 +1,8 @@
+[Unit]
+Description=Weekly Puppeteer WAL full backup
+[Timer]
+OnCalendar=Sun *-*-* 02:00:00 UTC
+Persistent=true
+Unit=puppeteer-wal@full.service
+[Install]
+WantedBy=timers.target

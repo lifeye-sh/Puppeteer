@@ -1,0 +1,207 @@
+openapi: 3.1.0
+info:
+  title: R16 access statistics and operational monitoring
+  version: r16-business-monitoring
+servers:
+  - url: https://backend.localhost:5174/api
+security:
+  - session: []
+paths:
+  /admin/agent-installations/config:
+    get:
+      description: identity.manage required. Current revision and HTTPS default for new Agent installations. Empty means enter an explicit endpoint for each install. Existing devices retain their own saved endpoint. No credentials are returned.
+      responses:
+        '200':
+          description: Current installation default
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [endpoint, revision]
+                properties:
+                  endpoint: {type: string, maxLength: 2048}
+                  revision: {type: integer, minimum: 1}
+        '401': {description: Login required}
+        '403': {description: Missing identity.manage permission}
+  /admin/branding/logo:
+    post:
+      description: identity.manage and allowed Origin. Raw PNG/JPEG body <=1 MiB, dimensions <=1024 each. Decode/re-encode PNG strips metadata and trailers. Upload alone does not publish; select returned id through system-logo settings revision. SVG and arbitrary URLs are forbidden.
+      responses:
+        '201': {description: id and protected previewUrl}
+        '413': {description: Input too large}
+        '422': {description: Invalid image or dimensions}
+  /admin/branding/logo/{id}:
+    get:
+      description: identity.manage; preview stored PNG. Public /logo serves only the currently selected image, or the built-in SVG fallback.
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: PNG with nosniff and no-store}
+        '404': {description: Image missing}
+  /admin/diagnostics/source:
+    get:
+      description: identity.manage required. Returns normalized sourceIp, peerIp and trustedProxyApplied; arbitrary XFF is never trusted and raw forwarding headers are not returned.
+      responses:
+        '200': {description: Current request source, not a public-IP lookup}
+        '403': {description: Missing administrator permission}
+  /admin/diagnostics/stream:
+    post:
+      description: identity.manage and allowed Origin required. Saved enabled asset only, no arbitrary host or port. TCP uses the asset route; ICMP is direct-only and uses unprivileged sockets. Rechecks authorization and asset version before each sample. Four shared probe slots per node, per-user request rate limit. Disconnect cancels the operation; start and completion are audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [assetId, kind, count]
+              properties:
+                assetId: {type: string, format: uuid}
+                kind: {enum: [tcp, ping]}
+                count: {type: integer, minimum: 1, maximum: 10}
+      responses:
+        '200':
+          description: SSE start, sample, complete or error. Up to 40 seconds total, 3 seconds per sample, 1 second between samples. Missing response does not prove the host is down. Unsupported ICMP environments return a sample with status unsupported and stop.
+          content:
+            text/event-stream: {schema: {type: string}}
+        '400': {description: Unknown fields or malformed body}
+        '403': {description: Missing permission or unauthorized/disabled asset}
+        '422': {description: Invalid target/count/kind or ICMP route unsupported}
+        '429': {description: Concurrent probe capacity or request rate exceeded}
+  /admin/monitoring/overview:
+    get:
+      description: identity.manage required. Local process and DB pool counters, OS-namespace CPU/memory, global database ledger aggregates. Two second collection budget; errors are sanitized and unavailable business metrics are null, not zero. Does not expose DSNs or credentials.
+      responses:
+        '200': {description: Snapshot with sampledAt, node, pool, host, business, heapBytes, runtimeBytes, goroutines and errors}
+        '403': {description: Missing administrator permission}
+  /statistics/sessions:
+    get:
+      description: Retained host sessions only. Default actor scope; all requires session.read. One database snapshot, zero-filled calendar dates. Actual operation seconds start at connected_at and stop at closure, lease expiry or now.
+      parameters:
+        - {in: query, name: all, schema: {type: boolean, default: false}}
+        - {in: query, name: from, schema: {type: string, format: date}}
+        - {in: query, name: to, schema: {type: string, format: date}}
+        - {in: query, name: timezone, schema: {type: string, default: UTC}}
+        - {in: query, name: format, schema: {enum: [csv]}}
+      responses:
+        '200':
+          description: Up to 366 calendar dates; omitted range defaults to 14 days. Totals have distinct users/assets across the entire range. CSV contains date,sessions,users,assets,failed,operation_seconds.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  from: {type: string, format: date}
+                  to: {type: string, format: date}
+                  timezone: {type: string}
+                  scope: {enum: [own, all]}
+                  totals: {$ref: '#/components/schemas/Totals'}
+                  days: {type: array, items: {allOf: [{$ref: '#/components/schemas/Totals'}, {type: object, properties: {date: {type: string, format: date}}}]}}
+                  protocols: {$ref: '#/components/schemas/Protocols'}
+            text/csv: {schema: {type: string}}
+        '403': {description: Missing session.read for all scope}
+        '422': {description: Invalid date, range, timezone or format}
+  /statistics/assets:
+    get:
+      description: Protocol counts use host directory grants, inherited groups and enabled state. all=true requires asset.read and includes disabled assets; deleted assets are excluded.
+      parameters:
+        - {in: query, name: all, schema: {type: boolean, default: false}}
+      responses:
+        '200': {description: Protocol counts, content: {application/json: {schema: {type: object, properties: {protocols: {$ref: '#/components/schemas/Protocols'}}}}}}
+        '403': {description: Missing asset.read for all scope}
+  /admin/monitor-metrics:
+    get:
+      description: identity.manage required. Typed catalog of 13 implemented metrics, including scope (agent/platform), unit, threshold min/max and sampling semantics. Platform metrics require empty agentId. Job/backup/notification/recording failure gauges use a 15-minute window; historical notification attempts without timestamps are excluded. Shared DB sampling and transaction locking deduplicate events across nodes.
+      responses:
+        '200': {description: 'Array of {key,label,unit,scope,min,max,description}'}
+        '403': {description: Missing identity.manage}
+  /admin/monitor-rules:
+    get:
+      description: identity.manage required. Returns up to 500 non-deleted rules with last sample, pending time, firing flag and checked time.
+      responses:
+        '200': {description: Array of rules, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Rule'}}}}}
+    post:
+      description: identity.manage and allowed Origin required. Creates a rule, with operation audit. Empty metric data is unknown, not zero.
+      requestBody: {$ref: '#/components/requestBodies/Rule'}
+      responses:
+        '200': {description: Created rule ID}
+        '409': {description: Rule capacity reached}
+        '422': {description: Invalid metric, target, threshold or duration}
+  /admin/monitor-rules/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    put:
+      description: identity.manage and allowed Origin required. Body version must match. Editing cancels any old firing condition and preserves events; the new condition is evaluated independently.
+      requestBody: {$ref: '#/components/requestBodies/Rule'}
+      responses:
+        '200': {description: Updated rule ID}
+        '409': {description: Version conflict or deleted rule}
+    delete:
+      description: identity.manage and allowed Origin required. Soft deletion preserves historical events.
+      parameters:
+        - {in: query, name: version, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '204': {description: Deleted}
+        '409': {description: Version conflict or already deleted}
+  /admin/system-events:
+    get:
+      description: identity.manage required. Stable descending timestamp/UUID cursor, 100 events per page. beforeId is required when before is supplied.
+      parameters:
+        - {in: query, name: before, schema: {type: string, format: date-time}}
+        - {in: query, name: beforeId, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: 'Object containing items and hasMore; kinds firing, recovered, cancelled. Confirmation does not change the alarm.'}
+        '422': {description: Invalid cursor}
+  /admin/system-events/{id}/acknowledge:
+    parameters:
+      - {$ref: '#/components/parameters/ID'}
+    post:
+      description: identity.manage and allowed Origin required. Idempotently mark viewed; audit actor and preserve first acknowledgement.
+      responses:
+        '204': {description: Acknowledged}
+        '422': {description: Invalid or missing event}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+  parameters:
+    ID: {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+  requestBodies:
+    Rule:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Rule'}
+  schemas:
+    Totals:
+      type: object
+      properties:
+        sessions: {type: integer, minimum: 0}
+        users: {type: integer, minimum: 0}
+        assets: {type: integer, minimum: 0}
+        failed: {type: integer, minimum: 0}
+        seconds: {type: integer, minimum: 0}
+    Protocols:
+      type: array
+      items:
+        type: object
+        properties:
+          protocol: {type: string}
+          count: {type: integer, minimum: 0}
+    Rule:
+      type: object
+      required: [name, metric, threshold, recovery, holdSeconds, enabled]
+      properties:
+        id: {type: string, format: uuid, readOnly: true}
+        name: {type: string, minLength: 1, maxLength: 100}
+        metric: {enum: [agent.cpu, agent.memory, agent.disk, agent.silence, configuration.delay, queue.age, queue.failed, notification.failed, notification.delay, storage.usage, sessions.active, recording.incomplete, backup.failed]}
+        agentId: {type: string, description: Required UUID for Agent metrics; empty for platform metrics}
+        threshold: {type: number, exclusiveMinimum: 0, maximum: 1000000, description: Metric-specific bounds come from /admin/monitor-metrics. Percent thresholds max 100 but actual storage use may exceed 100.}
+        recovery: {type: number, minimum: 0, description: Must be less than threshold}
+        holdSeconds: {type: integer, minimum: 0, maximum: 3600}
+        enabled: {type: boolean}
+        version: {type: integer, minimum: 0}
+        firing: {type: boolean, readOnly: true}
+        state: {enum: [unknown, normal, pending, firing], readOnly: true}
+        value: {type: [number, 'null'], readOnly: true}
+        pendingAt: {type: [string, 'null'], format: date-time, readOnly: true}
+        checkedAt: {type: [string, 'null'], format: date-time, readOnly: true}

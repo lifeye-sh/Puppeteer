@@ -1,5 +1,18 @@
+const BackendTasks = lazy(() => import('@/pages/backend/BackendTasks'));
+const BackendRotation = lazy(() => import('@/pages/backend/BackendRotation'));
+const BackendSnippets = lazy(() => import('@/pages/backend/BackendSnippets'));
+const BackendPolicies = lazy(() => import('@/pages/backend/BackendPolicies'));
+const BackendApprovals = lazy(() => import('@/pages/backend/BackendApprovals'));
+
+const BackendWebsites = lazy(() => import('@/pages/backend/BackendWebsites'));
+const BackendCertificates = lazy(() => import('@/pages/backend/BackendCertificates'));
+const BackendWebsiteLogin = lazy(() => import('@/pages/backend/BackendWebsiteLogin'));
+const BackendWebsiteSettings = lazy(() => import('@/pages/backend/BackendWebsiteSettings'));
+import BackendConnectivity, {BackendMonitoring,BackendDiagnostics} from '@/pages/backend/BackendConnectivity';
+import BackendSSHJumps from '@/pages/backend/BackendSSHJumps';
+import BackendAgentGateways from '@/pages/backend/BackendAgentGateways';
 import '@/App.css';
-import {lazy, useEffect} from "react";
+import {lazy, Suspense, useEffect} from "react";
 import {createBrowserRouter, Outlet, RouterProvider} from "react-router-dom";
 import '@/react-i18next/i18n'
 import ManagerLayout from '@/layout/ManagerLayout';
@@ -7,8 +20,30 @@ import AccessPage from "@/pages/access/AccessPage";
 import eventEmitter from "@/api/core/event-emitter";
 import {baseUrl} from "@/api/core/requests";
 import {useTranslation} from "react-i18next";
-import {App as AntdApp} from "antd";
+import {App as AntdApp, Spin} from "antd";
 import {LicenseProvider} from "@/hook/LicenseContext";
+import {BackendRuntimeProvider, CapabilityGate, PermissionGate, isNewBackend, UnavailableBackendPage} from '@/hook/BackendRuntimeContext';
+const BackendPlaybackPage = lazy(() => import('@/pages/backend/BackendPlaybackPage'));
+const BackendAIPage = lazy(() => import('@/pages/backend/BackendAIPage'));
+const BackendOAuthClients = lazy(() => import('@/pages/backend/BackendOAuthClients'));
+const BackendFederationCallback = lazy(()=>import('@/pages/backend/BackendFederationCallback'));
+const BackendOAuthConsent = lazy(() => import('@/pages/backend/BackendOAuthConsent'));
+const BackendSettings = lazy(() => import('@/pages/backend/BackendSettings'));
+const BackendBackupPage = lazy(() => import('@/pages/backend/BackendBackupPage'));
+const BackendStoragePage = lazy(() => import('@/pages/backend/BackendStoragePage'));
+const BackendHomePage = lazy(() => import('@/pages/backend/BackendHomePage'));
+const BackendWorkbench = lazy(() => import('@/pages/backend/BackendHomePage').then(module=>({default:module.BackendWorkbench})));
+const BackendLayout = lazy(() => import('@/pages/backend/BackendLayout'));
+const BackendLoginPage = lazy(() => import('@/pages/backend/BackendLoginPage'));
+const BackendObserverPage = lazy(() => import('@/pages/backend/BackendObserverPage'));
+const BackendTerminalPage = lazy(() => import('@/pages/backend/BackendTerminalPage'));
+const BackendSessionsPage = lazy(() => import('@/pages/backend/BackendSessionsPage'));
+const BackendFileLogs = lazy(() => import('@/pages/backend/BackendFileLogs'));
+const BackendResourcesPage = lazy(() => import('@/pages/backend/BackendResourcesPage'));
+const BackendDatabaseAssets = lazy(() => import('@/pages/backend/BackendDatabaseAssets'));
+const BackendDatabaseWorkOrders = lazy(() => import('@/pages/backend/BackendDatabaseWorkOrders'));
+const BackendDatabaseLogs = lazy(() => import('@/pages/backend/BackendDatabaseLogs'));
+const BackendIdentityPage = lazy(() => import('@/pages/backend/BackendIdentityPage'));
 
 import TerminalPage from "@/pages/access/TerminalPage";
 import GuacamolePage from "@/pages/access/GuacamolePage";
@@ -193,14 +228,71 @@ const routes = [
     }
 ];
 
+const BackendAccessStatistics = lazy(() => import('./pages/backend/BackendAccessStatistics'));
+const backendRoutes = [
+ {path:'/access-log-stats',element:<BackendAccessStatistics/>},
+ {path:'/ai',element:<CapabilityGate feature="ai.chat"><BackendAIPage/></CapabilityGate>},
+ ...['/oidc/callback','/wechat-work/callback'].map(path=>({path,element:<BackendFederationCallback/>})),
+ {path:'/oidc-client',element:<CapabilityGate feature="identity.oidc-server"><PermissionGate action="identity.manage"><BackendOAuthClients/></PermissionGate></CapabilityGate>},
+ {path:'/oidc/server/consent',element:<CapabilityGate feature="identity.oidc-server"><BackendOAuthConsent/></CapabilityGate>},
+ {path:'/db-work-order',element:<PermissionGate action="database.approve"><BackendDatabaseWorkOrders/></PermissionGate>},
+ {path:'/x-db-work-order',element:<BackendDatabaseWorkOrders portal/>},
+ {path:'/database-sql-log',element:<PermissionGate action="database.audit"><BackendDatabaseLogs/></PermissionGate>},
+ {path:'/authorised-database-asset',element:<PermissionGate action="grant.read"><BackendResourcesPage kind="grants"/></PermissionGate>},
+ {path:'/database-asset',element:<PermissionGate action="database.read"><BackendDatabaseAssets/></PermissionGate>},
+ {path:'/x-database-asset',element:<BackendDatabaseAssets portal/>},
+ {path:'/credential-rotation',element:<PermissionGate action="credential.rotate"><BackendRotation/></PermissionGate>},
+ {path:"/scheduled-task",element:<PermissionGate action="task.manage"><BackendTasks/></PermissionGate>},
+ {path:'/snippet',element:<BackendSnippets system/>},
+ {path:'/x-snippet',element:<BackendSnippets/>},
+ ...(['access-policy','strategy','command-filter','ip-set'] as const).map(kind=>({path:`/${kind}`,element:<PermissionGate action="policy.read"><BackendPolicies kind={kind}/></PermissionGate>})),
+ {path:'/access-request',element:<PermissionGate action="approval.read"><BackendApprovals/></PermissionGate>},
+ {path:'/x-access-request',element:<BackendApprovals portal/>},
+ {path:'/setting',element:<BackendSettings/>},
+ {path:'/notification-preferences',element:<BackendSettings section="preferences"/>},
+ {path:'/identity-settings',element:<CapabilityGate feature="identity.oidc-config"><PermissionGate action="identity.manage"><BackendSettings section="identity"/></PermissionGate></CapabilityGate>},
+ {path:'/system-event',element:<PermissionGate action="backup.manage"><BackendBackupPage/></PermissionGate>},
+ {path:'/website',element:<PermissionGate action="website.read"><BackendWebsites/></PermissionGate>},
+ {path:'/x-website',element:<BackendWebsites portal/>},
+ {path:'/certificate',element:<PermissionGate action="certificate.read"><BackendCertificates/></PermissionGate>},
+ {path:'/website-setting',element:<PermissionGate action="identity.manage"><BackendWebsiteSettings/></PermissionGate>},
+ {path:'/website-login',element:<BackendWebsiteLogin/>},
+ {path:'/authorised-website',element:<PermissionGate action="grant.read"><BackendResourcesPage kind="grants"/></PermissionGate>},
+ {path:'/storage',element:<CapabilityGate feature="storage.spaces"><BackendStoragePage/></CapabilityGate>},
+ {path:'/graphics-playback',element:<BackendPlaybackPage/>},
+    {path: '/gateway-group', element: <PermissionGate action="identity.manage"><BackendConnectivity kind="group"/></PermissionGate>},
+    {path: '/network-proxy', element: <PermissionGate action="identity.manage"><BackendConnectivity kind="proxy"/></PermissionGate>},
+    {path: '/monitoring', element: <PermissionGate action="identity.manage"><BackendMonitoring/></PermissionGate>},
+    {path: '/tools', element: <PermissionGate action="identity.manage"><BackendDiagnostics/></PermissionGate>},
+    {path: '/ssh-gateway', element: <PermissionGate action="identity.manage"><BackendSSHJumps/></PermissionGate>},
+    {path: '/agent-gateway', element: <PermissionGate action="identity.manage"><BackendAgentGateways/></PermissionGate>},
+    {path: '/setup', element: <SetupPage/>},
+    {path: '/login', element: <BackendLoginPage/>},
+    {path: '/user', element: <PermissionGate action="user.read"><BackendIdentityPage kind="users"/></PermissionGate>},
+    {path: '/department', element: <PermissionGate action="department.read"><BackendIdentityPage kind="departments"/></PermissionGate>},
+    {path: '/role', element: <PermissionGate action="role.read"><BackendIdentityPage kind="roles"/></PermissionGate>},
+    {path: '/login-locked', element: <PermissionGate action="lock.read"><BackendIdentityPage kind="login-locked"/></PermissionGate>},
+    {path: '/asset', element: <PermissionGate action="asset.read"><BackendResourcesPage kind="assets"/></PermissionGate>},
+    {path: '/credential', element: <PermissionGate action="credential.read"><BackendResourcesPage kind="credentials"/></PermissionGate>},
+    {path: '/authorised-asset', element: <PermissionGate action="grant.read"><BackendResourcesPage kind="grants"/></PermissionGate>},
+    ...['/access','/terminal'].map(path=>({path,element:<CapabilityGate feature="session.ssh"><BackendTerminalPage/></CapabilityGate>})),
+    {path:'/session-observer',element:<CapabilityGate feature="session.observe"><BackendObserverPage/></CapabilityGate>},
+    {path:'/graphics',element:<CapabilityGate feature="session.graphics"><BackendTerminalPage/></CapabilityGate>},
+    ...['/online-session','/access-log','/exec-command-log'].map(path=>({path,element:<CapabilityGate feature="session.ssh"><BackendSessionsPage online={path==='/online-session'}/></CapabilityGate>})),
+    {path: '/x-asset', element: <CapabilityGate feature="assets.hosts"><BackendResourcesPage kind="portal"/></CapabilityGate>},
+    {path: '/', element: <CapabilityGate feature="system.runtime"><BackendHomePage/></CapabilityGate>},
+    ...['/info','/x-info'].map(path=>({path,element:<CapabilityGate feature="identity.self"><BackendHomePage accountOnly/></CapabilityGate>})),
+    {path: '/system-status', element: <BackendWorkbench/>},
+    {path: '/filesystem-log', element: <CapabilityGate feature="files.sftp"><BackendFileLogs/></CapabilityGate>},
+    {path: '*', element: <UnavailableBackendPage/>},
+];
 const router = createBrowserRouter([
     {
         element: (
-            <LicenseProvider>
-                <Outlet/>
-            </LicenseProvider>
+            isNewBackend ? <BackendRuntimeProvider><Suspense fallback={<Spin fullscreen/>}><BackendLayout><Suspense fallback={<div role="status" style={{padding:32,textAlign:'center'}}><Spin/> 正在加载页面…</div>}><Outlet/></Suspense></BackendLayout></Suspense></BackendRuntimeProvider> :
+                <LicenseProvider><Outlet/></LicenseProvider>
         ),
-        children: routes,
+        children: isNewBackend ? backendRoutes : routes,
     },
 ]);
 

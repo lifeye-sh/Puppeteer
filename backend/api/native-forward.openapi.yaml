@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: Controlled native SSH forwarding
+  version: r16-forward-configuration
+  description: >-
+    Administrator type and identity.manage required. Mutations require allowed Origin,
+    current password and fresh TOTP when bound. This editor and unified settings publish
+    one configuration revision. Destinations are exact asset/host/port tuples; DNS is
+    resolved and pinned by the server. Re-saving enabled rules refreshes DNS and waits
+    for online configuration ACK. Changed policy versions stop active streams within
+    approximately one second. Authorization continues to require execute/upload/download
+    and rejects readonly or command-filtered sessions. Remote listening, agent and X11
+    forwarding remain unsupported. Only target and byte counts are audited, not TCP content.
+security:
+  - session: []
+paths:
+  /api/admin/native-forward:
+    get:
+      responses:
+        '200':
+          description: Actual enforced state plus desired state and configuration revision
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled: {type: boolean}
+                  desiredEnabled: {type: boolean}
+                  pending: {type: boolean}
+                  configurationRevision: {type: integer}
+                  version: {type: integer}
+                  rules: {type: array, maxItems: 100, items: {$ref: '#/components/schemas/Rule'}}
+        '403': {description: Administrator and identity.manage required}
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [enabled, version, password]
+              properties:
+                enabled: {type: boolean}
+                version: {type: integer, minimum: 1}
+                rules: {type: array, maxItems: 100, items: {$ref: '#/components/schemas/Rule'}}
+                password: {type: string, writeOnly: true}
+                totp: {type: string, pattern: '^[0-9]{6}$', writeOnly: true}
+      responses:
+        '200':
+          description: Saved; read pending state or configuration ACKs before assuming enabled
+          content:
+            application/json:
+              schema: {type: object, properties: {ok: {const: true}}}
+        '400': {description: Invalid password or MFA proof}
+        '403': {description: Administrator or Origin denied}
+        '409': {description: Stale domain version}
+        '422': {description: Invalid rules or DNS target; whole change rolled back}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+  schemas:
+    Rule:
+      type: object
+      required: [assetId, host, port]
+      properties:
+        assetId: {type: string, format: uuid}
+        host: {type: string, maxLength: 253}
+        port: {type: integer, minimum: 1, maximum: 65535}
+        addresses:
+          type: array
+          description: Server-derived DNS pins on read; supplied pins are discarded by this legacy editor
+          items: {type: string}

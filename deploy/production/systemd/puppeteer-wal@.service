@@ -1,0 +1,13 @@
+[Unit]
+Description=Puppeteer WAL maintenance (%i)
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/puppeteer/wal-maintenance.env
+ExecStart=/usr/bin/node /opt/puppeteer/scripts/wal-maintenance.mjs --container ${WAL_CONTAINER} --state-dir ${WAL_STATE_DIR} --webhook-file ${WAL_WEBHOOK_FILE} --operation %i
+TimeoutStartSec=20min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true

@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-11",
+  "release": "r16-entitlement-admission",
+  "schemaVersion": 70,
+  "capabilitiesRevision": 45,
+  "roundComplete": false,
+  "applicationShards": {
+    "early": {
+      "selected": 60,
+      "result": "passed"
+    },
+    "data": {
+      "selected": 34,
+      "result": "passed"
+    },
+    "native": {
+      "selected": 38,
+      "result": "passed"
+    },
+    "other": {
+      "selected": 17,
+      "result": "passed"
+    }
+  },
+  "applicationEntryPoints": 149,
+  "allOtherGoPackages": "passed",
+  "goVet": "passed",
+  "frontendTests": 29,
+  "typescript": "passed",
+  "viteBackendBuild": "passed; existing large chunk warning",
+  "browser": {
+    "path": "/system-status",
+    "licensePanel": "passed",
+    "refreshButton": "passed",
+    "consoleErrors": 0,
+    "horizontalOverflow": false,
+    "signedImportUI": "not exercised against business instance; API tested in isolated database"
+  },
+  "live": {
+    "provider": "local",
+    "unlimited": true,
+    "users": 8,
+    "resources": 22,
+    "sessions": 0,
+    "configurationRevision": 21,
+    "auditHolds": 0,
+    "licenseImports": 0,
+    "mysqlReady": true,
+    "postgresReady": true
+  },
+  "artifacts": {
+    "server": "bfebdef5bb46693a9017375188f80e1da6cfc8118f64b4b5c3f4a15e0df67b4a",
+    "nt": "c4a3e87c574cb82b3696085b63f06a338e57d342228f1cce98a6f6fc5e8d72b7"
+  },
+  "backup": {
+    "file": "backend/.local/pre-r16-070.dump",
+    "bytes": 273285515,
+    "sha256": "7a3cec3caf64e605bb7a0c209b3d6f2cc50d4f099c8023ab110ea3dffdb08393"
+  },
+  "scopeNote": "149 entries selected with no partition omissions. Optional external/hardware acceptance is not implied by Go suite success. R16 still lacks complete property adapters, other module entitlements, DBeaver PG and full business-button matrix."
+}

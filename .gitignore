@@ -8,3 +8,13 @@ out
 gen
 node_modules
 dist
+.env.local
+.env.*.local
+backend/.local/
+backend/bin/
+backend/server
+backend/*.test
+__pycache__/
+*.pyc
+output/playwright/
+.playwright-cli/

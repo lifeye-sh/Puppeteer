@@ -1,0 +1,146 @@
+openapi: 3.1.0
+info:
+  title: Recording archives and background MP4 exports
+  version: r16-recording-retention
+  description: >-
+    Owner or audit.read required on every request. Writes also require an allowed Origin.
+    Unrecorded or expired content cannot be exported. Recording policy is captured when
+    the session is created. Closing the browser does not cancel a queued conversion.
+    Retention can cancel jobs and remove content; access holds protect both the summary
+    and content. Downloads are audited and use no-store and nosniff headers.
+security:
+  - session: []
+paths:
+  /api/sessions/{id}/recording/download:
+    parameters:
+      - {$ref: '#/components/parameters/SessionID'}
+    get:
+      description: >-
+        Download the verified original JSONL archive, not an MP4. Header includes type=header,
+        archiveVersion=1, sessionId, protocol, format, state, durationMs, payloadBytes, events,
+        payloadEncoding=base64. Ordered recording events follow, ending with type=end and events.
+        Finalized/interrupted recordings only. Native media uses the existing segment API instead.
+        Concurrency is bounded by file slots; a retention lock protects streaming. If streaming
+        fails after headers, the end record is absent and the client must reject the incomplete archive.
+      responses:
+        '200':
+          description: Versioned original recording archive
+          headers:
+            Content-Disposition: {schema: {type: string}, description: Attachment named recording-ID.ntrec.jsonl}
+          content:
+            application/x-ndjson: {schema: {type: string, format: binary}}
+        '401': {description: Authentication required}
+        '403': {description: Owner or audit.read required}
+        '404': {description: Session does not exist or was removed}
+        '409': {description: Writing, empty, native media, expired or invalid recording checksum}
+        '429': {description: Download capacity exhausted}
+  /api/sessions/{id}/recording/mp4:
+    parameters:
+      - {$ref: '#/components/parameters/SessionID'}
+    get:
+      description: Missing or wrong-size successful cache is marked failed/cache_missing. This read does not create a job.
+      responses:
+        '200':
+          description: Conversion availability and latest task state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [available, export]
+                properties:
+                  available: {type: boolean}
+                  export: {$ref: '#/components/schemas/Export'}
+        '401': {description: Authentication required}
+        '403': {description: Owner or audit.read required}
+        '404': {description: Session missing}
+    post:
+      description: >-
+        No request body. Enqueues an asynchronous server-side conversion, or returns the same
+        queued/running/succeeded task. Failed/cancelled tasks can be retried. Queue capacity is
+        eight queued/running conversions per instance. At most two hours and 100 MiB of original
+        payload. The worker verifies stored content and only publishes a complete verified cache.
+      responses:
+        '202':
+          description: Current or newly queued export
+          content:
+            application/json: {schema: {$ref: '#/components/schemas/Export'}}
+        '401': {description: Authentication required}
+        '403': {description: Origin or session access denied}
+        '404': {description: Session missing}
+        '409': {description: Writing/empty/disabled/expired content or queue capacity exhausted}
+        '422': {description: Recording exceeds duration or input byte limit}
+        '503': {description: Converter URL, token or cache directory not configured}
+    delete:
+      description: Request cancellation; queued tasks become cancelled immediately. Missing task is a no-op. Running cancellation is cooperative.
+      responses:
+        '204': {description: Cancellation recorded}
+        '401': {description: Authentication required}
+        '403': {description: Origin or session access denied}
+        '404': {description: Session missing}
+  /api/sessions/{id}/recording/mp4/download:
+    parameters:
+      - {$ref: '#/components/parameters/SessionID'}
+    get:
+      description: >-
+        Checks completed job, regular file, exact size and SHA-256 before sending. The export
+        is locked until the file is opened and verified. The open descriptor can finish an
+        already authorized transfer if retention subsequently removes the cache pathname.
+        Supports standard ServeContent range requests. Missing/corrupt cache requires regeneration.
+      responses:
+        '200':
+          description: Verified MP4 attachment named recording-ID.mp4
+          content:
+            video/mp4: {schema: {type: string, format: binary}}
+        '206':
+          description: Requested MP4 byte range
+          content:
+            video/mp4: {schema: {type: string, format: binary}}
+        '401': {description: Authentication required}
+        '403': {description: Owner or audit.read required}
+        '404': {description: Session or export missing}
+        '409': {description: Conversion not ready or cache missing/corrupt}
+        '416': {description: Invalid range}
+  /api/sessions/{id}/recording/segments/{seq}:
+    parameters:
+      - {$ref: '#/components/parameters/SessionID'}
+      - {name: seq, in: path, required: true, schema: {type: integer, minimum: 1, maximum: 2048}}
+    get:
+      description: >-
+        Download or play one finalized native-rdp-mp4-v1 segment. SHA-256 and size are checked
+        before sending. Disabled/expired or invalid media cannot be read. Segment indexes come
+        from the recording page. This endpoint does not transcode or join segments.
+      parameters:
+        - {name: download, in: query, schema: {type: string, enum: ['1']}, description: Add attachment disposition and a download audit event}
+      responses:
+        '200':
+          description: Verified MP4 segment
+          content:
+            video/mp4: {schema: {type: string, format: binary}}
+        '206':
+          description: Segment byte range
+          content:
+            video/mp4: {schema: {type: string, format: binary}}
+        '401': {description: Authentication required}
+        '403': {description: Owner or audit.read required}
+        '404': {description: Missing, writing, disabled, expired or invalid media}
+        '409': {description: Media checksum mismatch}
+        '422': {description: Invalid sequence}
+        '429': {description: File capacity exhausted}
+        '416': {description: Invalid range}
+components:
+  securitySchemes:
+    session: {type: apiKey, in: cookie, name: nt_session}
+  parameters:
+    SessionID: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+  schemas:
+    Export:
+      type: object
+      required: [id, sessionId, state, reason, progress, size, sha256]
+      properties:
+        id: {type: string, description: Job UUID, or empty when no export exists}
+        sessionId: {type: string, format: uuid}
+        state: {type: string, enum: [none, queued, running, succeeded, failed, cancelled]}
+        reason: {type: string, description: Stable task/cache failure code, empty when absent}
+        progress: {type: integer, minimum: 0, maximum: 100}
+        size: {type: integer, minimum: 0, description: Encoded MP4 bytes}
+        sha256: {type: string, description: Published cache checksum or empty}

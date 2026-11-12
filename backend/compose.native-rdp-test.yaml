@@ -1,0 +1,10 @@
+# Development-only protocol acceptance. Does not modify the server service or
+# publish an RDP port. Start the base PostgreSQL service before running tests.
+services:
+  tests:
+    image: ${NT_RDP_TEST_IMAGE:-nt-native-rdp-worker:dev}
+    entrypoint: []
+    environment:
+      CGO_ENABLED: "1"
+      NT_RDP_WORKER_BINARY: /opt/nt/bin/nt-rdp-worker
+      NT_RDP_PROBE_CLIENT: /opt/nt/bin/nt-rdp-probe-client

@@ -1,0 +1,3 @@
+#!/bin/sh
+export OPENSSL_MODULES=/opt/native-sdk/usr/lib/ossl-modules
+exec /opt/native-sdk/lib/ld-musl-x86_64.so.1 --library-path /opt/freerdp/lib:/opt/native-sdk/usr/lib:/opt/native-sdk/usr/lib/pulseaudio:/opt/native-sdk/lib /opt/native-sdk/usr/bin/ffmpeg "$@"

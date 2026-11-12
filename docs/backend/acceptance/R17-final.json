@@ -1,0 +1,269 @@
+{
+  "date": "2026-11-12",
+  "status": "implemented_verified",
+  "environment": "Docker simulated production; explicitly accepted by user",
+  "scope": "fresh_install",
+  "userAccepted": false,
+  "previousEvidence": [
+    "R17-services.json",
+    "R17-operations.json",
+    "R17-docker-recovery.json",
+    "R17-maintenance.json",
+    "R17-renderer-capacity.json",
+    "R17-cutover.json"
+  ],
+  "agent": {
+    "twoRealProcesses": true,
+    "activeSSHDrain": true,
+    "explicitSecondNodeRollout": true,
+    "badVersionRollback": true,
+    "seconds": 101.799,
+    "https": {
+      "bytes": 15377125,
+      "httpsVerified": true,
+      "privatePaths404": true,
+      "rootVersion": 2,
+      "sequence": 1,
+      "sha256": "0e02e09a738b6c5cf6299fe1cda3a706e787f75f358806ed5f80e53df9d3546a",
+      "signatureVerified": true,
+      "version": "r17-operations-preview"
+    }
+  },
+  "capacity": {
+    "ssh": {
+      "users": 4,
+      "sessions": 16,
+      "commands": 896,
+      "seconds": 121.964,
+      "recordings": 16,
+      "overflowStatus": 409,
+      "postLoadConnection": true
+    },
+    "graphics": {
+      "simulated": true,
+      "sessions": 4,
+      "inputResponseRounds": 240,
+      "seconds": 60.274
+    },
+    "postgres": {
+      "actualFixture": true,
+      "connections": 16,
+      "queries": 320,
+      "disconnectCoverage": true
+    },
+    "mysql": {
+      "actualFixture": true,
+      "passed": true
+    }
+  },
+  "browser": {
+    "passed": true,
+    "tlsVerification": true,
+    "checks": [
+      "login",
+      "asset list",
+      "terminal opens new tab",
+      "WSS SSH connection",
+      "command input",
+      "SFTP upload/filter/download",
+      "tab closes session",
+      "recording playback",
+      "background MP4 conversion and download",
+      "settings/assets render"
+    ],
+    "pageErrors": [],
+    "testCAImported": true,
+    "tlsVerificationDisabled": false,
+    "sftpDownloadContentMatched": true,
+    "mp4FileHeaderVerified": true,
+    "proxyClientIPAudit": "127.0.0.1",
+    "captchaDisabledOnlyInOptInFixture": true
+  },
+  "checks": {
+    "frontendTests": 67,
+    "frontendManifestFiles": 230,
+    "frontendManifestBytes": 22998846,
+    "goVet": true,
+    "productionPreflight": true,
+    "backendFullRegression": {
+      "mode": "go test ./... -short -count=1 -timeout=35m -json",
+      "passed": 348,
+      "skipped": 37,
+      "failed": 0,
+      "skippedTests": [
+        {
+          "package": "next-terminal/backend/internal/modules/backup",
+          "test": "TestPostgresIsolatedSnapshotRestore"
+        },
+        {
+          "package": "next-terminal/backend/internal/modules/backup",
+          "test": "TestR11WebDAVBrowserFixture"
+        },
+        {
+          "package": "next-terminal/backend/internal/modules/operations",
+          "test": "TestUnprivilegedPing"
+        },
+        {
+          "package": "next-terminal/backend/internal/nativeclient",
+          "test": "TestLinuxCredentialHelper"
+        },
+        {
+          "package": "next-terminal/backend/internal/nativeclient",
+          "test": "TestLinuxCredentialStore"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/mysqlproxy",
+          "test": "TestMySQL84TLSRelay"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/pgproxy",
+          "test": "TestPostgreSQL18TLSAndReadonlyPrivileges"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderSegmentsResizeAndDecode"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderUncleanEndKeepsOnlySealedPrefix"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderQuotaIncludesSealedSegments"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderStorageFailure"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderEncoderStallAndProcessGroup"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderRejectsReuseAndUnsafeRoot"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderFullHD"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderCancellationDuringEncoderDrain"
+        },
+        {
+          "package": "next-terminal/backend/internal/platform/rdprecording",
+          "test": "TestRecorderParentDeath"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR06ManagedUpdateAndUnhealthyRollback"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR09InternalACMEIssueRenewAndRetainOnFailure"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR10RotationLiveOpenSSH"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR10RotationLiveLostAcknowledgement"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR10RotationLivePartial"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR10RotationLiveScheduledPolicy"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR11DeploymentFixture"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR11PITRFixture"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR12PlatformMySQLRevocationAndAudit"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR12WorkOrdersCommitRollbackAndUncertainty"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR14FreeRDPAuthProbe"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR14RDPControlWorkerHelper"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR16PostgresDiagnosticsAPI"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR16IsolatedBrowserFixture"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR16NativeDatabaseDML"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR16DBeaverManualFixture"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR16PostgresNativeProtocol"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR16ConfigurationProcessHelper"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR17BrowserFixture"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestR17SustainedSessionCapacity"
+        },
+        {
+          "package": "next-terminal/backend/internal/application",
+          "test": "TestMP4RealRendererAfterClientDisconnect"
+        }
+      ],
+      "applicationSeconds": 1150.401,
+      "note": "Opt-in long-running/service fixtures run separately as recorded; R14 and DBeaver exclusions unchanged."
+    },
+    "releaseManifest": {
+      "passed": true,
+      "images": 5,
+      "files": 9,
+      "fileDriftRejected": true,
+      "imageDriftRejected": true
+    }
+  },
+  "releaseManifest": "deploy/production/r17-release-manifest.json",
+  "limits": [
+    "bounded load baseline, not long-duration soak or production SLA",
+    "graphical capacity uses protocol simulator, not Windows OS desktops",
+    "no real production deployment or manual user sign-off",
+    "DBeaver waived; R14 native desktop and RemoteApp remain excluded"
+  ],
+  "firstAttempts": {
+    "backendRegression": "15-minute aggregate timeout; re-running with 35 minutes",
+    "agentDrain": "test heartbeat missing; fixed and passed",
+    "sshCapacity": "single-user four-session limit correctly rejected; corrected to four users",
+    "browser": "test CA, localized button matching and settings route corrected",
+    "nginx": "quoted root metadata regex; nginx -t and actual HTTPS passed"
+  },
+  "completedAt": "2026-11-12T11:23:18.551Z"
+}

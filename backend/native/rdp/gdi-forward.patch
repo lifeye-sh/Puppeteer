@@ -1,0 +1,39 @@
+--- a/include/freerdp/private/proxy_client.h
++++ b/include/freerdp/private/proxy_client.h
+@@ -1,2 +1,4 @@
+ 	} computerName;
++	pBitmapUpdate decodeBitmap;
++	pSurfaceBits decodeSurface;
+ };
+--- a/server/proxy/pf_update.c
++++ b/server/proxy/pf_update.c
+@@ -24,2 +24,3 @@
+ #include <freerdp/display.h>
++#include <freerdp/gdi/gdi.h>
+ #include <freerdp/session.h>
+@@ -143,3 +144,5 @@
+ 	WINPR_ASSERT(ps->context.update->BitmapUpdate);
+ 	WLog_DBG(TAG, "called");
++	if (!pc->decodeBitmap || !pc->decodeBitmap(context, bitmap))
++		return FALSE;
+ 	return ps->context.update->BitmapUpdate(&ps->context, bitmap);
+@@ -163,2 +166,8 @@
+ 	WINPR_ASSERT(ps->context.settings);
++	const UINT32 width = freerdp_settings_get_uint32(context->settings, FreeRDP_DesktopWidth);
++	const UINT32 height = freerdp_settings_get_uint32(context->settings, FreeRDP_DesktopHeight);
++	if (width < 2 || width > 1920 || height < 2 || height > 1080 ||
++	    !context->gdi || !gdi_resize(context->gdi, width, height))
++		return FALSE;
++
+ 	WLog_DBG(TAG, "called");
+@@ -405,2 +414,4 @@
+ 	WLog_DBG(TAG, "called");
++	if (!pc->decodeSurface || !pc->decodeSurface(context, surfaceBitsCommand))
++		return FALSE;
+ 	return ps->context.update->SurfaceBits(&ps->context, surfaceBitsCommand);
+@@ -669,2 +680,5 @@
+ 	WINPR_ASSERT(update);
++	pClientContext* pc = (pClientContext*)update->context;
++	pc->decodeBitmap = update->BitmapUpdate;
++	pc->decodeSurface = update->SurfaceBits;
+ 	update->BeginPaint = pf_client_begin_paint;

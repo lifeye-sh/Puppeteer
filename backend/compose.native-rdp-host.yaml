@@ -1,0 +1,26 @@
+# Local Windows acceptance. Use together with compose.yaml.
+services:
+  server:
+    environment:
+      NT_NATIVE_RDP_HOST_PROFILE: windows-local
+      NT_NATIVE_RDP_WORKER: /opt/nt-tools/worker
+      NT_NATIVE_RDP_FFMPEG: /opt/nt-tools/encoder
+      NT_NATIVE_RDP_CERT: /opt/nt-tls/server.crt
+      NT_NATIVE_RDP_KEY: /opt/nt-tls/server.key
+    ports:
+      - "127.0.0.1:13389:13389"
+    volumes:
+      - ./.local/rdp-view/server:/app/server:ro
+      - ./native/rdp/host-tools:/opt/nt-tools:ro
+      - ./.local/passkey-tls/server.crt:/opt/nt-tls/server.crt:ro
+      - ./.local/passkey-tls/server.key:/opt/nt-tls/server.key:ro
+      - type: image
+        source: nt-native-recording-test:dev
+        target: /opt/native-sdk
+        read_only: true
+      - type: image
+        source: nt-native-recording-test:dev
+        target: /opt/freerdp
+        read_only: true
+        image:
+          subpath: opt/freerdp

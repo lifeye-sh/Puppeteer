@@ -1,0 +1,225 @@
+{
+  "round": "R16",
+  "date": "2026-11-11",
+  "scope": "Administrator read-only page load smoke checks during schema72/73 rollout; not full button workflows or ordinary-user permissions acceptance",
+  "checks": [
+    {
+      "requestedPath": "/ip-set",
+      "path": "/ip-set",
+      "content": true,
+      "errors": [],
+      "title": "IP 集合",
+      "buttons": [
+        "刷 新",
+        "新建IP 集合",
+        "编 辑",
+        "删 除"
+      ],
+      "requests": 10,
+      "failures": []
+    },
+    {
+      "requestedPath": "/access-log-stats",
+      "path": "/access-log-stats",
+      "content": true,
+      "errors": [],
+      "buttons": [
+        "刷 新"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/exec-command-log",
+      "path": "/exec-command-log",
+      "content": true,
+      "errors": [],
+      "title": "访问记录与命令记录",
+      "buttons": [
+        "刷 新",
+        "详情与命令",
+        "录屏回放",
+        "生成 MP4",
+        "详情与命令",
+        "录屏回放",
+        "生成 MP4",
+        "详情与命令",
+        "录屏回放",
+        "生成 MP4",
+        "详情与命令",
+        "录屏回放",
+        "生成 MP4",
+        "详情与命令",
+        "录屏回放"
+      ],
+      "requests": 16,
+      "failures": []
+    },
+    {
+      "requestedPath": "/filesystem-log",
+      "path": "/filesystem-log",
+      "content": true,
+      "errors": [],
+      "title": "文件审计",
+      "buttons": [
+        "刷 新"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/database-sql-log",
+      "path": "/database-sql-log",
+      "content": true,
+      "errors": [],
+      "title": "数据库 SQL 审计",
+      "buttons": [
+        "刷 新"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/user",
+      "path": "/user",
+      "content": true,
+      "errors": [],
+      "title": "用户管理",
+      "buttons": [
+        "刷 新",
+        "新 建",
+        "编 辑",
+        "通道策略",
+        "存储配额",
+        "撤销会话",
+        "重置 MFA",
+        "删 除",
+        "编 辑",
+        "通道策略",
+        "存储配额",
+        "撤销会话",
+        "重置 MFA",
+        "删 除",
+        "编 辑"
+      ],
+      "requests": 7,
+      "failures": []
+    },
+    {
+      "requestedPath": "/department",
+      "path": "/department",
+      "content": true,
+      "errors": [],
+      "title": "部门管理",
+      "buttons": [
+        "刷 新",
+        "新 建",
+        "编 辑",
+        "删 除",
+        "编 辑",
+        "删 除"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/role",
+      "path": "/role",
+      "content": true,
+      "errors": [],
+      "title": "角色权限",
+      "buttons": [
+        "刷 新",
+        "新 建",
+        "编 辑",
+        "删 除",
+        "编 辑",
+        "删 除",
+        "编 辑",
+        "删 除"
+      ],
+      "requests": 6,
+      "failures": []
+    },
+    {
+      "requestedPath": "/identity-settings",
+      "path": "/identity-settings",
+      "content": true,
+      "errors": [],
+      "buttons": [
+        "修改登录策略"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/login-locked",
+      "path": "/login-locked",
+      "content": true,
+      "errors": [],
+      "title": "登录锁定",
+      "buttons": [
+        "刷 新"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/scheduled-task",
+      "path": "/scheduled-task",
+      "content": true,
+      "errors": [],
+      "title": "任务调度",
+      "buttons": [
+        "新建任务",
+        "刷 新",
+        "立即运行",
+        "编 辑",
+        "删 除",
+        "运行记录",
+        "立即运行",
+        "编 辑",
+        "删 除",
+        "运行记录"
+      ],
+      "requests": 6,
+      "failures": []
+    },
+    {
+      "requestedPath": "/snippet",
+      "path": "/snippet",
+      "content": true,
+      "errors": [],
+      "title": "系统命令片段",
+      "buttons": [
+        "新建片段",
+        "刷 新",
+        "R10 内网诊断示例",
+        "编 辑",
+        "删 除"
+      ],
+      "requests": 5,
+      "failures": []
+    },
+    {
+      "requestedPath": "/credential-rotation",
+      "path": "/credential-rotation",
+      "content": true,
+      "errors": [],
+      "title": "凭据轮换",
+      "buttons": [
+        "新建轮换",
+        "刷 新",
+        "查看逐目标结果",
+        "查看逐目标结果"
+      ],
+      "requests": 6,
+      "failures": []
+    }
+  ],
+  "limitations": [
+    "Earlier samples without requestedPath were omitted because fast navigation could read previous content.",
+    "IP sets were independently rechecked and rendered correctly.",
+    "Runtime errors and business actions still require dedicated acceptance."
+  ]
+}

@@ -1,0 +1,5 @@
+services:
+  web:
+    volumes:
+      - ./agent-updates.conf:/etc/nginx/optional/agent-updates.conf:ro
+      - ${PUPPETEER_AGENT_REPOSITORY:?Set a validated public export directory}:/srv/agent-updates:ro

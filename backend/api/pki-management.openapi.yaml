@@ -1,0 +1,911 @@
+openapi: 3.1.0
+info:
+  title: Certificate and ACME administration
+  version: r16-schema99
+security:
+- session: []
+paths:
+  /api/admin/certificates:
+    get:
+      summary: List certificate metadata and public PEM
+      description: 'Requires certificate.read. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Certificate'
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Import or issue certificate
+      description: 'Requires identity.manage. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: &id001
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Create'
+  /api/admin/certificates/{id}/revoke:
+    post:
+      summary: Revoke certificate
+      description: Requires identity.manage. Optimistic version; certificate use is
+        rechecked at consuming boundaries.
+      responses:
+        '204':
+          description: Success
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version: &id002
+                  type: integer
+              required:
+              - version
+  /api/admin/certificates/{id}/reissue:
+    post:
+      summary: Reissue client certificate
+      description: Requires identity.manage. Client certificates only. Same parent/user;
+        issues replacement and revokes old unrevoked certificate in one transaction.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version: *id002
+                days: *id002
+              required:
+              - version
+  /api/admin/certificates/{id}/p12:
+    post:
+      summary: Export protected client PKCS12
+      description: Requires identity.manage. Administrator account type and bound
+        MFA mandatory. Revalidates local password and consumes fresh TOTP; client
+        certificate only. Separate exportPassword protects the PKCS12. Audited, Cache-Control:no-store.
+      responses:
+        '200':
+          description: client.p12 attachment
+          content:
+            application/x-pkcs12:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  writeOnly: true
+                  maxLength: 1024
+                totp:
+                  type: string
+                  writeOnly: true
+                exportPassword:
+                  type: string
+                  writeOnly: true
+                  minLength: 12
+                  maxLength: 128
+              required:
+              - password
+              - totp
+              - exportPassword
+  /api/admin/acme:
+    get:
+      summary: Read ACME accounts/providers/orders
+      description: 'Requires certificate.read. '
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  providers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Provider'
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/admin/acme/accounts:
+    post:
+      summary: Save ACME accounts
+      description: Requires identity.manage. ID comes from path. Domain validation,
+        optimistic version and operation audit are applied. Saving an order does not
+        assert successful issuance; inspect status/events.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+  /api/admin/acme/accounts/{id}:
+    put:
+      summary: Save ACME accounts
+      description: Requires identity.manage. ID comes from path. Domain validation,
+        optimistic version and operation audit are applied. Saving an order does not
+        assert successful issuance; inspect status/events.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+  /api/admin/acme/providers:
+    post:
+      summary: Save ACME providers
+      description: Requires identity.manage. ID comes from path. Domain validation,
+        optimistic version and operation audit are applied. Saving an order does not
+        assert successful issuance; inspect status/events.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderWrite'
+  /api/admin/acme/providers/{id}:
+    put:
+      summary: Save ACME providers
+      description: Requires identity.manage. ID comes from path. Domain validation,
+        optimistic version and operation audit are applied. Saving an order does not
+        assert successful issuance; inspect status/events.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderWrite'
+  /api/admin/acme/orders:
+    post:
+      summary: Save ACME orders
+      description: Requires identity.manage. ID comes from path. Domain validation,
+        optimistic version and operation audit are applied. Saving an order does not
+        assert successful issuance; inspect status/events.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+  /api/admin/acme/orders/{id}:
+    put:
+      summary: Save ACME orders
+      description: Requires identity.manage. ID comes from path. Domain validation,
+        optimistic version and operation audit are applied. Saving an order does not
+        assert successful issuance; inspect status/events.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: *id001
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+  /api/admin/acme/orders/{id}/retry:
+    post:
+      summary: Queue issuance retry
+      description: Requires identity.manage. Current version and non-processing status
+        required; status becomes pending and next attempt now.
+      responses:
+        '202':
+          description: Success
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version: *id002
+              required:
+              - version
+  /api/admin/acme/orders/{id}/events:
+    get:
+      summary: Read last200 order events
+      description: Requires certificate.read. Newest ID first. createdAt is PostgreSQL
+        timestamptz text.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: *id002
+                    status: &id003
+                      type: string
+                    message: *id003
+                    createdAt: *id003
+                maxItems: 200
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Login required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Permission or MFA denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Version or state conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Invalid certificate/input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id001
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nt_session
+  schemas:
+    Certificate:
+      type: object
+      properties:
+        id: *id003
+        name: *id003
+        kind: *id003
+        source: *id003
+        pem: *id003
+        fingerprint: *id003
+        dnsNames:
+          type: array
+          items: *id003
+        notBefore: &id004
+          type: string
+          format: date-time
+        notAfter: *id004
+        parentId: *id003
+        userId: *id003
+        version: *id002
+        revokedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        lastUsedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    Account:
+      type: object
+      properties:
+        id: *id003
+        name: *id003
+        directoryUrl: *id003
+        email: *id003
+        ca: *id003
+        version: *id002
+        termsAccepted: &id005
+          type: boolean
+      description: HTTPS directory URL (no URL credentials or fragment), valid contact
+        email, name1..100 bytes and CA<=65536 bytes. termsAccepted=true required on
+        every save. Directory URL immutable on update; current version required. Generated
+        account private key never returned.
+    Provider:
+      type: object
+      properties:
+        id: *id003
+        name: *id003
+        zone: *id003
+        server: *id003
+        keyName: *id003
+        version: *id002
+    Order:
+      type: object
+      properties:
+        id: *id003
+        name: *id003
+        accountId: *id003
+        providerId: *id003
+        domains:
+          type: array
+          items: *id003
+        certificateId: *id003
+        status: *id003
+        autoRenew: *id005
+        renewBeforeDays: *id002
+        nextAttempt: *id004
+        attempts: *id002
+        error: *id003
+        version: *id002
+      description: Name1..100 bytes,1..20 normalized domains under provider zone;
+        wildcard accepted. renewBeforeDays1..60. Update only changes name/autoRenew/renewBeforeDays,
+        requires current version and non-processing state; account/provider/domains
+        remain unchanged.
+    ProviderWrite:
+      type: object
+      properties:
+        id: *id003
+        name: *id003
+        zone: *id003
+        server: *id003
+        keyName: *id003
+        version: *id002
+        secret:
+          type: string
+          writeOnly: true
+          maxLength: 4096
+      required:
+      - name
+      - zone
+      - server
+      - keyName
+      description: RFC2136 DNS provider. Zone/keyName normalized to FQDN; server host:port.
+        Create requires standard Base64 secret with decoded length>=32 bytes. Blank
+        secret on update retains sealed key. Version required to update.
+    Create:
+      type: object
+      properties:
+        name: *id003
+        kind:
+          type: string
+          enum:
+          - server
+          - client_ca
+          - client
+        source:
+          type: string
+          enum:
+          - import
+          - self_signed
+        domains:
+          type: array
+          items: *id003
+          maxItems: 100
+        days: *id002
+        pem: *id003
+        key:
+          type: string
+          writeOnly: true
+        parentId: *id001
+        userId: *id001
+      required:
+      - name
+      - kind
+      description: 'server/client_ca: import matching PEM/key or generate self_signed
+        certificate, days1..3650. client: parent CA and enabled user required; days0
+        uses configured default, explicit range1..825. Private keys encrypted at rest
+        and not returned. Import enforces parsed certificate kind, key match and validity.'
+    Problem:
+      type: object
+      properties:
+        reason: *id003
+        message: *id003
