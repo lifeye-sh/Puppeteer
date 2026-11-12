@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-12",
+  "status": "passed",
+  "environment": "Docker isolated Linux amd64 installer with real Docker daemon, pinned Docker Hub images and GitHub deployment files",
+  "script": "scripts/install.sh",
+  "fixture": "backend/test/deployment/installer.sh",
+  "release": "r17-rc1",
+  "checks": [
+    "default five services healthy",
+    "core three services healthy",
+    "generated TLS hostname and HTTPS setup verified with certificate validation",
+    "supplied TLS certificate preserved",
+    "custom port and bind address",
+    "secret ownership and permissions",
+    "duplicate install preserves every secret and certificate",
+    "existing project/data volume reuse refused",
+    "invalid host and mismatched private key rejected before creating directory",
+    "empty users table after fresh initialization"
+  ],
+  "firstAttempt": "Nginx public configuration downloaded with mode 0600; corrected to 0644 and full/core retests passed",
+  "cleanup": "Temporary services, networks and application data volumes removed; no business instance changed"
+}

@@ -1,5 +1,7 @@
 # 从 Docker Hub 全新安装
 
+希望自动完成配置、证书和启动时，优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)。下文用于手动部署或自定义组件。
+
 命名空间：`cloners`。版本：`r17-rc1`。支持平台：`linux/amd64`。
 
 该版本为通过R17隔离验收的候选发布镜像。这里使用预构建镜像，不需要在服务器运行npm、Go或镜像构建命令；宿主机仍需Git、Node.js 24、Docker Engine和Compose v2，用于获取配置及运行配置生成器、预检查。
