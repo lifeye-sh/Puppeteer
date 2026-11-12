@@ -7,12 +7,13 @@ Puppeteer 是基于 Go + PostgreSQL 的远程运维与审计平台，提供资�
 ## 项目状态与文档
 
 - [后端设计与模块规划](docs/backend/README.md)
+- [全新部署指南（从空白服务器安装）](docs/FRESH-INSTALL.md)
 - [开发轮次与验收状态](docs/backend/migration-rounds.md)
 - [R16 验收记录](docs/backend/acceptance/R16.md)
 - [全新生产部署规划](docs/backend/frontend-migration-plan.md)
 - [后端运行说明](backend/README.md)
 
-R16 已完成开发与本轮验证收口，DBeaver 按用户要求免测完成。R17 按全新生产部署推进，不迁移旧数据。现有 Compose 为开发验收配置，生产发布包尚待交付。
+R17 已完成约定的 Docker 模拟环境技术验收，当前按候选发布版本交付，不迁移旧数据。全新安装使用 `deploy/production` 配置；`backend/compose.yaml` 用于开发验收。实际生产开放及既定暂缓功能的范围见 [R17 验收记录](docs/backend/acceptance/R17.md)。
 
 ## 名称与兼容性
 

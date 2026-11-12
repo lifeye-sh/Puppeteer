@@ -1,5 +1,7 @@
 # Puppeteer R17 全新部署
 
+首次安装请先阅读[全新部署指南](../../docs/FRESH-INSTALL.md)，按步骤完成源码构建、证书安装、初始化及验证。本文提供部署配置细节。
+
 可独立运行管理前端、新后端和空 PostgreSQL 数据库，并提供图形网关、MP4 和 SSH/数据库/网站协议入口的可选叠加配置。Agent签名发布与根轮换、双节点升级排空、备份/WAL/PITR、容量与恢复切换均有Docker模拟验收流程，见[运维步骤](operations.md)、[容量基线](capacity.md)和[恢复切换](cutover.md)。最终回归状态以[R17验收记录](../../docs/backend/acceptance/R17.md)为准。用户明确接受Docker模拟环境；正式部署不复制测试账号、证书、凭据或数据，原生RDP及RemoteApp保持既定暂缓范围。
 
 ## 准备与构建
