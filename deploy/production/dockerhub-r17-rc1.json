@@ -1,0 +1,60 @@
+{
+  "product": "Puppeteer",
+  "version": "r17-rc1",
+  "publishedAt": "2026-11-12T14:37:21.849Z",
+  "verified": true,
+  "sourceCheckout": "4a9e7ec47ba18f6421a5eb41c8f054c516ea62ec",
+  "basis": "Unchanged R17 accepted image content, promoted to Docker Hub; release candidate, linux/amd64 only.",
+  "images": [
+    {
+      "component": "server",
+      "repository": "cloners/puppeteer-server",
+      "tag": "r17-rc1",
+      "reference": "cloners/puppeteer-server:r17-rc1",
+      "digest": "sha256:3b9ae1c21e44ca200a578e1c7dc0ae808a8d6efece0c55dde57f45c7b7c4f969",
+      "pinnedReference": "cloners/puppeteer-server@sha256:3b9ae1c21e44ca200a578e1c7dc0ae808a8d6efece0c55dde57f45c7b7c4f969",
+      "platform": "linux/amd64",
+      "platformDigest": "sha256:711adfa1f05bb28411a5c49a64137e462aa94a3ae22a3fa3a5710eb8116fcf30"
+    },
+    {
+      "component": "web",
+      "repository": "cloners/puppeteer-web",
+      "tag": "r17-rc1",
+      "reference": "cloners/puppeteer-web:r17-rc1",
+      "digest": "sha256:a629cfa3667811fa2f2a032153e45ebe6d56aa7dd0a4f84336d8b5a00cdc8a94",
+      "pinnedReference": "cloners/puppeteer-web@sha256:a629cfa3667811fa2f2a032153e45ebe6d56aa7dd0a4f84336d8b5a00cdc8a94",
+      "platform": "linux/amd64",
+      "platformDigest": "sha256:b431990ae1a85629ef0239f16a0d3474b8e684a2f1341fcbfe37841f60e2412a"
+    },
+    {
+      "component": "graphics",
+      "repository": "cloners/puppeteer-graphics",
+      "tag": "r17-rc1",
+      "reference": "cloners/puppeteer-graphics:r17-rc1",
+      "digest": "sha256:c20c63352bd1cf8764ba9b47857d82957ac3785e9a21ab07a73eb79e20ceea22",
+      "pinnedReference": "cloners/puppeteer-graphics@sha256:c20c63352bd1cf8764ba9b47857d82957ac3785e9a21ab07a73eb79e20ceea22",
+      "platform": "linux/amd64",
+      "platformDigest": "sha256:0280445e174a54a2917f2205ce35feea7bc3f988150eaa397646c7c6c649a298"
+    },
+    {
+      "component": "renderer",
+      "repository": "cloners/puppeteer-renderer",
+      "tag": "r17-rc1",
+      "reference": "cloners/puppeteer-renderer:r17-rc1",
+      "digest": "sha256:497fdacf02e3b7131cd7c6b9d0376ed2d267547a9f1439e8c1485981d785784e",
+      "pinnedReference": "cloners/puppeteer-renderer@sha256:497fdacf02e3b7131cd7c6b9d0376ed2d267547a9f1439e8c1485981d785784e",
+      "platform": "linux/amd64",
+      "platformDigest": "sha256:652400aaecc9671afdaf53d18d83624d4582965a37eb850e54f24d03ad105c7e"
+    },
+    {
+      "component": "postgres-wal",
+      "repository": "cloners/puppeteer-postgres-wal",
+      "tag": "r17-rc1",
+      "reference": "cloners/puppeteer-postgres-wal:r17-rc1",
+      "digest": "sha256:26ce2af32e119a8fdcfaa9217534ea13afc92f31e3e0cf5ad9b014ae9c4c3009",
+      "pinnedReference": "cloners/puppeteer-postgres-wal@sha256:26ce2af32e119a8fdcfaa9217534ea13afc92f31e3e0cf5ad9b014ae9c4c3009",
+      "platform": "linux/amd64",
+      "platformDigest": "sha256:2a43d2d3f09796d865fbe08c21faf6bbf2a98a700eb404a2b1fb237b21592d4a"
+    }
+  ]
+}

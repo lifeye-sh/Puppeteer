@@ -8,6 +8,7 @@ Puppeteer 是基于 Go + PostgreSQL 的远程运维与审计平台，提供资�
 
 - [后端设计与模块规划](docs/backend/README.md)
 - [全新部署指南（从空白服务器安装）](docs/FRESH-INSTALL.md)
+- [Docker Hub 镜像安装（免编译）](deploy/production/dockerhub.md)
 - [开发轮次与验收状态](docs/backend/migration-rounds.md)
 - [R16 验收记录](docs/backend/acceptance/R16.md)
 - [全新生产部署规划](docs/backend/frontend-migration-plan.md)

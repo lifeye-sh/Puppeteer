@@ -2,6 +2,8 @@
 
 适用版本：R17 候选发布版本。部署方式：单台 Linux amd64 主机、Docker Compose、全新 PostgreSQL 数据卷，不迁移旧系统数据。
 
+直接使用已发布镜像时，改按[Docker Hub免编译安装](../deploy/production/dockerhub.md)执行；本文以下步骤用于源码构建。
+
 本文按“源码构建 → 初始化配置 → 安装证书 → 启动 → 创建管理员 → 验证”的顺序执行。Docker 模拟环境已验收；正式环境请使用自己的域名、证书及独立密钥。仓库内的开发夹具、测试账号和 `backend/compose.yaml` 不用于正式安装。
 
 ## 1. 准备环境
