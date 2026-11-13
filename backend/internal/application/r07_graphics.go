@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"github.com/gorilla/websocket"
 	"io"
 	"net"
@@ -19,6 +20,14 @@ import (
 	"sync"
 	"time"
 )
+
+func graphicsClientFailure(operation string, err error) string {
+	var timeout net.Error
+	if errors.As(err, &timeout) && timeout.Timeout() {
+		return "client_" + operation + "_timeout"
+	}
+	return "client_disconnected"
+}
 
 // graphicsRelay is a single-use private TCP bridge. guacd cannot choose another
 // destination: the target is already dialed through the authorized asset route.
@@ -149,6 +158,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 	}
 	*state = "closed"
 	if e = l.send('3', id); e != nil {
+		l.stop(graphicsClientFailure("write", e))
 		return nil
 	}
 	var controlMu sync.Mutex
@@ -225,7 +235,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 				return
 			}
 			if e = l.send('7', base64.StdEncoding.EncodeToString(payload)); e != nil {
-				l.stop("client_disconnected")
+				l.stop(graphicsClientFailure("write", e))
 				return
 			}
 		}
@@ -233,9 +243,10 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 	defer func() { l.cancel(); control.Close(); <-done }()
 	l.ws.SetReadLimit(32768)
 	for {
-		_ = l.ws.SetReadDeadline(time.Now().Add(20 * time.Second))
+		_ = l.ws.SetReadDeadline(time.Now().Add(60 * time.Second))
 		kind, data, e := l.ws.ReadMessage()
 		if e != nil {
+			l.stop(graphicsClientFailure("read", e))
 			return nil
 		}
 		if kind != websocket.TextMessage || len(data) == 0 {
@@ -243,6 +254,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 		}
 		if data[0] == '9' && len(data) <= 32 {
 			if e = l.send('9', string(data[1:])); e != nil {
+				l.stop(graphicsClientFailure("write", e))
 				return nil
 			}
 			continue
@@ -266,6 +278,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 				return nil
 			}
 			if e := writeControl(parts...); e != nil {
+				l.stop("graphics_control_write_failed")
 				return nil
 			}
 			continue
@@ -294,6 +307,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 			}
 		}
 		if e = writeControl(guac.Encode(p...)); e != nil {
+			l.stop("graphics_control_write_failed")
 			return nil
 		}
 	}

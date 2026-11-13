@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"golang.org/x/crypto/ssh"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"next-terminal/backend/internal/modules/audit"
@@ -23,18 +24,19 @@ import (
 )
 
 type liveSession struct {
-	ctx          context.Context
-	cancel       context.CancelFunc
-	once         sync.Once
-	reason       string
-	client       *ssh.Client
-	ws           *websocket.Conn
-	sendOverride func(byte, string) error // Native SSH output; set before publishing the live session.
-	writeMu      sync.Mutex
-	recordMu     sync.Mutex
-	commandSlot  chan struct{}
-	started      time.Time
-	input        audit.InputTracker
+	ctx                context.Context
+	cancel             context.CancelFunc
+	once               sync.Once
+	reason             string
+	client             *ssh.Client
+	ws                 *websocket.Conn
+	sendOverride       func(byte, string) error // Native SSH output; set before publishing the live session.
+	writeMu            sync.Mutex
+	recordMu           sync.Mutex
+	commandSlot        chan struct{}
+	started            time.Time
+	clientWriteTimeout time.Duration // Immutable after registration in a.live.
+	input              audit.InputTracker
 }
 
 func (l *liveSession) stop(reason string) { l.once.Do(func() { l.reason = reason; l.cancel() }) }
@@ -44,7 +46,11 @@ func (l *liveSession) send(typ byte, content string) error {
 	if l.sendOverride != nil {
 		return l.sendOverride(typ, content)
 	}
-	if e := l.ws.SetWriteDeadline(time.Now().Add(3 * time.Second)); e != nil {
+	timeout := l.clientWriteTimeout
+	if timeout <= 0 {
+		timeout = 3 * time.Second
+	}
+	if e := l.ws.SetWriteDeadline(time.Now().Add(timeout)); e != nil {
 		return e
 	}
 	return l.ws.WriteMessage(websocket.TextMessage, []byte(string(typ)+content))
@@ -147,6 +153,9 @@ func (a *App) sessionWS(w http.ResponseWriter, r *http.Request) error {
 	}
 	ctx, cancel := context.WithCancel(r.Context())
 	l := &liveSession{ctx: ctx, cancel: cancel, ws: ws, commandSlot: make(chan struct{}, 1), started: time.Now()}
+	if v.Protocol == "rdp" || v.Protocol == "vnc" {
+		l.clientWriteTimeout = 30 * time.Second
+	}
 	defer cancel()
 	a.liveMu.Lock()
 	a.live[id] = l
@@ -161,6 +170,9 @@ func (a *App) sessionWS(w http.ResponseWriter, r *http.Request) error {
 			state = "interrupted"
 		}
 		a.finishSession(id, state, l.reason)
+		if v.Protocol == "rdp" || v.Protocol == "vnc" {
+			log.Printf("graphics_session_end session=%s protocol=%s state=%s reason=%s duration_ms=%d", id, v.Protocol, state, l.reason, time.Since(l.started).Milliseconds())
+		}
 		a.liveMu.Lock()
 		delete(a.live, id)
 		a.liveMu.Unlock()
@@ -188,8 +200,8 @@ func (a *App) sessionWS(w http.ResponseWriter, r *http.Request) error {
 					if errors.Is(err, session.ErrIdle) {
 						message = "会话因长时间无操作已断开，请重新连接"
 					}
-					_ = l.send('0', message)
 					l.stop(sessionLeaseReason(err, "authorization_or_lease_lost"))
+					_ = l.send('0', message)
 					return
 				}
 			}
