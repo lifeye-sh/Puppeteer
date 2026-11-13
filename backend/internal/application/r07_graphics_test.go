@@ -17,11 +17,11 @@ import (
 )
 
 func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
-	t.Run("legacy", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, false) })
-	t.Run("raw", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, true) })
+	t.Run("legacy", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, false, false) })
+	t.Run("raw", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, true, false) })
 }
 
-func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool) {
+func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, legacyRDP bool) {
 	attach := func(t *testing.T, srv *httptest.Server, c *http.Cookie, id, ticket string) *websocket.Conn {
 		if !rawTransport {
 			return attach(t, srv, c, id, ticket)
@@ -79,14 +79,17 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool) {
 				if _, e := reader.Read(); e != nil {
 					return
 				}
-				io.WriteString(c, guac.Encode("args", "VERSION_1_1_0", "hostname", "port", "password", "read-only"))
+				io.WriteString(c, guac.Encode("args", "VERSION_1_1_0", "hostname", "port", "password", "read-only", "security", "ignore-cert"))
 				for i := 0; i < 4; i++ {
 					if _, e := reader.Read(); e != nil {
 						return
 					}
 				}
 				p, e := reader.Read()
-				if e != nil || len(p) != 6 {
+				if e != nil || len(p) != 8 {
+					return
+				}
+				if legacyRDP && (p[6] != "rdp" || p[7] != "false") {
 					return
 				}
 				remote, e := net.Dial("tcp", net.JoinHostPort(p[2], p[3]))
@@ -123,6 +126,10 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool) {
 	credential := postID(t, srv, "/api/admin/credentials", credInput("graphics credential"), admin)
 	body := assetInput("R07 VNC", credential, "")
 	body["protocol"] = "vnc"
+	if legacyRDP {
+		body["protocol"] = "rdp"
+		body["rdpSecurity"] = "rdp"
+	}
 	body["host"] = "127.0.0.1"
 	body["port"] = target.Addr().(*net.TCPAddr).Port
 	asset := postID(t, srv, "/api/admin/assets", body, admin)
@@ -253,4 +260,8 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool) {
 		}
 		t.Logf("graphics simulated capacity: concurrent=4 input/response rounds=%d elapsed=%s", frames, time.Since(start))
 	}
+}
+
+func TestR07LegacyRDPAuditReadonlyAndTermination(t *testing.T) {
+	testGraphicsAuditReadonlyAndTermination(t, true, true)
 }

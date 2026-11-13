@@ -88,3 +88,34 @@ func TestRDPCertificateAutomaticSave(t *testing.T) {
 	denied := loginAs(t, srv, "cert-denied")
 	expect(t, call(t, srv.URL, "POST", "/api/admin/rdp/certificate", input, denied, origin), 403)
 }
+
+func TestRDPLegacyAssetOptIn(t *testing.T) {
+	_, _, srv := r02Server(t, false)
+	admin := loginAs(t, srv, "accept-admin")
+	credential := postID(t, srv, "/api/admin/credentials", credInput("legacy RDP"), admin)
+	body := assetInput("legacy RDP", credential, "")
+	body["protocol"] = "rdp"
+	body["host"] = "127.0.0.1"
+	body["port"] = 1
+	// No connection can succeed on this target. Default mode must fail closed.
+	expect(t, call(t, srv.URL, "POST", "/api/admin/assets", body, admin, origin), 422)
+	body["rdpSecurity"] = "rdp"
+	body["certFingerprint"] = "sha256:stale"
+	id := postID(t, srv, "/api/admin/assets", body, admin)
+	saved := object(t, call(t, srv.URL, "GET", "/api/admin/assets/"+id, nil, admin, origin))
+	if saved["rdpSecurity"] != "rdp" || saved["certFingerprint"] != "" {
+		t.Fatal("legacy policy/pin not persisted correctly")
+	}
+	expect(t, call(t, srv.URL, "POST", "/api/admin/rdp/certificate", body, admin, origin), 422)
+	body["version"] = 1
+	body["certFingerprint"] = ""
+	body["rdpSecurity"] = ""
+	expect(t, call(t, srv.URL, "PUT", "/api/admin/assets/"+id, body, admin, origin), 422)
+	body["rdpSecurity"] = "auto"
+	expect(t, call(t, srv.URL, "PUT", "/api/admin/assets/"+id, body, admin, origin), 422)
+	body["rdpSecurity"] = "rdp"
+	expect(t, call(t, srv.URL, "PUT", "/api/admin/assets/"+id, body, admin, origin), 200)
+	postID(t, srv, "/api/admin/users", userInput("legacy-denied", nil, nil), admin)
+	denied := loginAs(t, srv, "legacy-denied")
+	expect(t, call(t, srv.URL, "POST", "/api/admin/assets", body, denied, origin), 403)
+}

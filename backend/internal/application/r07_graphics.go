@@ -109,6 +109,10 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 	}
 	defer relay.Close()
 	values := map[string]string{"hostname": a.config.GuacdRelayHost, "port": strconv.Itoa(relay.Addr().(*net.TCPAddr).Port), "read-only": strconv.FormatBool(v.Readonly), "security": "nla", "ignore-cert": "false", "cert-fingerprints": guac.CertificateFingerprints(asset.CertFingerprint), "disable-copy": "true", "disable-paste": "true", "enable-drive": "false", "enable-printing": "false", "enable-audio": "false", "disable-audio": "true", "color-depth": "24", "resize-method": "display-update", "enable-wallpaper": "false"}
+	if asset.Protocol == "rdp" && asset.RDPSecurity == "rdp" {
+		values["security"] = "rdp"
+		delete(values, "cert-fingerprints")
+	}
 	if asset.Protocol == "rdp" {
 		policy, err := storage.New(a.db).Policy(ctx, v.ActorID)
 		if err != nil {

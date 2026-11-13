@@ -46,6 +46,9 @@ func (a *App) nativeRDPFile(w http.ResponseWriter, r *http.Request) error {
 		if asset.Protocol != "rdp" {
 			return fault.Invalid
 		}
+		if asset.RDPSecurity == "rdp" {
+			return problem(422, "legacy_rdp_web_only", "传统 RDP 兼容资产请使用网页桌面连接，原生客户端仍要求 TLS 证书校验")
+		}
 		if err = a.enforcePolicy(ctx, user, asset.ID, sourceIP(r), "connect", ""); err != nil {
 			return err
 		}

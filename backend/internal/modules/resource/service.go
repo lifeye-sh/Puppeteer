@@ -15,6 +15,7 @@ type Service struct{ db *postgres.DB }
 func New(db *postgres.DB) *Service { return &Service{db} }
 
 type Asset struct {
+	RDPSecurity     string   `json:"rdpSecurity"`
 	CertFingerprint string   `json:"certFingerprint"`
 	ProxyID         string   `json:"proxyId"`
 	GatewayGroupID  string   `json:"gatewayGroupId"`
@@ -74,7 +75,13 @@ func Validate(v Asset) error {
 	if len(v.CertFingerprint) > 512 || strings.ContainsAny(v.CertFingerprint, "\r\n\x00") {
 		return fault.Invalid
 	}
-	if v.Protocol == "rdp" && strings.TrimSpace(v.CertFingerprint) == "" {
+	if v.RDPSecurity != "" && v.RDPSecurity != "nla" && v.RDPSecurity != "rdp" {
+		return fault.Invalid
+	}
+	if v.RDPSecurity == "rdp" && (v.Protocol != "rdp" || v.CertFingerprint != "") {
+		return fault.Invalid
+	}
+	if v.Protocol == "rdp" && v.RDPSecurity != "rdp" && strings.TrimSpace(v.CertFingerprint) == "" {
 		return fault.Invalid
 	}
 	if net.ParseIP(v.Host) == nil && !hostnamePattern.MatchString(v.Host) {
@@ -99,7 +106,7 @@ WHERE r.deleted_at IS NULL AND ($2 OR (r.enabled AND (a.id=ANY($1::uuid[]) OR a.
 AND (r.display_name ILIKE $3 OR a.host ILIKE $3 OR a.alias ILIKE $3)
 AND ($4='' OR a.group_id=NULLIF($4,'')::uuid) AND ($5='' OR EXISTS(SELECT 1 FROM resource_tags t WHERE t.resource_id=a.id AND t.tag=$5))
 AND ($6='' OR a.id=NULLIF($6,'')::uuid)`
-const assetCols = `a.id,r.display_name,a.protocol,a.alias,a.host,a.port,COALESCE(a.group_id::text,''),a.credential_id,r.enabled,r.version,a.description,a.connect_timeout,COALESCE(a.agent_id::text,''),COALESCE(a.jump_id::text,''),COALESCE(a.gateway_group_id::text,''),COALESCE(a.proxy_id::text,''),ARRAY(SELECT tag FROM resource_tags WHERE resource_id=a.id ORDER BY tag),a.cert_fingerprint`
+const assetCols = `a.id,r.display_name,a.protocol,a.alias,a.host,a.port,COALESCE(a.group_id::text,''),a.credential_id,r.enabled,r.version,a.description,a.connect_timeout,COALESCE(a.agent_id::text,''),COALESCE(a.jump_id::text,''),COALESCE(a.gateway_group_id::text,''),COALESCE(a.proxy_id::text,''),ARRAY(SELECT tag FROM resource_tags WHERE resource_id=a.id ORDER BY tag),a.cert_fingerprint,a.rdp_security`
 
 func (s *Service) List(ctx context.Context, f Filter) ([]Asset, int, error) {
 	if f.Targets == nil {
@@ -125,7 +132,7 @@ func (s *Service) List(ctx context.Context, f Filter) ([]Asset, int, error) {
 	out := []Asset{}
 	for rows.Next() {
 		var v Asset
-		if e = rows.Scan(&v.ID, &v.Name, &v.Protocol, &v.Alias, &v.Host, &v.Port, &v.GroupID, &v.CredentialID, &v.Enabled, &v.Version, &v.Description, &v.ConnectTimeout, &v.AgentID, &v.JumpID, &v.GatewayGroupID, &v.ProxyID, &v.Tags, &v.CertFingerprint); e != nil {
+		if e = rows.Scan(&v.ID, &v.Name, &v.Protocol, &v.Alias, &v.Host, &v.Port, &v.GroupID, &v.CredentialID, &v.Enabled, &v.Version, &v.Description, &v.ConnectTimeout, &v.AgentID, &v.JumpID, &v.GatewayGroupID, &v.ProxyID, &v.Tags, &v.CertFingerprint, &v.RDPSecurity); e != nil {
 			return nil, 0, e
 		}
 		out = append(out, v)
@@ -155,7 +162,7 @@ func (s *Service) Save(ctx context.Context, v Asset) (string, error) {
 		if e := s.db.Row(ctx, `INSERT INTO resource_registry(kind,display_name,enabled) VALUES('asset',$1,$2) RETURNING id`, v.Name, v.Enabled).Scan(&v.ID); e != nil {
 			return "", e
 		}
-		if _, e := s.db.Exec(ctx, `INSERT INTO assets(id,protocol,alias,host,port,group_id,credential_id,description,connect_timeout,agent_id,jump_id,gateway_group_id,proxy_id,cert_fingerprint) VALUES($1,$2,$3,$4,$5,NULLIF($6,'')::uuid,$7,$8,$9,NULLIF($10,'')::uuid,NULLIF($11,'')::uuid,NULLIF($12,'')::uuid,NULLIF($13,'')::uuid,$14)`, v.ID, v.Protocol, v.Alias, v.Host, v.Port, v.GroupID, v.CredentialID, v.Description, v.ConnectTimeout, v.AgentID, v.JumpID, v.GatewayGroupID, v.ProxyID, v.CertFingerprint); e != nil {
+		if _, e := s.db.Exec(ctx, `INSERT INTO assets(id,protocol,alias,host,port,group_id,credential_id,description,connect_timeout,agent_id,jump_id,gateway_group_id,proxy_id,cert_fingerprint,rdp_security) VALUES($1,$2,$3,$4,$5,NULLIF($6,'')::uuid,$7,$8,$9,NULLIF($10,'')::uuid,NULLIF($11,'')::uuid,NULLIF($12,'')::uuid,NULLIF($13,'')::uuid,$14,$15)`, v.ID, v.Protocol, v.Alias, v.Host, v.Port, v.GroupID, v.CredentialID, v.Description, v.ConnectTimeout, v.AgentID, v.JumpID, v.GatewayGroupID, v.ProxyID, v.CertFingerprint, v.RDPSecurity); e != nil {
 			return "", e
 		}
 	} else {
@@ -166,7 +173,7 @@ func (s *Service) Save(ctx context.Context, v Asset) (string, error) {
 		if tag.RowsAffected() != 1 {
 			return "", fault.Conflict
 		}
-		if _, e = s.db.Exec(ctx, `UPDATE assets SET alias=$2,host=$3,port=$4,group_id=NULLIF($5,'')::uuid,credential_id=$6,description=$7,connect_timeout=$8,agent_id=NULLIF($9,'')::uuid,jump_id=NULLIF($10,'')::uuid,gateway_group_id=NULLIF($11,'')::uuid,proxy_id=NULLIF($12,'')::uuid,protocol=$13,cert_fingerprint=$14 WHERE id=$1`, v.ID, v.Alias, v.Host, v.Port, v.GroupID, v.CredentialID, v.Description, v.ConnectTimeout, v.AgentID, v.JumpID, v.GatewayGroupID, v.ProxyID, v.Protocol, v.CertFingerprint); e != nil {
+		if _, e = s.db.Exec(ctx, `UPDATE assets SET alias=$2,host=$3,port=$4,group_id=NULLIF($5,'')::uuid,credential_id=$6,description=$7,connect_timeout=$8,agent_id=NULLIF($9,'')::uuid,jump_id=NULLIF($10,'')::uuid,gateway_group_id=NULLIF($11,'')::uuid,proxy_id=NULLIF($12,'')::uuid,protocol=$13,cert_fingerprint=$14,rdp_security=$15 WHERE id=$1`, v.ID, v.Alias, v.Host, v.Port, v.GroupID, v.CredentialID, v.Description, v.ConnectTimeout, v.AgentID, v.JumpID, v.GatewayGroupID, v.ProxyID, v.Protocol, v.CertFingerprint, v.RDPSecurity); e != nil {
 			return "", e
 		}
 	}

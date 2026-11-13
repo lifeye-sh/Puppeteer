@@ -138,6 +138,13 @@ func (a *App) assetSave(w http.ResponseWriter, r *http.Request) error {
 	e := a.mutate(r, "asset.saved", func(ctx context.Context, u *identity.User) (string, error) {
 		var e error
 		id, e = a.saveAsset(ctx, in)
+		if e == nil && in.Protocol == "rdp" {
+			mode := in.RDPSecurity
+			if mode == "" {
+				mode = "nla"
+			}
+			e = a.audit.Detail(ctx, u.ID, "asset.rdp_security_saved", requestID(r), sourceIP(r), map[string]string{"target": id, "mode": mode})
+		}
 		return id, e
 	})
 	if e != nil {

@@ -24,6 +24,9 @@ func (a *App) discoverRDPCertificate(r *http.Request, in resource.Asset) (rdpcer
 	if in.Protocol != "rdp" {
 		return empty, fault.Invalid
 	}
+	if in.RDPSecurity == "rdp" {
+		return empty, problem(422, "rdp_legacy_no_tls", "传统 RDP 兼容模式不使用 TLS，无需抓取 TLS 证书")
+	}
 	// All normal asset fields are validated; only the as-yet unknown fingerprint is exempt.
 	check := in
 	check.CertFingerprint = "discovery"
@@ -80,6 +83,9 @@ func rdpCertificateProblem(err error) error {
 	}
 	var failure *rdpcert.NegotiationFailure
 	if errors.As(err, &failure) {
+		if failure.Code == 2 {
+			return problem(422, "rdp_legacy_required", "远端仅接受传统 RDP 安全层。如需兼容，请在资产的连接与认证中明确选择“传统 RDP 兼容模式”；此模式不提供 TLS 证书身份校验")
+		}
 		return problem(422, "rdp_security_negotiation_failed", fmt.Sprintf("远端拒绝 RDP 安全协商（代码 0x%08x），请核对远端 RDP 安全策略", failure.Code))
 	}
 	var probe *rdpcert.ProbeError
@@ -123,6 +129,13 @@ func (a *App) prepareRDPCertificate(r *http.Request, in *resource.Asset) error {
 		if old.Protocol != in.Protocol || old.Host != in.Host || old.Port != in.Port || old.AgentID != in.AgentID || old.JumpID != in.JumpID || old.ProxyID != in.ProxyID || old.GatewayGroupID != in.GatewayGroupID {
 			in.CertFingerprint = ""
 		}
+	}
+	if in.RDPSecurity == "rdp" {
+		in.CertFingerprint = ""
+		return resource.Validate(*in)
+	}
+	if in.RDPSecurity != "" && in.RDPSecurity != "nla" {
+		return fault.Invalid
 	}
 	if in.CertFingerprint == "" {
 		cert, e := a.discoverRDPCertificate(r, *in)
