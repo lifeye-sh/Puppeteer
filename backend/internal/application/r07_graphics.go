@@ -253,8 +253,12 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 			return fail("invalid_frame", "图形输入格式无效")
 		}
 		if data[0] == '9' && len(data) <= 32 {
-			if e = l.send('9', string(data[1:])); e != nil {
-				l.stop(graphicsClientFailure("write", e))
+			// Forward actual browser liveness to guacd, whose input idle timeout
+			// is independent of our WebSocket deadline. Do not wait behind a slow
+			// display write to echo this heartbeat (graphics clients ignore echoes).
+			// nop does not acknowledge rendered frames or refresh user activity.
+			if e = writeControl(guac.Encode("nop")); e != nil {
+				l.stop("graphics_control_write_failed")
 				return nil
 			}
 			continue

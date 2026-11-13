@@ -42,6 +42,7 @@ func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
 	}
 	defer daemon.Close()
 	var inputs atomic.Int32
+	var keepalives atomic.Int32
 	go func() {
 		for {
 			c, e := daemon.Accept()
@@ -85,6 +86,9 @@ func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
 					if p[0] == "key" {
 						inputs.Add(1)
 					}
+					if p[0] == "nop" {
+						keepalives.Add(1)
+					}
 					io.WriteString(c, guac.Encode("sync", "43"))
 				}
 			}()
@@ -125,6 +129,23 @@ func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
 	if _, e = a.db.Exec(ctx, `UPDATE sessions SET last_activity_at=clock_timestamp()-interval '5 minutes' WHERE id=$1`, id); e != nil {
 		t.Fatal(e)
 	}
+	// A stalled downstream frame must not block browser liveness reaching guacd.
+	a.liveMu.Lock()
+	live := a.live[id]
+	a.liveMu.Unlock()
+	func() {
+		live.writeMu.Lock()
+		defer live.writeMu.Unlock()
+		if e := ws.WriteMessage(websocket.TextMessage, []byte("9heartbeat")); e != nil {
+			t.Fatal(e)
+		}
+		for deadline := time.Now().Add(2 * time.Second); keepalives.Load() == 0 && time.Now().Before(deadline); {
+			time.Sleep(10 * time.Millisecond)
+		}
+		if keepalives.Load() != 1 {
+			t.Fatal("browser heartbeat blocked behind display output or not forwarded to guacd")
+		}
+	}()
 	send(ws, "sync", "42")
 	readFrame(ws)
 	var oldActivity bool
