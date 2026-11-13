@@ -6,25 +6,6 @@ import {visualizer} from "rollup-plugin-visualizer";
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-const manualChunkGroups = [
-    {name: 'react', packages: ['react', 'react-dom']},
-    {name: 'antd', packages: ['antd']},
-    {name: 'monaco', packages: ['monaco-editor', '@monaco-editor/react']},
-    {
-        name: 'xterm',
-        packages: [
-            '@xterm/xterm',
-            '@xterm/addon-fit',
-            '@xterm/addon-search',
-            '@xterm/addon-canvas',
-            '@xterm/addon-webgl'
-        ]
-    },
-    {name: 'charts', packages: ['recharts']},
-];
-
-const getPackagePathSegment = (packageName: string) => `/node_modules/${packageName}/`;
-
 // https://vitejs.dev/config/
 export default defineConfig(({mode, command}) => {
     const isProd = mode === 'production';
@@ -77,21 +58,7 @@ export default defineConfig(({mode, command}) => {
         build: {
             sourcemap: false,
             minify: 'oxc',
-            rolldownOptions: {
-                output: {
-                    manualChunks: (id) => {
-                        if (!id.includes('/node_modules/')) {
-                            return;
-                        }
 
-                        for (const group of manualChunkGroups) {
-                            if (group.packages.some((packageName) => id.includes(getPackagePathSegment(packageName)))) {
-                                return group.name;
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 });

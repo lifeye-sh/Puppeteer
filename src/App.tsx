@@ -8,15 +8,17 @@ const BackendWebsites = lazy(() => import('@/pages/backend/BackendWebsites'));
 const BackendCertificates = lazy(() => import('@/pages/backend/BackendCertificates'));
 const BackendWebsiteLogin = lazy(() => import('@/pages/backend/BackendWebsiteLogin'));
 const BackendWebsiteSettings = lazy(() => import('@/pages/backend/BackendWebsiteSettings'));
-import BackendConnectivity, {BackendMonitoring,BackendDiagnostics} from '@/pages/backend/BackendConnectivity';
-import BackendSSHJumps from '@/pages/backend/BackendSSHJumps';
-import BackendAgentGateways from '@/pages/backend/BackendAgentGateways';
+const BackendConnectivity = lazy(() => import('@/pages/backend/BackendConnectivity'));
+const BackendMonitoring = lazy(() => import('@/pages/backend/BackendConnectivity').then(m => ({default:m.BackendMonitoring})));
+const BackendDiagnostics = lazy(() => import('@/pages/backend/BackendConnectivity').then(m => ({default:m.BackendDiagnostics})));
+const BackendSSHJumps = lazy(() => import('@/pages/backend/BackendSSHJumps'));
+const BackendAgentGateways = lazy(() => import('@/pages/backend/BackendAgentGateways'));
 import '@/App.css';
 import {lazy, Suspense, useEffect} from "react";
 import {createBrowserRouter, Outlet, RouterProvider} from "react-router-dom";
 import '@/react-i18next/i18n'
-import ManagerLayout from '@/layout/ManagerLayout';
-import AccessPage from "@/pages/access/AccessPage";
+const ManagerLayout = lazy(() => import('@/layout/ManagerLayout'));
+const AccessPage = lazy(() => import('@/pages/access/AccessPage'));
 import eventEmitter from "@/api/core/event-emitter";
 import {baseUrl} from "@/api/core/requests";
 import {useTranslation} from "react-i18next";
@@ -45,8 +47,8 @@ const BackendDatabaseWorkOrders = lazy(() => import('@/pages/backend/BackendData
 const BackendDatabaseLogs = lazy(() => import('@/pages/backend/BackendDatabaseLogs'));
 const BackendIdentityPage = lazy(() => import('@/pages/backend/BackendIdentityPage'));
 
-import TerminalPage from "@/pages/access/TerminalPage";
-import GuacamolePage from "@/pages/access/GuacamolePage";
+const TerminalPage = lazy(() => import('@/pages/access/TerminalPage'));
+const GuacamolePage = lazy(() => import('@/pages/access/GuacamolePage'));
 
 const AuthorisedAssetPage = lazy(() => import("@/pages/authorised/AuthorisedAssetPage"));
 const AuthorisedWebsitePage = lazy(() => import("@/pages/authorised/AuthorisedWebsitePage"));
@@ -302,6 +304,9 @@ function App() {
     const {message} = AntdApp.useApp();
 
     useEffect(() => {
+        // The new backend supplies the versioned brand URL; keep the initial
+        // favicon instead of downloading the same logo again without its version.
+        if (isNewBackend) return;
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (!link) {
             link = document.createElement('link');
@@ -346,7 +351,7 @@ function App() {
         }
     }, [t]);
 
-    return <RouterProvider router={router}/>
+    return <Suspense fallback={<Spin fullscreen/>}><RouterProvider router={router}/></Suspense>
 }
 
 export default App

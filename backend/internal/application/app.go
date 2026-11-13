@@ -303,7 +303,7 @@ func (a *App) handler(registered func(string)) http.Handler {
 			return e
 		}
 		w.Header().Set("Cache-Control", "no-store")
-		logo := "/api/logo?v=puppeteer-mascot-1"
+		logo := "/api/logo?v=puppeteer-mascot-2"
 		if id, ok := settings["system-logo"].(string); ok && id != "" {
 			logo = "/api/logo?v=" + id
 		}
@@ -320,15 +320,11 @@ func (a *App) handler(registered func(string)) http.Handler {
 			if err != nil {
 				return err
 			}
-			w.Header().Set("Content-Type", "image/png")
-			w.Header().Set("X-Content-Type-Options", "nosniff")
-			_, err = w.Write(data)
-			return err
+			serveBrandLogo(w, r, data)
+			return nil
 		}
-		w.Header().Set("Content-Type", "image/png")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		_, e := w.Write(defaultBrandLogo)
-		return e
+		serveBrandLogo(w, r, defaultBrandLogo)
+		return nil
 	})
 	handle("GET /api/setup-status", func(w http.ResponseWriter, r *http.Request) error {
 		s, e := a.system.State(r.Context())
