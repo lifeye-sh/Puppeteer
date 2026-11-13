@@ -169,12 +169,7 @@ func (a *App) aiSocket(w http.ResponseWriter, r *http.Request) error {
 	if !resource.ValidID(id) {
 		return fault.Invalid
 	}
-	allowed := false
-	for _, v := range a.config.AllowedOrigins {
-		if v == r.Header.Get("Origin") {
-			allowed = true
-		}
-	}
+	allowed := a.allowsBrowserOrigin(r)
 	if !allowed {
 		return fault.Denied
 	}

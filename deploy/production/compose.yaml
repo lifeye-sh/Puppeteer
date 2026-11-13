@@ -29,6 +29,7 @@ services:
       NT_MFA_KEY_FILE: /run/secrets/mfa_key
       NT_VAULT_KEY_FILE: /run/secrets/vault_key
       NT_ALLOWED_ORIGINS: ${PUPPETEER_ORIGIN:?Set the public HTTPS origin}
+      NT_ALLOW_REQUEST_ORIGIN: ${PUPPETEER_ALLOW_REQUEST_ORIGIN:-true}
       NT_BACKUP_DIRECTORY: /var/lib/next-terminal/backups
       NT_RESTORE_DIRECTORY: /var/lib/next-terminal/restore
       NT_MP4_DIRECTORY: /var/lib/next-terminal/mp4

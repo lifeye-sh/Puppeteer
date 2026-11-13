@@ -127,12 +127,7 @@ func (a *App) sessionWS(w http.ResponseWriter, r *http.Request) error {
 	if !a.allowAttempt("ws:" + u.ID) {
 		return problem(429, "rate_limited", "连接请求过于频繁")
 	}
-	validOrigin := false
-	for _, origin := range a.config.AllowedOrigins {
-		if origin == r.Header.Get("Origin") {
-			validOrigin = true
-		}
-	}
+	validOrigin := a.allowsBrowserOrigin(r)
 	if !validOrigin {
 		return fault.Denied
 	}

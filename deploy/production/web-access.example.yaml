@@ -1,0 +1,6 @@
+# Opt-in external entry policy. Copy the example policy files before enabling.
+services:
+  web:
+    volumes:
+      - ./web-access-http.conf:/etc/nginx/access-http/policy.conf:ro
+      - ./web-access-server.conf:/etc/nginx/access-server/policy.conf:ro

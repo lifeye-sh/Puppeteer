@@ -66,6 +66,7 @@ type Config struct {
 	GuacdRelayHost      string
 	AgentBinaryPath     string
 	AllowedOrigins      []string
+	AllowRequestOrigin  bool
 	EncryptionKey       []byte
 	VaultKey            []byte
 	CaptchaRequired     bool
@@ -552,13 +553,7 @@ func (a *App) handler(registered func(string)) http.Handler {
 		nativeOAuth := r.Method == "POST" && (r.URL.Path == "/api/oidc/server/token" || r.URL.Path == "/api/oidc/server/revoke" || r.URL.Path == "/api/oidc/server/introspect") && r.Header.Get("Origin") == "" && token(r) == ""
 		nativeSession := ((r.Method == "POST" && (r.URL.Path == "/api/native/v1/connect" || r.URL.Path == "/api/native/v1/rdp-file" || r.URL.Path == "/api/native/v1/access-mfa")) || (r.Method == "DELETE" && strings.HasPrefix(r.URL.Path, "/api/native/v1/sessions/"))) && r.Header.Get("Origin") == "" && token(r) == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ")
 		if r.Method != "GET" && r.Method != "HEAD" && !nativeEnroll && !nativeOAuth && !nativeSession {
-			allowed := false
-			for _, origin := range a.config.AllowedOrigins {
-				if r.Header.Get("Origin") == origin {
-					allowed = true
-					break
-				}
-			}
+			allowed := a.allowsBrowserOrigin(r)
 			if !allowed {
 				a.failure(w, r, problem(403, "origin_denied", "请求来源未授权"))
 				return
