@@ -2,6 +2,9 @@ package application
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"next-terminal/backend/internal/modules/connectivity"
@@ -60,13 +63,30 @@ func (a *App) discoverRDPCertificate(r *http.Request, in resource.Asset) (rdpcer
 	defer conn.Close()
 	cert, e := rdpcert.Probe(ctx, conn, in.Host)
 	if e != nil {
-		return empty, problem(422, "rdp_certificate_failed", "未能获取 RDP TLS 证书，请确认远端已启用 RDP 与 TLS 1.2 或更高版本")
+		log.Printf("rdp_certificate_probe_failed request=%s host=%q port=%d error=%q", requestID(r), in.Host, in.Port, e)
+		return empty, rdpCertificateProblem(e)
 	}
 	if e = authorize(ctx); e != nil {
 		return empty, e
 	}
 	e = a.audit.Detail(ctx, u.ID, "rdp.certificate_discovered", requestID(r), sourceIP(r), map[string]string{"host": in.Host, "fingerprint": cert.Fingerprint})
 	return cert, e
+}
+
+func rdpCertificateProblem(err error) error {
+	var timeout net.Error
+	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &timeout) && timeout.Timeout()) {
+		return problem(422, "rdp_certificate_timeout", "RDP 证书探测超时，请检查目标响应及网关链路；此错误不代表远端未启用 TLS")
+	}
+	var failure *rdpcert.NegotiationFailure
+	if errors.As(err, &failure) {
+		return problem(422, "rdp_security_negotiation_failed", fmt.Sprintf("远端拒绝 RDP 安全协商（代码 0x%08x），请核对远端 RDP 安全策略", failure.Code))
+	}
+	var probe *rdpcert.ProbeError
+	if errors.As(err, &probe) && probe.Stage == "tls_handshake" {
+		return problem(422, "rdp_tls_handshake_failed", "RDP 安全协商成功，但 TLS 握手失败；可能是加密套件不兼容、连接被关闭或证书异常，请查看服务端探测日志")
+	}
+	return problem(422, "rdp_certificate_failed", "未获得有效的 RDP TLS 协商响应，请检查目标是否为 RDP 端口及连接路径；详细原因见服务端探测日志")
 }
 func (a *App) rdpCertificate(w http.ResponseWriter, r *http.Request) error {
 	var in resource.Asset
