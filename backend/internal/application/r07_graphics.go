@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"next-terminal/backend/internal/modules/connectivity"
@@ -69,6 +70,7 @@ func graphicsRelay(ctx context.Context, upstream net.Conn, peer net.IP) (*net.TC
 
 func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session, asset resource.Asset, state *string) error {
 	ctx, id := l.ctx, v.ID
+	rawTransport := r.URL.Query().Get("graphicsTransport") == "raw"
 	fail := func(reason, message string) error { _ = l.send('0', message); l.stop(reason); return nil }
 	if a.config.GuacdAddr == "" || a.config.GuacdRelayHost == "" {
 		return fail("graphics_unavailable", "图形连接服务未配置")
@@ -174,73 +176,100 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 		return nil
 	}
 	var clipboard guac.Clipboard
+	batches := guac.NewBatchReader(ctx, reader)
+	var instructionCount, batchCount, wireBytes int64
+	var recordTime, sendTime time.Duration
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 		for {
-			instruction, e := reader.Read()
+			batch, e := batches.Read()
 			if e != nil {
 				l.stop("remote_closed")
 				return
 			}
-			if asset.Protocol == "rdp" {
-				// The drive is managed through authenticated storage APIs. Never
-				// expose guacd's filesystem-object upload/download API to browsers.
-				if instruction[0] == "filesystem" {
-					continue
-				}
-				// guacd only acknowledges clipboard errors, not successful pastes.
-				// Surface rejection without leaking it into graphics or recording.
-				if len(instruction) == 4 && instruction[0] == "ack" && instruction[1] == guac.ClipboardInputStream {
-					if instruction[3] != "0" {
-						_ = l.send('6', "剪贴板传输被网关拒绝，请重新连接后重试")
+			var payload []byte
+			instructionCount += int64(len(batch))
+			for _, instruction := range batch {
+				if asset.Protocol == "rdp" {
+					// The drive is managed through authenticated storage APIs. Never
+					// expose guacd's filesystem-object upload/download API to browsers.
+					if instruction[0] == "filesystem" {
+						continue
 					}
-					continue
-				}
-				if handled, text, reply := clipboard.Handle(instruction); handled {
-					if reply != nil {
-						if e := writeControl(guac.Encode(reply...)); e != nil {
-							l.stop("clipboard_transport")
+					// guacd only acknowledges clipboard errors, not successful pastes.
+					// Surface rejection without leaking it into graphics or recording.
+					if len(instruction) == 4 && instruction[0] == "ack" && instruction[1] == guac.ClipboardInputStream {
+						if instruction[3] != "0" {
+							_ = l.send('6', "剪贴板传输被网关拒绝，请重新连接后重试")
+						}
+						continue
+					}
+					if handled, text, reply := clipboard.Handle(instruction); handled {
+						if reply != nil {
+							if e := writeControl(guac.Encode(reply...)); e != nil {
+								l.stop("clipboard_transport")
+								return
+							}
+						}
+						policy, err := storage.New(a.db).Policy(ctx, v.ActorID)
+						if err != nil {
+							l.stop("policy_unavailable")
 							return
 						}
+						if text != nil && policy.Copy && a.enforcePolicy(ctx, &identity.User{ID: v.ActorID}, v.AssetID, v.ClientIP, "copy", "") == nil {
+							_ = l.send('8', base64.StdEncoding.EncodeToString(text))
+						}
+						continue
 					}
-					policy, err := storage.New(a.db).Policy(ctx, v.ActorID)
-					if err != nil {
-						l.stop("policy_unavailable")
-						return
-					}
-					if text != nil && policy.Copy && a.enforcePolicy(ctx, &identity.User{ID: v.ActorID}, v.AssetID, v.ClientIP, "copy", "") == nil {
-						_ = l.send('8', base64.StdEncoding.EncodeToString(text))
-					}
-					continue
 				}
+				// No server-provided file, clipboard or pipe can reach the browser.
+				switch instruction[0] {
+				case "clipboard", "file", "pipe", "filesystem", "audio", "video":
+					l.stop("unsupported_graphics_channel")
+					return
+				case "error":
+					*state = "failed"
+					_ = l.send('0', "远端图形连接失败，请检查凭据、服务状态和证书指纹")
+					l.stop("graphics_remote_error")
+					return
+				}
+				payload = append(payload, guac.Encode(instruction...)...)
 			}
-			// No server-provided file, clipboard or pipe can reach the browser.
-			switch instruction[0] {
-			case "clipboard", "file", "pipe", "filesystem", "audio", "video":
-				l.stop("unsupported_graphics_channel")
-				return
-			case "error":
-				*state = "failed"
-				_ = l.send('0', "远端图形连接失败，请检查凭据、服务状态和证书指纹")
-				l.stop("graphics_remote_error")
-				return
+			if len(payload) == 0 {
+				continue
 			}
-			payload := []byte(guac.Encode(instruction...))
 			c, finish := context.WithTimeout(ctx, 3*time.Second)
+			recordStarted := time.Now()
 			e = a.audit.Record(c, id, "graphics", time.Since(l.started).Milliseconds(), payload)
 			finish()
+			recordTime += time.Since(recordStarted)
 			if e != nil {
 				l.stop("recording_failed")
 				return
 			}
-			if e = l.send('7', base64.StdEncoding.EncodeToString(payload)); e != nil {
+			batchCount++
+			sendStarted := time.Now()
+			if rawTransport {
+				wireBytes += int64(1 + len(payload))
+				e = l.send('G', string(payload))
+			} else {
+				wireBytes += int64(1 + base64.StdEncoding.EncodedLen(len(payload)))
+				e = l.send('7', base64.StdEncoding.EncodeToString(payload))
+			}
+			sendTime += time.Since(sendStarted)
+			if e != nil {
 				l.stop(graphicsClientFailure("write", e))
 				return
 			}
 		}
 	}()
-	defer func() { l.cancel(); control.Close(); <-done }()
+	defer func() {
+		l.cancel()
+		control.Close()
+		<-done
+		log.Printf("graphics_transport_stats session=%s raw=%t instructions=%d batches=%d wire_bytes_attempted=%d record_ms=%d send_ms=%d", id, rawTransport, instructionCount, batchCount, wireBytes, recordTime.Milliseconds(), sendTime.Milliseconds())
+	}()
 	l.ws.SetReadLimit(32768)
 	for {
 		_ = l.ws.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -287,10 +316,14 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 			}
 			continue
 		}
-		if data[0] != '7' {
+		if data[0] != '7' && !(rawTransport && data[0] == 'G') {
 			return fail("invalid_frame", "不支持的图形输入")
 		}
-		raw, e := base64.StdEncoding.DecodeString(string(data[1:]))
+		raw := data[1:]
+		e = nil
+		if data[0] == '7' {
+			raw, e = base64.StdEncoding.DecodeString(string(data[1:]))
+		}
 		if e != nil {
 			return fail("invalid_frame", "图形输入编码无效")
 		}

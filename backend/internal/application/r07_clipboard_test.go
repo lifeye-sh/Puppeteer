@@ -41,6 +41,7 @@ func TestRDPClipboardTransportAndReadonly(t *testing.T) {
 	}
 	defer daemon.Close()
 	pasted := make(chan string, 4)
+	keepalive := make(chan struct{}, 1)
 	go func() {
 		for {
 			c, e := daemon.Accept()
@@ -82,6 +83,12 @@ func TestRDPClipboardTransportAndReadonly(t *testing.T) {
 							continue
 						}
 						pasted <- string(b)
+					}
+					if p[0] == "nop" {
+						select {
+						case keepalive <- struct{}{}:
+						default:
+						}
 					}
 				}
 			}()
@@ -147,14 +154,10 @@ func TestRDPClipboardTransportAndReadonly(t *testing.T) {
 		}
 	}
 	ws.WriteMessage(websocket.TextMessage, []byte("9clipboard-test"))
-	for {
-		_, b, err := ws.ReadMessage()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(b) == "9clipboard-test" {
-			break
-		}
+	select {
+	case <-keepalive:
+	case <-time.After(3 * time.Second):
+		t.Fatal("guacd keepalive missing after rejected paste")
 	}
 	ws.Close()
 	waitClosed(t, a, id)
@@ -190,7 +193,9 @@ func TestRDPClipboardTransportAndReadonly(t *testing.T) {
 		if len(b) > 0 && b[0] == '8' {
 			t.Fatal("copy policy bypass")
 		}
-		if string(b) == "9policy-test" {
+		// The initial sync follows the filtered clipboard stream. Graphics
+		// heartbeats are now forwarded to guacd instead of echoed to the browser.
+		if len(b) > 0 && b[0] == '7' {
 			break
 		}
 	}

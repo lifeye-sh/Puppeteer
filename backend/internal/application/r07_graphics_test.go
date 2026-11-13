@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/websocket"
 	"io"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"next-terminal/backend/internal/platform/guac"
 	"os"
 	"strings"
@@ -15,6 +17,26 @@ import (
 )
 
 func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
+	t.Run("legacy", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, false) })
+	t.Run("raw", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, true) })
+}
+
+func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool) {
+	attach := func(t *testing.T, srv *httptest.Server, c *http.Cookie, id, ticket string) *websocket.Conn {
+		if !rawTransport {
+			return attach(t, srv, c, id, ticket)
+		}
+		h := http.Header{"Origin": []string{origin}, "Cookie": []string{c.String()}}
+		ws, _, e := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+"/api/sessions/"+id+"/ws?graphicsTransport=raw", h)
+		if e != nil {
+			t.Fatal(e)
+		}
+		t.Cleanup(func() { ws.Close() })
+		if e = ws.WriteMessage(websocket.TextMessage, []byte("3"+ticket)); e != nil {
+			t.Fatal(e)
+		}
+		return ws
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	target, e := net.Listen("tcp", "127.0.0.1:0")
@@ -112,14 +134,18 @@ func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			if len(b) > 0 && b[0] == '7' {
+			if len(b) > 0 && ((!rawTransport && b[0] == '7') || (rawTransport && b[0] == 'G')) {
 				return
 			}
 		}
 	}
 	send := func(ws *websocket.Conn, p ...string) {
 		t.Helper()
-		if e := ws.WriteMessage(websocket.TextMessage, []byte("7"+base64.StdEncoding.EncodeToString([]byte(guac.Encode(p...))))); e != nil {
+		data := "7" + base64.StdEncoding.EncodeToString([]byte(guac.Encode(p...)))
+		if rawTransport {
+			data = "G" + guac.Encode(p...)
+		}
+		if e := ws.WriteMessage(websocket.TextMessage, []byte(data)); e != nil {
 			t.Fatal(e)
 		}
 	}

@@ -1,4 +1,5 @@
 import useAccessMFA from './useAccessMFA';
+import {coalesceMouse} from './graphics-mouse';
 import SessionWatermark from '@/pages/access/SessionWatermark';
 import type {SessionWatermark as WatermarkConfig} from '@/api/session-api';
 import {useEffect,useRef,useState} from 'react';
@@ -29,15 +30,16 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
    if(attempt!==generation.current){void requests.post(`/sessions/${reservation.id}/terminate`,undefined,{errorMode:'local'}).catch(()=>{});return}
    setSessionId(reservation.id);setWatermark(reservation.watermark);
    const tunnel=new Guacamole.Tunnel(),client=new Guacamole.Client(tunnel),parser=new Guacamole.Parser();
-   let socket:WebSocket|undefined,heartbeat:ReturnType<typeof setInterval>|undefined,ready=false,disposed=false;
-   let resizeRemote=()=>{};
+   let socket:WebSocket|undefined,heartbeat:ReturnType<typeof setInterval>|undefined,ready=false,disposed=false,rawTransport=false;
+   let resizeRemote=()=>{},flushMouse=()=>{};
    parser.oninstruction=(opcode:string,params:string[])=>{tunnel.oninstruction?.(opcode,params);if(opcode==='sync')resizeRemote()};
    tunnel.connect=()=>{
-    socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/api/sessions/${reservation.id}/ws`);
+    socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/api/sessions/${reservation.id}/ws?graphicsTransport=raw`);
     socket.onopen=()=>{socket?.send('3'+reservation.ticket);reservation.ticket='';heartbeat=setInterval(()=>{if(socket?.readyState===WebSocket.OPEN)socket.send('9'+Date.now())},5000)};
     socket.onmessage=event=>{
      if(disposed||attempt!==generation.current)return;const data=String(event.data);
      if(data[0]==='3'){ready=true;tunnel.setState(Guacamole.Tunnel.State.OPEN);setBusy(false);setState('已连接')}
+     else if(data[0]==='G'){rawTransport=true;try{parser.receive(data.slice(1))}catch{setError('图形数据解析失败');close.current()}}
      else if(data[0]==='7'){try{parser.receive(new TextDecoder().decode(Uint8Array.from(atob(data.slice(1)),c=>c.charCodeAt(0))))}catch{setError('图形数据解析失败');close.current()}}
      else if(data[0]==='8'){try{const text=new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(atob(data.slice(1)),c=>c.charCodeAt(0)));setRemoteClipboard(v=>({text,sequence:v.sequence+1}))}catch{setError('剪贴板文本格式无效')}}
      else if(data[0]==='6')setClipboardError(v=>({text:data.slice(1),sequence:v.sequence+1}));
@@ -47,7 +49,7 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
     socket.onerror=()=>{if(!disposed)setError('图形连接失败，请检查访问记录。')};
    };
    tunnel.disconnect=()=>{ready=false;clearInterval(heartbeat);socket?.close();tunnel.setState(Guacamole.Tunnel.State.CLOSED)};
-   tunnel.sendMessage=(...parts:unknown[])=>{if(ready&&socket?.readyState===WebSocket.OPEN)socket.send('7'+b64(encode(parts)))};
+   tunnel.sendMessage=(...parts:unknown[])=>{if(parts[0]==='key')flushMouse();if(ready&&socket?.readyState===WebSocket.OPEN)socket.send(rawTransport?'G'+encode(parts):'7'+b64(encode(parts)))};
    const display=client.getDisplay(),element=display.getElement() as HTMLElement;element.tabIndex=0;element.style.outline='none';
    const viewport=container.current!;viewport.replaceChildren(element);
    // Fit while waiting for RDP resolution updates, and for fixed-size VNC targets.
@@ -59,7 +61,7 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
    const keyboard=new Guacamole.Keyboard(element),mouse=new Guacamole.Mouse(element);
    keyboard.onkeydown=(keysym:number)=>{if(!readonly&&ready)client.sendKeyEvent(1,keysym);return false};
    keyboard.onkeyup=(keysym:number)=>{if(!readonly&&ready)client.sendKeyEvent(0,keysym)};
-   mouse.onmousedown=mouse.onmouseup=mouse.onmousemove=(s:Guacamole.Mouse.State)=>{
+   const sendMouse=(s:Guacamole.Mouse.State)=>{
     if(readonly||!ready)return;
     const scale=display.getScale(),width=display.getWidth(),height=display.getHeight();
     if(!Number.isFinite(scale)||scale<=0||width<1||height<1||!Number.isFinite(s.x)||!Number.isFinite(s.y))return;
@@ -67,9 +69,13 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
     // Clamp in remote pixels, preserving button releases at the display edge.
     client.sendMouseState({...s,x:Math.max(0,Math.min(width-1,8192,Math.floor(s.x/scale))),y:Math.max(0,Math.min(height-1,8192,Math.floor(s.y/scale)))},false);
    };
-   const focus=()=>element.focus();const blur=()=>keyboard.reset();element.addEventListener('mousedown',focus);element.addEventListener('blur',blur);
+   const moves=coalesceMouse<Guacamole.Mouse.State>(s=>{if(!disposed)sendMouse(s)});
+   flushMouse=moves.flush;
+   mouse.onmousemove=s=>moves.move({...s});
+   mouse.onmousedown=mouse.onmouseup=s=>{flushMouse();sendMouse(s)};
+   const focus=()=>element.focus();const blur=()=>{flushMouse();keyboard.reset()};element.addEventListener('mousedown',focus);element.addEventListener('blur',blur);
    client.onerror=()=>{if(!disposed)setError('远程桌面连接已中断，请查看访问记录。')};
-   close.current=()=>{if(disposed)return;disposed=true;clipboardSend.current=()=>false;keySend.current=()=>{};setRemoteClipboard(v=>({text:'',sequence:v.sequence+1}));clearTimeout(resizeTimer);resizeObserver.disconnect();display.onresize=null;keyboard.reset();keyboard.onkeydown=keyboard.onkeyup=null;mouse.onmousedown=mouse.onmouseup=mouse.onmousemove=null;element.removeEventListener('mousedown',focus);element.removeEventListener('blur',blur);client.disconnect();tunnel.disconnect();void requests.post(`/sessions/${reservation.id}/terminate`,undefined,{errorMode:'local'}).catch(()=>{})};
+   close.current=()=>{if(disposed)return;disposed=true;moves.clear();clipboardSend.current=()=>false;keySend.current=()=>{};setRemoteClipboard(v=>({text:'',sequence:v.sequence+1}));clearTimeout(resizeTimer);resizeObserver.disconnect();display.onresize=null;keyboard.reset();keyboard.onkeydown=keyboard.onkeyup=null;mouse.onmousedown=mouse.onmouseup=mouse.onmousemove=null;element.removeEventListener('mousedown',focus);element.removeEventListener('blur',blur);client.disconnect();tunnel.disconnect();void requests.post(`/sessions/${reservation.id}/terminate`,undefined,{errorMode:'local'}).catch(()=>{})};
    clipboardSend.current=text=>{if(!ready||readonly||socket?.readyState!==WebSocket.OPEN||new TextEncoder().encode(text).length>16384)return false;try{socket.send('8'+b64(text));return true}catch{return false}};
    keySend.current=keys=>{if(!ready||readonly)return;try{for(const key of keys)client.sendKeyEvent(1,key)}finally{for(const key of [...keys].reverse())client.sendKeyEvent(0,key)}};
    client.connect();
