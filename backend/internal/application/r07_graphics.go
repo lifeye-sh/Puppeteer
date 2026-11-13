@@ -126,7 +126,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 			}
 			values["enable-drive"] = "true"
 			values["drive-path"] = "/mnt/nt-rdp/" + id
-			values["drive-name"] = "NextTerminal"
+			values["drive-name"] = "MyZone"
 			values["create-drive-path"] = "false"
 			values["disable-upload"] = strconv.FormatBool(v.Readonly || !policy.Upload)
 			values["disable-download"] = strconv.FormatBool(!policy.Download)
