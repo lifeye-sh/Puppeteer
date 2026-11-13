@@ -2,6 +2,16 @@
 
 适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
 
+本安装器不支持Snap封装的Docker。其文件访问和容器选项限制可能导致宿主机存在的`/opt/puppeteer/config/production.env`被Compose报告为不存在。安装器会提前拒绝此环境；不要通过删除安装目录、放宽密钥权限或关闭容器安全选项解决。Snap与普通Docker Engine可能管理不同的数据目录，已有容器时需先核对现有工作负载再安排切换。限制依据见[Canonical Docker Snap说明](https://github.com/canonical/docker-snap)。
+
+如果是Ubuntu amd64、Snap Docker中没有任何容器或数据卷，并且之前已在`/opt/puppeteer`生成完整配置，可使用下列恢复命令。脚本从[Docker官方apt源](https://docs.docker.com/engine/install/ubuntu/)安装Engine，禁用而不删除Snap，校验现有密钥未变后继续启动；遇到已有工作负载、其他Engine数据或冲突软件包会拒绝操作：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/repair-snap-docker.sh -o repair-puppeteer.sh && sudo bash repair-puppeteer.sh
+```
+
+该脚本不是有业务数据的Docker迁移工具。不要在未知数据目录上强行绕过检查。恢复失败时保留现场并检查错误，不运行全新安装器覆盖密钥。
+
 将下面的`192.168.1.100`换成服务器的实际IP或域名，复制整行执行：
 
 ```bash

@@ -41,6 +41,12 @@ done
 [[ $(uname -s) == Linux && $(uname -m) == x86_64 ]] || die 'Linux amd64 is required'
 [[ $EUID == 0 ]] || die 'Run with sudo or as root'
 for cmd in docker curl openssl install df awk; do command -v "$cmd" >/dev/null || die "Missing command: $cmd"; done
+docker_bin=$(command -v docker)
+docker_resolved=$(readlink -f "$docker_bin" 2>/dev/null || printf '%s' "$docker_bin")
+case "$docker_bin:$docker_resolved" in
+  /snap/*:*|*:/snap/*|*:/usr/bin/snap)
+    die 'Snap Docker is not supported by this installer: confinement may hide /opt and block required container options. Use Docker Engine with Compose v2; preserve existing installation files and volumes.';;
+esac
 [[ -n $host_name && ${#host_name} -le 253 && $host_name =~ ^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$ && $host_name != *..* ]] || die 'Provide --host with a domain or IPv4 address (no scheme/path/port)'
 ipv4() {
   local a b c d extra
@@ -68,6 +74,8 @@ fi
 docker compose version >/dev/null || die 'Install Docker Compose v2 first'
 read -r os cpus memory < <(docker info --format '{{.OSType}} {{.NCPU}} {{.MemTotal}}')
 [[ $os == linux ]] && ((cpus >= 2 && memory >= 4294967296)) || die 'Docker needs Linux containers, >=2 CPUs and >=4 GiB memory'
+docker_root=$(docker info --format '{{.DockerRootDir}}')
+[[ $docker_root != /var/snap/* ]] || die 'Snap Docker daemon detected; use supported Docker Engine without changing existing deployment files or deleting volumes'
 [[ -z $(docker ps -aq --filter "label=com.docker.compose.project=$project") ]] || die 'Compose project already has containers'
 [[ -z $(docker volume ls -q --filter "label=com.docker.compose.project=$project") ]] || die 'Compose project already has data volumes'
 available=$(df -Pk "$(dirname "$install_dir")" | awk 'END {print $4}')
@@ -124,7 +132,10 @@ if (( ! core )); then printf '%s %q ' '-f' "$install_dir/services.yaml" >> "$ins
 printf '"$@"\n' >> "$install_dir/puppeteerctl"
 chmod 700 "$install_dir/puppeteerctl"
 ctl="$install_dir/puppeteerctl"
-"$ctl" config --quiet
+[[ -s $config/production.env && -r $config/production.env ]] || die "Configuration file was not created or is unreadable: $config/production.env"
+if ! "$ctl" config --quiet; then
+  die "The configuration exists at $config/production.env but Compose could not read/validate it. Check Docker confinement and the error above. Existing secrets were preserved; do not regenerate them."
+fi
 printf '[3/5] Pulling pinned release images\n'
 "$ctl" pull
 printf '[4/5] Starting services and waiting for health checks\n'
