@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Puppeteer r17-rc9, fresh Linux amd64 deployment. Never replaces existing secrets/data.
+# Puppeteer r17-rc10, fresh Linux amd64 deployment. Never replaces existing secrets/data.
 set -Eeuo pipefail
 umask 077
-revision=fe6251d1914bde7a7f6a0c9a0fdeb1d431dd142f
+revision=ecafb26c6a7d16eb6c75412587fe57ac563f3583
 install_dir=/opt/puppeteer
 project=puppeteer
 host_name=
@@ -122,8 +122,8 @@ PUPPETEER_CONFIG_DIR=$config
 PUPPETEER_ORIGIN=$origin
 PUPPETEER_BIND=$bind
 PUPPETEER_HTTPS_PORT=$port
-PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:6b2f73359b08a0d148f12315e04a1f10a795ee25a6e06326104d7e9faecb4379
-PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:867d5f4460704ed5913fddd29493ddb91090c9143b0ab336b16d209520562ecd
+PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:e896e7faf49951e38b955ce2e77528b325d812aef7a1b4b187be9b895bee345e
+PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:6a8baf1d31ec6773cfb058744e95d087ae6daa31ee45931cd29bc243e01e7f2b
 PUPPETEER_GRAPHICS_IMAGE=cloners/puppeteer-graphics@sha256:c20c63352bd1cf8764ba9b47857d82957ac3785e9a21ab07a73eb79e20ceea22
 PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:497fdacf02e3b7131cd7c6b9d0376ed2d267547a9f1439e8c1485981d785784e
 ENV
