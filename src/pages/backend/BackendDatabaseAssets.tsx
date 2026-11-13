@@ -8,7 +8,7 @@ import Modal,{FormTabs} from './BackendFormModal';
 import BackendPostgresConnection from './BackendPostgresConnection';
 import BackendCreateCredential from './BackendCreateCredential';
 
-type DatabaseAsset={id:string;engine:'mysql'|'postgresql';name:string;alias:string;host:string;port:number;database:string;readonlyCredentialId:string;writeCredentialId:string;nativeWriteCredentialId:string;nativeWriteAvailable?:boolean;tlsServerName:string;tlsCa:string;connectTimeout:number;description:string;enabled:boolean;version:number};
+type DatabaseAsset={tlsMode?:string;id:string;engine:'mysql'|'postgresql';name:string;alias:string;host:string;port:number;database:string;readonlyCredentialId:string;writeCredentialId:string;nativeWriteCredentialId:string;nativeWriteAvailable?:boolean;tlsServerName:string;tlsCa:string;connectTimeout:number;description:string;enabled:boolean;version:number};
 type Credential={id:string;name:string;kind:string;username:string};
 type Diagnostic={profile:string;ok:boolean;message:string;durationMs:number};
 type ProxyEndpoint={ready:boolean;host:string;port:string};
@@ -17,13 +17,13 @@ export default function BackendDatabaseAssets({portal=false}:{portal?:boolean}){
  const [search,setSearch]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[editing,setEditing]=useState<DatabaseAsset|null>();const [form]=Form.useForm();
  const [credentialTarget,setCredentialTarget]=useState<'readonlyCredentialId'|'writeCredentialId'|'nativeWriteCredentialId'>();
  const [connecting,setConnecting]=useState<DatabaseAsset>();
- const engine=Form.useWatch('engine',form);
+ const engine=Form.useWatch('engine',form); const tlsMode=Form.useWatch('tlsMode',form);
  const [diagnostics,setDiagnostics]=useState<{name:string;items:Diagnostic[]}>();
  const list=useQuery({queryKey:['r12-databases',portal],queryFn:()=>requests.get<{items:DatabaseAsset[];total:number}>(portal?'/portal/database-assets':'/admin/database-assets',{errorMode:'local'}),refetchInterval:15000});
  const proxy=useQuery({queryKey:['r12-proxy-status'],queryFn:()=>requests.get<ProxyEndpoint&{leaseSeconds:number;postgres?:ProxyEndpoint}>('/database-proxy/status',{errorMode:'local'}),refetchInterval:10000});
  const credentials=useQuery({queryKey:['r12-database-credentials'],enabled:!!admin,queryFn:()=>requests.get<Credential[]>('/admin/credentials',{errorMode:'local'})});
  const run=async(fn:()=>Promise<void>)=>{setBusy(true);setError('');try{await fn();await cache.invalidateQueries({queryKey:['r12-databases']})}catch(e){setError((e as Error).message)}finally{setBusy(false)}};
- const edit=(asset:DatabaseAsset|null)=>{form.resetFields();form.setFieldsValue(asset??{engine:'mysql',port:3306,connectTimeout:10,enabled:true,writeCredentialId:'',nativeWriteCredentialId:''});setError('');setEditing(asset)};
+ const edit=(asset:DatabaseAsset|null)=>{form.resetFields();form.setFieldsValue(asset?{...asset,tlsMode:asset.tlsMode||"verify-full"}:{tlsMode:"verify-full",engine:'mysql',port:3306,connectTimeout:10,enabled:true,writeCredentialId:'',nativeWriteCredentialId:''});setError('');setEditing(asset)};
  const options=credentials.data?.filter(c=>c.kind==='password').map(c=>({value:c.id,label:`${c.name} · ${c.username}`}));
  const quote=(v:string)=>"'"+v.replaceAll("'","'\\''")+"'";
  const pg=connecting?.engine==='postgresql';
@@ -57,7 +57,7 @@ export default function BackendDatabaseAssets({portal=false}:{portal?:boolean}){
  <Alert type="info" title={`${connecting?.nativeWriteAvailable?'此资产启用独立原生 DML 写入；需要审批的变更请提交 SQL 工单':`原生客户端只允许只读查询${pg?'；PostgreSQL SQL 工单尚未开放':'；写操作请提交 SQL 工单'}`}。个人密码撤销、授权失效或资产停用后，连接会在下一条命令或 5 秒租约检查时关闭。`}/>
  </Modal>
  <Modal open={editing!==undefined} title={editing?'编辑数据库':'新建数据库'} onCancel={()=>setEditing(undefined)} onOk={()=>form.submit()} confirmLoading={busy} forceRender>
- {error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical" onFinish={v=>void run(async()=>{const body={...v,writeCredentialId:v.writeCredentialId||'',nativeWriteCredentialId:v.nativeWriteCredentialId||'',description:v.description||'',version:editing?.version??0};if(editing)await requests.put('/admin/database-assets/'+editing.id,body,{errorMode:'local'});else await requests.post('/admin/database-assets',body,{errorMode:'local'});setEditing(undefined)})}>
+ {error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical" onFinish={v=>void run(async()=>{const body={...v,tlsMode:v.tlsMode||'',tlsServerName:v.tlsMode==='disable'?'':v.tlsServerName,tlsCa:v.tlsMode==='disable'?'':v.tlsCa,writeCredentialId:v.writeCredentialId||'',nativeWriteCredentialId:v.nativeWriteCredentialId||'',description:v.description||'',version:editing?.version??0};if(editing)await requests.put('/admin/database-assets/'+editing.id,body,{errorMode:'local'});else await requests.post('/admin/database-assets',body,{errorMode:'local'});setEditing(undefined)})}>
  <FormTabs sections={[
  {key:'connection',label:'连接信息',description:'别名用于客户端登录身份，请使用字母开头的唯一名称。',children:<>
  <Form.Item name="engine" label="数据库类型" rules={[{required:true}]} extra={editing?'类型创建后不可修改，请为不同类型新建资产。':undefined}><Select disabled={!!editing} options={[{value:'mysql',label:'MySQL'},{value:'postgresql',label:'PostgreSQL'}]} onChange={value=>{const port=form.getFieldValue('port');if(port===3306||port===5432)form.setFieldValue('port',value==='postgresql'?5432:3306);if(value==='postgresql'){form.setFieldValue('writeCredentialId','');form.setFieldValue('nativeWriteCredentialId','')}}}/></Form.Item>
@@ -67,12 +67,13 @@ export default function BackendDatabaseAssets({portal=false}:{portal?:boolean}){
  <Form.Item name="host" label="主机" extra="填写后端服务可访问的数据库目标地址；容器部署时 localhost 指后端容器自身。DBeaver 的本机代理地址应填写在 DBeaver 连接中。" rules={[{required:true}]}><Input/></Form.Item><Form.Item name="port" label="端口" rules={[{required:true}]}><InputNumber min={1} max={65535}/></Form.Item>
  <Form.Item name="database" label="默认数据库" rules={[{required:true}]}><Input maxLength={64}/></Form.Item><Form.Item name="connectTimeout" label="连接超时（秒）" rules={[{required:true}]}><InputNumber min={1} max={60}/></Form.Item>
  <Form.Item name="enabled" label="启用" valuePropName="checked"><Switch/></Form.Item><Form.Item name="description" label="说明"><Input.TextArea rows={2} maxLength={2000}/></Form.Item></>},
- {key:'security',label:'凭据与 TLS',description:engine==='postgresql'?'使用 SCRAM 密码的独立只读登录角色，移除角色继承、CREATE/TEMP、写权限、对象所有权及自定义函数执行权限（包括 PUBLIC 授权）。TLS 必须验证服务器名称和信任链。':'只读凭据须在 MySQL 中仅拥有查询权限；审批执行使用独立凭据。TLS 必须验证服务器名称和信任链。',children:<>
+ {key:'security',label:'凭据与 TLS',description:engine==='postgresql'?'使用 SCRAM 密码的独立只读登录角色，移除角色继承、CREATE/TEMP、写权限、对象所有权及自定义函数执行权限（包括 PUBLIC 授权）。默认验证 TLS 名称与信任链；未启用 TLS 的内网目标可明确选择兼容模式。':'只读凭据须在 MySQL 中仅拥有查询权限；审批执行使用独立凭据。默认验证 TLS 名称与信任链；未启用 TLS 的内网目标可明确选择兼容模式。',children:<>
  <Form.Item name="readonlyCredentialId" label="只读凭据" extra={admin&&<Button type="link" size="small" onClick={()=>setCredentialTarget('readonlyCredentialId')}>新建只读凭据</Button>} rules={[{required:true}]}><Select options={options} showSearch optionFilterProp="label"/></Form.Item>
  <Form.Item name="writeCredentialId" label="审批执行凭据" extra={admin&&<Button type="link" size="small" onClick={()=>setCredentialTarget('writeCredentialId')}>新建审批执行凭据</Button>} hidden={engine==='postgresql'} dependencies={['readonlyCredentialId']} rules={[({getFieldValue})=>({validator:(_,value)=>!value||value!==getFieldValue('readonlyCredentialId')?Promise.resolve():Promise.reject(new Error('必须使用独立凭据'))})]}><Select allowClear options={options} showSearch optionFilterProp="label"/></Form.Item>
  <Form.Item name="nativeWriteCredentialId" label="原生 DML 凭据（可选）" hidden={engine==='postgresql'} dependencies={['readonlyCredentialId','writeCredentialId']} extra={<><span>独立账号仅授予当前数据库 SELECT / INSERT / UPDATE / DELETE；不得有 DDL、管理或其他库权限。全局允许且用户具有写权限后，仅新连接生效。</span>{admin&&<Button type="link" size="small" onClick={()=>setCredentialTarget('nativeWriteCredentialId')}>新建 DML 凭据</Button>}</>} rules={[({getFieldValue})=>({validator:(_,value)=>!value||![getFieldValue('readonlyCredentialId'),getFieldValue('writeCredentialId')].includes(value)?Promise.resolve():Promise.reject(new Error('必须与只读和审批执行使用不同凭据'))})]}><Select allowClear options={options} showSearch optionFilterProp="label"/></Form.Item>
- <Form.Item name="tlsServerName" label="TLS 服务器名称" rules={[{required:true}]}><Input placeholder="db.internal.example"/></Form.Item>
- <Form.Item name="tlsCa" label="受信任 CA（PEM）" rules={[{required:true}]}><Input.TextArea rows={6} maxLength={32768} placeholder="-----BEGIN CERTIFICATE-----"/></Form.Item></>}
+ <Form.Item name="tlsMode" label="目标数据库传输模式" initialValue="verify-full"><Select options={[{value:"verify-full",label:"TLS 证书校验（默认）"},{value:"disable",label:"无 TLS 兼容模式"}]}/></Form.Item>
+ {tlsMode==='disable'?<Alert type="warning" title="仅目标数据库连接不使用 TLS" description="目标连接中的 SQL、结果和部分认证交换可能未经加密，仅用于可信内网或受保护链路。客户端连接平台仍须使用 TLS，权限和审计保持生效。"/>:<> <Form.Item name="tlsServerName" label="TLS 服务器名称" rules={[{required:true}]}><Input placeholder="db.internal.example"/></Form.Item>
+ <Form.Item name="tlsCa" label="受信任 CA（PEM）" rules={[{required:true}]}><Input.TextArea rows={6} maxLength={32768} placeholder="-----BEGIN CERTIFICATE-----"/></Form.Item></>}</>}
  ]}/></Form></Modal>
  {credentialTarget&&editing!==undefined&&<BackendCreateCredential passwordOnly onCancel={()=>setCredentialTarget(undefined)} onCreated={credential=>{form.setFieldValue(credentialTarget,credential.id);setCredentialTarget(undefined)}}/>}
  </section>

@@ -17,6 +17,7 @@ import (
 var ErrPrivileges = errors.New("postgresql readonly role privileges exceed policy")
 
 type Target struct {
+	TLSMode                                           string
 	Address, User, Password, Database, ServerName, CA string
 	Timeout                                           time.Duration
 	QueryTimeoutSeconds                               int
@@ -62,15 +63,25 @@ func targetConfig(t Target) (*pgx.ConnConfig, error) {
 		return nil, errors.New("invalid PostgreSQL target")
 	}
 	roots := x509.NewCertPool()
-	if t.ServerName == "" || !roots.AppendCertsFromPEM([]byte(t.CA)) {
+	if t.TLSMode != "" && t.TLSMode != "verify-full" && t.TLSMode != "disable" {
+		return nil, errors.New("invalid PostgreSQL TLS mode")
+	}
+	if t.TLSMode != "disable" && (t.ServerName == "" || !roots.AppendCertsFromPEM([]byte(t.CA))) {
 		return nil, errors.New("PostgreSQL target TLS trust required")
 	}
-	cfg, e := pgx.ParseConfig("postgresql://localhost/postgres?sslmode=verify-full&require_auth=scram-sha-256")
+	mode := "verify-full"
+	if t.TLSMode == "disable" {
+		mode = "disable"
+	}
+	cfg, e := pgx.ParseConfig("postgresql://localhost/postgres?sslmode=" + mode + "&require_auth=scram-sha-256")
 	if e != nil {
 		return nil, e
 	}
 	cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database = host, uint16(p), t.User, t.Password, t.Database
 	cfg.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12, ServerName: t.ServerName, RootCAs: roots}
+	if t.TLSMode == "disable" {
+		cfg.TLSConfig = nil
+	}
 	cfg.Fallbacks = nil
 	cfg.ValidateConnect = nil
 	cfg.AfterConnect = nil

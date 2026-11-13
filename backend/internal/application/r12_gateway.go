@@ -234,7 +234,7 @@ func (a *App) databaseConnection(parent context.Context, raw net.Conn, tlsConfig
 				return fault.Denied
 			}
 			writeCredentialVersion = credential.ActiveVersion
-			endpoint = mysqlproxy.Target{Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
+			endpoint = mysqlproxy.Target{Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, TLSMode: asset.TLSMode, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
 			return nil
 		})
 		if e != nil {

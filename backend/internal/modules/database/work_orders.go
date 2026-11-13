@@ -40,7 +40,7 @@ func scanWork(row scanner) (v WorkOrder, e error) {
 }
 func SQLHash(query string) string { return fmt.Sprintf("%x", sha256.Sum256([]byte(query))) }
 func (s *Service) Asset(ctx context.Context, id string) (v Asset, e error) {
-	e = s.db.Row(ctx, `SELECT `+assetFields+` FROM database_assets d JOIN resource_registry r ON r.id=d.id WHERE d.id=$1 AND r.deleted_at IS NULL AND r.enabled`, id).Scan(&v.ID, &v.Name, &v.Alias, &v.Host, &v.Port, &v.Database, &v.ReadonlyCredentialID, &v.WriteCredentialID, &v.TLSServerName, &v.TLSCA, &v.Description, &v.ConnectTimeout, &v.Enabled, &v.Version, &v.Engine, &v.NativeWriteCredentialID)
+	e = s.db.Row(ctx, `SELECT `+assetFields+` FROM database_assets d JOIN resource_registry r ON r.id=d.id WHERE d.id=$1 AND r.deleted_at IS NULL AND r.enabled`, id).Scan(&v.ID, &v.Name, &v.Alias, &v.Host, &v.Port, &v.Database, &v.ReadonlyCredentialID, &v.WriteCredentialID, &v.TLSServerName, &v.TLSCA, &v.Description, &v.ConnectTimeout, &v.Enabled, &v.Version, &v.Engine, &v.NativeWriteCredentialID, &v.TLSMode)
 	return
 }
 func (s *Service) CreateWork(ctx context.Context, v WorkOrder) (string, error) {

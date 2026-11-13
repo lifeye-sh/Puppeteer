@@ -68,7 +68,7 @@ func (a *App) postgresProtocol(tlsConfig *tls.Config) *pgproxy.Server {
 					return fault.Denied
 				}
 				credentialVersion = credential.ActiveVersion
-				target = pgproxy.Target{Address: net.JoinHostPort(targetAsset.Host, strconv.Itoa(targetAsset.Port)), User: credential.Username, Password: secret.Password, Database: targetAsset.Database, ServerName: targetAsset.TLSServerName, CA: targetAsset.TLSCA, Timeout: time.Duration(targetAsset.ConnectTimeout) * time.Second}
+				target = pgproxy.Target{Address: net.JoinHostPort(targetAsset.Host, strconv.Itoa(targetAsset.Port)), User: credential.Username, Password: secret.Password, Database: targetAsset.Database, ServerName: targetAsset.TLSServerName, CA: targetAsset.TLSCA, TLSMode: targetAsset.TLSMode, Timeout: time.Duration(targetAsset.ConnectTimeout) * time.Second}
 				return nil
 			})
 			if e != nil {

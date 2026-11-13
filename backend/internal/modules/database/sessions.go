@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Service) AssetByAlias(ctx context.Context, alias string) (v Asset, e error) {
-	e = s.db.Row(ctx, `SELECT `+assetFields+` FROM database_assets d JOIN resource_registry r ON r.id=d.id WHERE d.alias=$1 AND r.deleted_at IS NULL AND r.enabled`, alias).Scan(&v.ID, &v.Name, &v.Alias, &v.Host, &v.Port, &v.Database, &v.ReadonlyCredentialID, &v.WriteCredentialID, &v.TLSServerName, &v.TLSCA, &v.Description, &v.ConnectTimeout, &v.Enabled, &v.Version, &v.Engine, &v.NativeWriteCredentialID)
+	e = s.db.Row(ctx, `SELECT `+assetFields+` FROM database_assets d JOIN resource_registry r ON r.id=d.id WHERE d.alias=$1 AND r.deleted_at IS NULL AND r.enabled`, alias).Scan(&v.ID, &v.Name, &v.Alias, &v.Host, &v.Port, &v.Database, &v.ReadonlyCredentialID, &v.WriteCredentialID, &v.TLSServerName, &v.TLSCA, &v.Description, &v.ConnectTimeout, &v.Enabled, &v.Version, &v.Engine, &v.NativeWriteCredentialID, &v.TLSMode)
 	return
 }
 func (s *Service) BeginSession(ctx context.Context, user string, asset Asset, passwordVersion int64, address string) (id string, e error) {

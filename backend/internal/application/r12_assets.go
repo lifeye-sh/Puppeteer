@@ -83,6 +83,13 @@ func (a *App) saveDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 		}
 		var e error
 		id, e = database.New(a.db).Save(c, in)
+		if e == nil {
+			mode := in.TLSMode
+			if mode == "" {
+				mode = "verify-full"
+			}
+			e = a.audit.Detail(c, u.ID, "database.transport_saved", requestID(r), sourceIP(r), map[string]string{"target": id, "tlsMode": mode})
+		}
 		return id, e
 	})
 	if e != nil {

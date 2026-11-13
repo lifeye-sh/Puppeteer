@@ -12,13 +12,17 @@ import (
 )
 
 type Target struct {
+	TLSMode                                           string
 	Address, User, Password, Database, ServerName, CA string
 	Timeout                                           time.Duration
 }
 
 func ConnectTarget(ctx context.Context, target Target, readonly bool) (*client.Conn, error) {
 	roots := x509.NewCertPool()
-	if target.ServerName == "" || !roots.AppendCertsFromPEM([]byte(target.CA)) {
+	if target.TLSMode != "" && target.TLSMode != "verify-full" && target.TLSMode != "disable" {
+		return nil, errors.New("invalid target TLS mode")
+	}
+	if target.TLSMode != "disable" && (target.ServerName == "" || !roots.AppendCertsFromPEM([]byte(target.CA))) {
 		return nil, errors.New("target TLS trust is required")
 	}
 	if target.Timeout <= 0 || target.Timeout > time.Minute {
@@ -27,7 +31,9 @@ func ConnectTarget(ctx context.Context, target Target, readonly bool) (*client.C
 	connectCtx, cancel := context.WithTimeout(ctx, target.Timeout)
 	defer cancel()
 	c, e := client.ConnectWithContext(connectCtx, target.Address, target.User, target.Password, target.Database, target.Timeout, func(c *client.Conn) error {
-		c.SetTLSConfig(&tls.Config{MinVersion: tls.VersionTLS12, ServerName: target.ServerName, RootCAs: roots})
+		if target.TLSMode != "disable" {
+			c.SetTLSConfig(&tls.Config{MinVersion: tls.VersionTLS12, ServerName: target.ServerName, RootCAs: roots})
+		}
 		c.UnsetCapability(mysql.CLIENT_LOCAL_FILES | mysql.CLIENT_MULTI_STATEMENTS | mysql.CLIENT_COMPRESS | mysql.CLIENT_DEPRECATE_EOF | mysql.CLIENT_QUERY_ATTRIBUTES)
 		c.SetCapability(mysql.CLIENT_MULTI_RESULTS | mysql.CLIENT_PS_MULTI_RESULTS)
 		c.ReadTimeout = 30 * time.Second

@@ -62,7 +62,7 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 			if e != nil {
 				return e
 			}
-			target = mysqlproxy.Target{Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
+			target = mysqlproxy.Target{Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, TLSMode: asset.TLSMode, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
 			return nil
 		}); e != nil {
 			return e
@@ -70,7 +70,7 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 		start := time.Now()
 		var e error
 		if asset.Engine == "postgresql" {
-			connection, err := pgproxy.ConnectTarget(r.Context(), pgproxy.Target{Address: target.Address, User: target.User, Password: target.Password, Database: target.Database, ServerName: target.ServerName, CA: target.CA, Timeout: target.Timeout})
+			connection, err := pgproxy.ConnectTarget(r.Context(), pgproxy.Target{Address: target.Address, User: target.User, Password: target.Password, Database: target.Database, ServerName: target.ServerName, CA: target.CA, TLSMode: target.TLSMode, Timeout: target.Timeout})
 			e = err
 			if connection != nil {
 				_ = connection.Close(context.Background())
@@ -93,6 +93,9 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 		}
 		target.Password = ""
 		message := "TLS、身份与目标权限校验通过"
+		if asset.TLSMode == "disable" {
+			message = "无 TLS 连接、身份与目标权限校验通过（目标链路未加密）"
+		}
 		if e != nil {
 			message = databaseDiagnosticMessage(e)
 		}

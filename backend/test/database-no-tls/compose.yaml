@@ -1,0 +1,22 @@
+# Disposable test data/passwords only. No published ports or persistent volumes.
+services:
+  mysql:
+    image: mysql:8.4.7
+    container_name: puppeteer-no-tls-mysql
+    environment: {MYSQL_ROOT_PASSWORD: fixture-root-only}
+    command: ['--tls-version=', '--require-secure-transport=OFF']
+    tmpfs: ['/var/lib/mysql:rw,size=1g']
+    volumes: ['./mysql.sql:/docker-entrypoint-initdb.d/init.sql:ro']
+    networks: [tests]
+  postgres:
+    image: postgres:18-alpine
+    container_name: puppeteer-no-tls-postgres
+    environment: {POSTGRES_PASSWORD: fixture-root-only}
+    command: ['postgres', '-c', 'ssl=off']
+    tmpfs: ['/var/lib/postgresql:rw,size=256m']
+    volumes: ['./postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro']
+    networks: [tests]
+networks:
+  tests:
+    external: true
+    name: ${NT_TEST_NETWORK:-nt-backend-r01_default}
