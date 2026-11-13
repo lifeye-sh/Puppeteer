@@ -54,6 +54,23 @@ sudo bash install-puppeteer.sh --host 192.168.1.100 --core
 
 ## 安装后管理
 
+Ubuntu 启用 AppArmor 时，默认容器策略禁止 FUSE 挂载。若图形服务反复报告
+`/bin/fusermount: no such file or directory`，直接挂载失败可能被备用工具错误掩盖。
+默认安装目录和项目名可使用以下修复；它校验专用策略，只允许
+`fuse.nt-storage` 在 `/mnt/nt-rdp` 以 `nosuid,nodev,noexec` 挂载，
+只重建图形服务，不修改密钥或数据卷，也不关闭 AppArmor：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/repair-graphics-apparmor.sh -o repair-graphics-apparmor.sh
+sudo bash repair-graphics-apparmor.sh
+```
+
+需要宿主机已有 `apparmor_parser`。策略持久保存在
+`/etc/apparmor.d/puppeteer-rdp-storage`，管理脚本会自动携带
+`graphics-apparmor.yaml`。自定义安装应先加载同一策略，再将该覆盖文件加入自己的
+Compose 命令。此项不会替代 `/dev/fuse`、`SYS_ADMIN` 等既有挂载条件；
+若健康检查仍失败，应继续检查图形服务及内核日志。
+
 ```bash
 sudo /opt/puppeteer/puppeteerctl ps
 sudo /opt/puppeteer/puppeteerctl logs --tail=100
