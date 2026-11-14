@@ -11,6 +11,8 @@ bind=0.0.0.0
 cert=
 key=
 core=0
+database_proxy=1
+database_bind=127.0.0.1
 help() {
   cat <<'HELP'
 Usage: sudo bash install.sh --host DOMAIN_OR_IPV4 [options]
@@ -19,7 +21,9 @@ Usage: sudo bash install.sh --host DOMAIN_OR_IPV4 [options]
   --dir PATH         New installation directory (default /opt/puppeteer)
   --project NAME     New Compose project (default puppeteer)
   --cert FILE --key FILE  Existing TLS chain/key; otherwise generate self-signed TLS
-  --core             SSH/SFTP only; omit graphics/shared-drive/MP4 services
+  --core             Omit graphics/shared-drive/MP4 services
+  --database-proxy-bind IPV4  Database proxy bind address (default 127.0.0.1)
+  --no-database-proxy         Do not configure database proxy listeners/ports
 Requires Linux amd64, Docker with Compose v2, bash, curl and openssl.
 HELP
 }
@@ -28,9 +32,11 @@ while (($#)); do
   case "$1" in
     --help|-h) help; exit 0;;
     --core) core=1; shift;;
-    --host|--port|--bind|--dir|--project|--cert|--key)
+    --no-database-proxy) database_proxy=0; shift;;
+    --host|--port|--bind|--dir|--project|--cert|--key|--database-proxy-bind)
       (($# >= 2)) || die "Missing value for $1"
       case "$1" in
+        --database-proxy-bind) database_bind=$2;;
         --host) host_name=$2;; --port) port=$2;; --bind) bind=$2;;
         --dir) install_dir=$2;; --project) project=$2;; --cert) cert=$2;; --key) key=$2;;
       esac
@@ -54,6 +60,7 @@ ipv4() {
   IFS=. read -r a b c d extra <<< "$1"
   local v; for v in "$a" "$b" "$c" "$d"; do [[ ${#v} -le 3 ]] && ((10#$v <= 255)) || return 1; done
 }
+ipv4 "$database_bind" || die "Database proxy bind must be IPv4"
 ipv4 "$bind" || die 'Bind address must be IPv4'
 san="DNS:$host_name"
 if [[ $host_name =~ ^[0-9.]+$ ]]; then ipv4 "$host_name" || die 'Invalid host IPv4'; san="IP:$host_name"; fi
@@ -129,6 +136,20 @@ PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:497fdacf02e3b7131cd7c
 ENV
 printf '#!/usr/bin/env bash\nset -euo pipefail\nexec docker compose --env-file %q -p %q -f %q ' "$config/production.env" "$project" "$install_dir/compose.yaml" > "$install_dir/puppeteerctl"
 if (( ! core )); then printf '%s %q ' '-f' "$install_dir/services.yaml" >> "$install_dir/puppeteerctl"; fi
+if ((database_proxy)); then
+  cat > "$install_dir/database-proxy.yaml" <<YAML
+services:
+  server:
+    environment:
+      NT_DATABASE_PROXY_ADDR: ":13306"
+      NT_POSTGRES_PROXY_ADDR: ":15432"
+      NT_DATABASE_PROXY_NAME: "$host_name"
+    ports:
+      - "$database_bind:13306:13306"
+      - "$database_bind:15432:15432"
+YAML
+  printf '%s %q ' '-f' "$install_dir/database-proxy.yaml" >> "$install_dir/puppeteerctl"
+fi
 printf '"$@"\n' >> "$install_dir/puppeteerctl"
 chmod 700 "$install_dir/puppeteerctl"
 ctl="$install_dir/puppeteerctl"
@@ -147,3 +168,7 @@ printf '\nInstalled. Open %s/setup to create your administrator.\n' "$origin"
 printf 'Manage: sudo %s ps (also supports logs, stop, and up -d --no-build --wait).\n' "$ctl"
 if [[ -z $cert ]]; then printf 'TLS uses a generated self-signed certificate. Trust %s/tls/server.crt on your client or replace it with your CA-issued certificate.\n' "$config"; fi
 printf 'Back up %s securely. No preset administrator or test data was installed.\n' "$config"
+if ((database_proxy)); then
+  printf 'Database proxies: %s:13306 (MySQL), %s:15432 (PostgreSQL); certificate host: %s.\n' "$database_bind" "$database_bind" "$host_name"
+  printf 'Download the proxy certificate in Database assets. Remote access requires a reachable bind address and firewall rules.\n'
+fi

@@ -25,7 +25,7 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 1. 检查Docker、资源、FUSE设备，以及安装目录和项目是否已存在。
 2. 下载固定版本的部署配置，生成独立数据库密码和应用密钥。
 3. 为该域名/IP生成HTTPS证书。
-4. 拉取按摘要固定的发布镜像，启动Web、后端、PostgreSQL、图形网关和MP4服务。
+4. 拉取按摘要固定的发布镜像，启动Web、后端、PostgreSQL、图形网关和MP4服务；默认配置MySQL/PostgreSQL代理监听及本机端口映射。
 5. 等待服务健康，检查后端就绪并输出访问地址。
 
 完成后打开 **`https://服务器IP/setup`**，创建管理员即可。没有默认账号或密码。默认监听443端口，安装目录为`/opt/puppeteer`。首次初始化前请将服务器入口限制为管理员来源，完成管理员创建后再放行使用者；脚本不改动宿主机防火墙。
@@ -52,7 +52,7 @@ sudo bash install-puppeteer.sh --host 192.168.1.100 --port 8443
 sudo bash install-puppeteer.sh --host 192.168.1.100 --core
 ```
 
-核心模式只启动Web、后端和数据库，不提供图形会话、共享盘及MP4渲染。其他参数见`bash install-puppeteer.sh --help`，可指定绑定IP、安装目录和Compose项目名。
+核心模式只启动Web、后端和数据库，不提供图形会话、共享盘及MP4渲染；仍默认配置数据库代理。其他参数见`bash install-puppeteer.sh --help`，可指定绑定IP、安装目录和Compose项目名。
 
 ## 安装后管理
 
@@ -96,8 +96,25 @@ sudo bash upgrade-puppeteer.sh --check
 sudo bash upgrade-puppeteer.sh
 ```
 
-自定义目录时，两条命令都添加 `--dir /实际安装目录`。升级额外需要 Python 3 和 flock；默认目标是 `r17-rc11`。脚本先拉取固定摘要镜像，再暂停应用服务并备份配置、数据库和应用数据，更新后检查健康。已有连接会中断，须安排维护时段并预留备份空间。密钥、证书、Compose叠加文件和可选组件镜像保留；不会自动开放数据库代理端口。完整适用范围和失败恢复见[版本升级说明](UPGRADE.md)。
+自定义目录时，两条命令都添加 `--dir /实际安装目录`。升级额外需要 Python 3 和 flock；默认目标是 `r17-rc11`。脚本先拉取固定摘要镜像，再暂停应用服务并备份配置、数据库和应用数据，更新后检查健康。已有连接会中断，须安排维护时段并预留备份空间。密钥、证书、Compose叠加文件和可选组件镜像保留；普通升级不会自动开放数据库代理端口；需要时使用下方 `--enable-database-proxy`。完整适用范围和失败恢复见[版本升级说明](UPGRADE.md)。
 
 ## 数据库代理配置
 
-一键安装默认只发布HTTPS端口。平台中填写监听地址不会自动创建Docker端口映射；需要在现有部署加入协议端口配置，并让 `puppeteerctl` 的后续操作继续使用该叠加文件。监听地址、宿主机端口、客户端证书与数据库权限模式见[数据库代理启用说明](../deploy/production/README.md#数据库代理启用与凭据)。
+新版一键安装默认创建 `database-proxy.yaml` 并加入 `puppeteerctl`：MySQL和PostgreSQL在容器内监听13306、15432，宿主机默认只绑定 `127.0.0.1`。证书主机名取 `--host`，客户端从平台下载代理证书。使用 `--no-database-proxy` 可在新安装时跳过此配置。
+
+需要其他电脑直接连接时，新安装显式指定绑定地址，并在防火墙/云安全组中允许可信客户端来源：
+
+```bash
+sudo bash install-puppeteer.sh --host 192.168.1.100 --database-proxy-bind 0.0.0.0
+```
+
+旧安装或已经升级到rc11但缺少端口映射的部署，重新下载最新升级脚本后执行：
+
+```bash
+sudo bash upgrade-puppeteer.sh --enable-database-proxy --database-proxy-bind 0.0.0.0 --check
+sudo bash upgrade-puppeteer.sh --enable-database-proxy --database-proxy-bind 0.0.0.0
+```
+
+不指定绑定参数则新映射仅限本机。此选项只补缺失项，不重置现有端口、证书主机名、平台开关或其他叠加文件；已有本机映射不会被参数自动扩大为远程映射。默认主机名从原HTTPS来源提取，也可用 `--database-proxy-host` 指定；与已配置的主机名冲突时会拒绝。
+
+若旧实例已生成覆盖 `localhost` 的代理证书，它不会自动变成服务器证书：需在平台证书管理中准备覆盖实际代理主机名的服务端证书及私钥，在“网关监听”选择该数据库代理证书，并重新下载/配置客户端信任。网页HTTPS证书与数据库代理证书是两套独立配置。两个代理的平台监听开关也须开启。详细边界见[数据库代理启用说明](../deploy/production/README.md#数据库代理启用与凭据)。

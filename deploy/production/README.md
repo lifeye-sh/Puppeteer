@@ -43,7 +43,7 @@ sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer -f dep
 
 ## 边界与检查
 
-- 仅 HTTPS 入口发布宿主端口；API、数据库留在私有容器网络。平台自身元数据数据库连接仅允许 verify-full TLS 或 Compose 内隔离的 postgres 服务；当前核心部署为后者。资产所连接的目标数据库使用独立TLS选项，见下文。
+- 原始核心Compose仅发布HTTPS入口；新版一键安装额外配置本机MySQL/PostgreSQL代理端口。API和平台元数据数据库仍留在私有容器网络。平台自身元数据数据库连接仅允许 verify-full TLS 或 Compose 内隔离的 postgres 服务；当前核心部署为后者。资产所连接的目标数据库使用独立TLS选项，见下文。
 - API 进程以 UID 10001 运行，根文件系统只读，业务数据进入命名卷。Nginx 以 UID 101 运行。日志轮转，临时目录容量和容器资源上限已配置。
 - 预检查验证镜像存在、HTTPS origin、证书域名/有效期/私钥匹配、密钥格式及一致性、Linux 所有权、宿主配置磁盘剩余空间和 Docker 资源。**不验证正式 CA 信任链、Docker 数据卷所在磁盘容量、异地备份、负载容量或恢复目标。** selfIssued=true 仅适用于隔离验收，不应当作正式信任链验收通过。
 - 正式前端只同源访问 API，Nginx 配置保留 WebSocket Upgrade、关闭流式缓冲。Docker浏览器已通过受信任测试CA的HTTPS/WSS登录、SSH、SFTP、录屏回放、后台MP4下载与设置页面；初始化、权限撤销、审批和图形通路有独立API集成验证。
@@ -82,6 +82,8 @@ sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
 
 ## 数据库代理启用与凭据
 
+新版一键安装默认配置本机13306/15432映射及代理证书主机名；旧版一键安装可用[升级脚本的代理补齐选项](../../docs/UPGRADE.md#同时补齐数据库代理)，不用手工编辑管理脚本。手动部署仍使用 `protocols.yaml`。
+
 在“平台设置 → 网关监听 → 编辑 → SSH 与数据库”开启对应代理。编辑时空的数据库监听地址会预填下表值，已有自定义地址保留；保存后等待配置发布成功，再到数据库资产页查看代理是否就绪。
 
 | 代理 | 容器内部监听地址 | protocols.yaml 默认宿主机映射 |
@@ -91,7 +93,7 @@ sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
 
 Docker部署时，表单填写容器内部监听地址；客户端填写宿主机地址及映射端口。界面设置不能创建Docker映射。`PUPPETEER_MYSQL_PORT`、`PUPPETEER_POSTGRES_PORT`只改变宿主机端口；其他电脑访问时还需配置 `PUPPETEER_PROTOCOL_BIND` 和防火墙。监听地址清空会继承部署环境配置，二者均为空则不监听。
 
-数据库代理证书可留空，由平台自动生成；自选证书须覆盖 `PUPPETEER_PROTOCOL_HOST`。用户在数据库资产页下载代理证书，在“我的账号”创建数据库专用密码。客户端用户名为 `平台用户名@资产别名`，经平台代理连接，仍需用户资源授权。客户端到代理必须验证TLS；PostgreSQL使用SCRAM认证。
+数据库代理证书可留空，由平台首次生成；已生成证书会复用，变更代理主机名后须检查SAN覆盖范围，必要时在平台选择匹配的服务端证书。自选证书须覆盖 `PUPPETEER_PROTOCOL_HOST`。用户在数据库资产页下载代理证书，在“我的账号”创建数据库专用密码。客户端用户名为 `平台用户名@资产别名`，经平台代理连接，仍需用户资源授权。客户端到代理必须验证TLS；PostgreSQL使用SCRAM认证。
 
 数据库资产的“凭据与 TLS”提供两种权限控制模式：
 

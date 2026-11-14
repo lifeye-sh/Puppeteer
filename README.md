@@ -12,6 +12,8 @@ Puppeteer 是基于 Go + PostgreSQL 的远程运维与审计平台，提供资�
 curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/install.sh -o install-puppeteer.sh && sudo bash install-puppeteer.sh --host 192.168.1.100
 ```
 
+新安装默认配置本机MySQL/PostgreSQL代理端口；远程访问可加 `--database-proxy-bind 0.0.0.0` 并限制安全组来源。旧安装补齐方式见[升级说明](docs/UPGRADE.md#同时补齐数据库代理)。
+
 完成后访问`https://服务器IP/setup`创建管理员。默认自动生成自签名HTTPS证书；正式证书、端口及管理命令见[一键安装说明](docs/ONE-CLICK-INSTALL.md)。
 
 - [已有部署版本升级（备份与健康检查）](docs/UPGRADE.md)
