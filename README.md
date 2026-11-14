@@ -14,6 +14,8 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 
 完成后访问`https://服务器IP/setup`创建管理员。默认自动生成自签名HTTPS证书；正式证书、端口及管理命令见[一键安装说明](docs/ONE-CLICK-INSTALL.md)。
 
+- [已有部署版本升级（备份与健康检查）](docs/UPGRADE.md)
+
 - [后端设计与模块规划](docs/backend/README.md)
 - [全新部署指南（从空白服务器安装）](docs/FRESH-INSTALL.md)
 - [Docker Hub 镜像安装（免编译）](deploy/production/dockerhub.md)
