@@ -2,6 +2,8 @@
 
 适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
 
+当前安装脚本固定后端/Web为 `r17-rc11`（schema107），图形和MP4沿用已有镜像摘要。具体内容见[发布说明](../deploy/production/r17-rc11.md)。已有安装请使用本文的升级入口，不要重复运行安装器。
+
 本安装器不支持Snap封装的Docker。其文件访问和容器选项限制可能导致宿主机存在的`/opt/puppeteer/config/production.env`被Compose报告为不存在。安装器会提前拒绝此环境；不要通过删除安装目录、放宽密钥权限或关闭容器安全选项解决。Snap与普通Docker Engine可能管理不同的数据目录，已有容器时需先核对现有工作负载再安排切换。限制依据见[Canonical Docker Snap说明](https://github.com/canonical/docker-snap)。
 
 如果是Ubuntu amd64、Snap Docker中没有任何容器或数据卷，并且之前已在`/opt/puppeteer`生成完整配置，可使用下列恢复命令。脚本从[Docker官方apt源](https://docs.docker.com/engine/install/ubuntu/)安装Engine，禁用而不删除Snap，校验现有密钥未变后继续启动；遇到已有工作负载、其他Engine数据或冲突软件包会拒绝操作：
@@ -85,3 +87,17 @@ sudo /opt/puppeteer/puppeteerctl up -d --no-build --wait
 Docker Hub限流时可先运行`sudo docker login`再通过`puppeteerctl pull`重试。不需要将密码或令牌写入脚本。
 
 安装后仍需在管理页配置资产、授权、正确的[客户端IP提取策略](../deploy/production/client-ip.md)和备份。原生协议端口、Agent更新仓库、WAL归档属于可选扩展，参见[完整部署说明](FRESH-INSTALL.md)。本安装器不启用尚在暂缓范围的原生RDP/RemoteApp，也不自动初始化业务测试数据。
+
+## 已有安装升级
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/upgrade.sh -o upgrade-puppeteer.sh
+sudo bash upgrade-puppeteer.sh --check
+sudo bash upgrade-puppeteer.sh
+```
+
+自定义目录时，两条命令都添加 `--dir /实际安装目录`。升级额外需要 Python 3 和 flock；默认目标是 `r17-rc11`。脚本先拉取固定摘要镜像，再暂停应用服务并备份配置、数据库和应用数据，更新后检查健康。已有连接会中断，须安排维护时段并预留备份空间。密钥、证书、Compose叠加文件和可选组件镜像保留；不会自动开放数据库代理端口。完整适用范围和失败恢复见[版本升级说明](UPGRADE.md)。
+
+## 数据库代理配置
+
+一键安装默认只发布HTTPS端口。平台中填写监听地址不会自动创建Docker端口映射；需要在现有部署加入协议端口配置，并让 `puppeteerctl` 的后续操作继续使用该叠加文件。监听地址、宿主机端口、客户端证书与数据库权限模式见[数据库代理启用说明](../deploy/production/README.md#数据库代理启用与凭据)。

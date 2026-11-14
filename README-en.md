@@ -2,6 +2,8 @@
 
 A Go + PostgreSQL remote operations and auditing platform with asset management, remote sessions, files, recordings, database access, approvals, automation and an AI assistant.
 
+[Installation](docs/ONE-CLICK-INSTALL.md) · [Upgrade existing deployments](docs/UPGRADE.md) · [r17-rc11 release](deploy/production/r17-rc11.md)
+
 [简体中文](README.md) · [Architecture](docs/backend/README.md) · [Delivery plan](docs/backend/migration-rounds.md)
 
 The project is named Puppeteer; it is not the browser automation library of the same name. Existing NT_* variables, nt commands, Go module paths, protocol identifiers and data paths remain compatible. Production work targets a fresh installation, without legacy data migration.

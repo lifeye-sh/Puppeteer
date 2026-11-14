@@ -1,6 +1,6 @@
 # Puppeteer 全新部署指南
 
-适用版本：R17 候选发布版本。部署方式：单台 Linux amd64 主机、Docker Compose、全新 PostgreSQL 数据卷，不迁移旧系统数据。
+适用版本：`r17-rc11` 候选发布版本（schema107）。部署方式：单台 Linux amd64 主机、Docker Compose、全新 PostgreSQL 数据卷，不迁移旧系统数据。
 
 最快方式是[一条命令安装](ONE-CLICK-INSTALL.md)。需要手动选择组件时使用[Docker Hub免编译安装](../deploy/production/dockerhub.md)；本文以下步骤用于源码构建。
 
@@ -31,6 +31,7 @@ sudo docker compose version
 ```bash
 git clone https://github.com/lifeye-sh/Puppeteer.git
 cd Puppeteer
+git checkout r17-rc11
 git rev-parse HEAD
 npm ci
 npm run release:frontend
@@ -162,6 +163,8 @@ dc up -d --no-deps --force-recreate --wait web
 
 需要其他主机连接协议端口时，再修改 `PUPPETEER_PROTOCOL_BIND` 并设置对应防火墙规则。发布端口不会自动授予资产权限，也不会自动启用平台访问策略。协议证书/CA信任须按平台客户端说明配置，网页入口证书不能替代所有协议信任配置。原生 RDP/RemoteApp 属于既定暂缓范围；本节的浏览器 RDP 不受此排除项影响。
 
+数据库代理的容器内部监听地址、宿主机映射端口、权限控制模式及目标TLS选项见[数据库代理配置](../deploy/production/README.md#数据库代理启用与凭据)。
+
 ## 8. 部署验收
 
 - 用新管理员完成初始化、退出及重新登录；用普通用户检查未授权资产不可访问。
@@ -193,6 +196,8 @@ dc start
 | 预检查提示权限/密钥错误 | 通过sudo运行配置生成器；保留脚本分配的UID与权限，不使用chmod 777 |
 | 图形服务不健康 | 宿主机FUSE设备、容器挂载权限、guacd日志及实际目标连通性 |
 | MP4任务繁忙或失败 | 渲染器健康状态、临时磁盘、任务清理；429表示繁忙，507表示存储不足 |
+
+一键安装创建的已有部署可使用[升级脚本](UPGRADE.md)；本文源码安装布局不满足该脚本的目录约定，应使用原项目与叠加文件手动维护。
 
 应用更新和证书变更后的操作见[生产部署说明](../deploy/production/README.md)。不要执行 `docker compose down -v` 或删除数据卷来处理普通启动失败。数据库已有新写入后，不可简单切换旧镜像声称无损回滚；使用[恢复切换流程](../deploy/production/cutover.md)。
 
