@@ -46,3 +46,33 @@ func TestR12DatabaseAssetScopeAndVersions(t *testing.T) {
 	expect(t, call(t, srv.URL, "DELETE", management+"/"+id+"?version=2", nil, admin, origin), 204)
 	countAssets(t, srv, admin, management, 0)
 }
+
+func TestDatabasePermissionModePersistence(t *testing.T) {
+	_, _, srv := r02Server(t, false)
+	admin := loginAs(t, srv, "accept-admin")
+	credential := postID(t, srv, "/api/admin/credentials", credInput("mode credential"), admin)
+	input := map[string]any{"name": "Mode asset", "alias": "mode_asset", "host": "db.internal", "port": 3306, "database": "inventory", "readonlyCredentialId": credential, "writeCredentialId": credential, "nativeWriteCredentialId": credential, "tlsMode": "disable", "enabled": true, "connectTimeout": 10, "permissionMode": "program"}
+	const endpoint = "/api/admin/database-assets"
+	id := postID(t, srv, endpoint, input, admin)
+	check := func() {
+		t.Helper()
+		item := object(t, call(t, srv.URL, "GET", endpoint, nil, admin, origin))["items"].([]any)[0].(map[string]any)
+		if item["permissionMode"] != "program" {
+			t.Fatalf("mode not preserved: %v", item["permissionMode"])
+		}
+	}
+	check()
+	input["version"] = 1
+	delete(input, "permissionMode")
+	expect(t, call(t, srv.URL, "PUT", endpoint+"/"+id, input, admin, origin), 200)
+	check()
+	input["version"] = 2
+	input["permissionMode"] = "account"
+	expect(t, call(t, srv.URL, "PUT", endpoint+"/"+id, input, admin, origin), 422)
+	input["permissionMode"] = "unknown"
+	expect(t, call(t, srv.URL, "PUT", endpoint+"/"+id, input, admin, origin), 422)
+	input["permissionMode"] = "account"
+	input["writeCredentialId"] = ""
+	input["nativeWriteCredentialId"] = ""
+	expect(t, call(t, srv.URL, "PUT", endpoint+"/"+id, input, admin, origin), 200)
+}

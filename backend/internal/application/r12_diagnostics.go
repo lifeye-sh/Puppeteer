@@ -62,7 +62,7 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 			if e != nil {
 				return e
 			}
-			target = mysqlproxy.Target{Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, TLSMode: asset.TLSMode, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
+			target = mysqlproxy.Target{ProgramPermissions: asset.PermissionMode == "program", Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, TLSMode: asset.TLSMode, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
 			return nil
 		}); e != nil {
 			return e
@@ -70,7 +70,7 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 		start := time.Now()
 		var e error
 		if asset.Engine == "postgresql" {
-			connection, err := pgproxy.ConnectTarget(r.Context(), pgproxy.Target{Address: target.Address, User: target.User, Password: target.Password, Database: target.Database, ServerName: target.ServerName, CA: target.CA, TLSMode: target.TLSMode, Timeout: target.Timeout})
+			connection, err := pgproxy.ConnectTarget(r.Context(), pgproxy.Target{ProgramPermissions: target.ProgramPermissions, Address: target.Address, User: target.User, Password: target.Password, Database: target.Database, ServerName: target.ServerName, CA: target.CA, TLSMode: target.TLSMode, Timeout: target.Timeout})
 			e = err
 			if connection != nil {
 				_ = connection.Close(context.Background())
@@ -96,8 +96,14 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 		if asset.TLSMode == "disable" {
 			message = "无 TLS 连接、身份与目标权限校验通过（目标链路未加密）"
 		}
+		if asset.PermissionMode == "program" {
+			message = "连接与身份校验通过；程序控制模式不检查账号权限上限，实际 SQL 仍受平台策略及目标账号权限限制"
+			if asset.TLSMode == "disable" {
+				message += "（目标链路未加密）"
+			}
+		}
 		if e != nil {
-			message = databaseDiagnosticMessage(e)
+			message = databaseDiagnosticMessage(e, profile.name)
 		}
 		results = append(results, map[string]any{"profile": profile.name, "ok": e == nil, "message": message, "durationMs": time.Since(start).Milliseconds()})
 	}
@@ -108,7 +114,7 @@ func (a *App) testDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 	writeJSON(w, 200, map[string]any{"items": results})
 	return nil
 }
-func databaseDiagnosticMessage(e error) string {
+func databaseDiagnosticMessage(e error, profile string) string {
 	var host x509.HostnameError
 	var trust x509.UnknownAuthorityError
 	var certificate x509.CertificateInvalidError
@@ -124,8 +130,13 @@ func databaseDiagnosticMessage(e error) string {
 		return "目标证书不受信任，请配置正确的 CA 证书链"
 	case errors.As(e, &certificate):
 		return "目标证书无效或已到期，请更新证书"
-	case errors.Is(e, mysqlproxy.ErrDMLPrivileges):
+	case errors.Is(e, mysqlproxy.ErrDMLPrivileges) || (profile == "native-dml" && errors.Is(e, mysqlproxy.ErrTargetPrivileges)):
 		return "原生 DML 凭据仅允许当前数据库的 SELECT / INSERT / UPDATE / DELETE；不得含 DDL、管理、角色或其他数据库权限"
+	case errors.Is(e, mysqlproxy.ErrTargetPrivileges):
+		if profile == "readonly" {
+			return "只读凭据权限超出范围：仅允许当前数据库的 SELECT / SHOW VIEW；不得含写入、DDL、管理、角色、转授权或其他数据库权限"
+		}
+		return "审批执行凭据权限超出范围：仅允许当前数据库的 SELECT / SHOW VIEW / INSERT / UPDATE / DELETE / CREATE / ALTER / DROP / INDEX / REFERENCES；按工单需要授权，不得含管理、角色、转授权或其他数据库权限"
 	case errors.Is(e, pgproxy.ErrPrivileges):
 		return "PostgreSQL 只读角色权限过大：请移除管理/角色继承、对象所有权、CREATE/TEMP、写入、序列修改及自定义函数执行权限"
 	case errors.As(e, &pgTarget):
@@ -139,6 +150,6 @@ func databaseDiagnosticMessage(e error) string {
 	case errors.As(e, &pgConnect):
 		return "PostgreSQL 连接失败，请检查 TLS、SCRAM 认证配置、数据库名称和服务状态"
 	default:
-		return "目标权限或协议不符合访问策略：只读凭据仅允许 SELECT / SHOW VIEW，执行凭据不得含管理权限或其他数据库授权"
+		return "目标连接或协议校验失败，请检查目标 TLS 配置、认证协议及数据库服务日志"
 	}
 }

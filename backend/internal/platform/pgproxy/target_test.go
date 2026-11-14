@@ -75,6 +75,18 @@ func TestPostgreSQL18TLSAndReadonlyPrivileges(t *testing.T) {
 			t.Fatalf("unsafe role %s: %v", v.User, e)
 		}
 	}
+
+	program := target
+	program.User, program.Password, program.ProgramPermissions = "writer", "r16-fixture-writer", true
+	pc, err := ConnectTarget(ctx, program)
+	if err != nil {
+		t.Fatal("program mode rejected broader account", err)
+	}
+	if _, err = pc.Exec(ctx, "INSERT INTO public.items VALUES(99,'must not write')"); err == nil {
+		pc.Close(ctx)
+		t.Fatal("program readonly accepted write")
+	}
+	pc.Close(ctx)
 	bad := target
 	bad.ServerName = "wrong.internal"
 	if c, e := ConnectTarget(ctx, bad); e == nil {

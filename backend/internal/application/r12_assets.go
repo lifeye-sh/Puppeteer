@@ -66,6 +66,16 @@ func (a *App) saveDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 	}
 	var id string
 	e := a.mutate(r, "database.asset_saved", func(c context.Context, u *identity.User) (string, error) {
+		if in.PermissionMode == "" {
+			in.PermissionMode = "account"
+			if in.ID != "" {
+				current, err := database.New(a.db).Asset(c, in.ID)
+				if err != nil {
+					return "", err
+				}
+				in.PermissionMode = current.PermissionMode
+			}
+		}
 		if e := database.Validate(in); e != nil {
 			return "", e
 		}
@@ -88,7 +98,7 @@ func (a *App) saveDatabaseAsset(w http.ResponseWriter, r *http.Request) error {
 			if mode == "" {
 				mode = "verify-full"
 			}
-			e = a.audit.Detail(c, u.ID, "database.transport_saved", requestID(r), sourceIP(r), map[string]string{"target": id, "tlsMode": mode})
+			e = a.audit.Detail(c, u.ID, "database.transport_saved", requestID(r), sourceIP(r), map[string]string{"target": id, "tlsMode": mode, "permissionMode": in.PermissionMode})
 		}
 		return id, e
 	})

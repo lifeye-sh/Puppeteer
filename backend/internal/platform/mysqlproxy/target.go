@@ -11,7 +11,10 @@ import (
 	"time"
 )
 
+var ErrTargetPrivileges = errors.New("target credential privileges exceed the selected database profile")
+
 type Target struct {
+	ProgramPermissions                                bool
 	TLSMode                                           string
 	Address, User, Password, Database, ServerName, CA string
 	Timeout                                           time.Duration
@@ -43,7 +46,7 @@ func ConnectTarget(ctx context.Context, target Target, readonly bool) (*client.C
 	if e != nil {
 		return nil, e
 	}
-	{
+	if !target.ProgramPermissions {
 		grants, e := c.Execute("SHOW GRANTS FOR CURRENT_USER()")
 		if e != nil {
 			c.Close()
@@ -57,7 +60,7 @@ func ConnectTarget(ctx context.Context, target Target, readonly bool) (*client.C
 			text, e := grants.GetString(i, 0)
 			if e != nil || !targetGrant(text, target.Database, readonly) {
 				c.Close()
-				return nil, errors.New("target credential privileges exceed the selected database profile")
+				return nil, ErrTargetPrivileges
 			}
 		}
 	}

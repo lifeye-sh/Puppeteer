@@ -193,7 +193,7 @@ func (a *App) executeDatabaseWorkWithConnector(parent context.Context, v databas
 		if credential.ActiveVersion != v.CredentialVersion || credential.Kind != "password" {
 			return fault.Conflict
 		}
-		endpoint = mysqlproxy.Target{Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, TLSMode: asset.TLSMode, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
+		endpoint = mysqlproxy.Target{ProgramPermissions: asset.PermissionMode == "program", Address: net.JoinHostPort(asset.Host, strconv.Itoa(asset.Port)), User: credential.Username, Password: secret.Password, Database: asset.Database, ServerName: asset.TLSServerName, CA: asset.TLSCA, TLSMode: asset.TLSMode, Timeout: time.Duration(asset.ConnectTimeout) * time.Second}
 		return nil
 	})
 	if e != nil {

@@ -17,6 +17,7 @@ import (
 var ErrPrivileges = errors.New("postgresql readonly role privileges exceed policy")
 
 type Target struct {
+	ProgramPermissions                                bool
 	TLSMode                                           string
 	Address, User, Password, Database, ServerName, CA string
 	Timeout                                           time.Duration
@@ -43,8 +44,10 @@ func ConnectTarget(ctx context.Context, t Target) (*pgx.Conn, error) {
 	if _, e = c.Exec(ctx, "SET default_transaction_read_only = on"); e != nil {
 		return nil, e
 	}
-	if e = validateReadonly(ctx, c); e != nil {
-		return nil, e
+	if !t.ProgramPermissions {
+		if e = validateReadonly(ctx, c); e != nil {
+			return nil, e
+		}
 	}
 	var one int
 	if e = c.QueryRow(ctx, "SELECT 1").Scan(&one); e != nil {

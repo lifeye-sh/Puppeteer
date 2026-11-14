@@ -54,6 +54,22 @@ func TestMySQL84TLSRelay(t *testing.T) {
 		c.Close()
 		t.Fatal("write-capable target accepted as readonly")
 	}
+
+	writer.ProgramPermissions = true
+	programReader, err := ConnectTarget(context.Background(), writer, true)
+	if err != nil {
+		t.Fatal("program mode rejected broader account", err)
+	}
+	if _, err = programReader.Execute("INSERT INTO items VALUES(99,'forbidden',NULL)"); err == nil {
+		programReader.Close()
+		t.Fatal("program readonly connection allowed write")
+	}
+	programReader.Close()
+	programWriter, err := ConnectDMLTarget(context.Background(), writer)
+	if err != nil {
+		t.Fatal("program DML rejected broader account", err)
+	}
+	programWriter.Close()
 	wrongName := target
 	wrongName.ServerName = "wrong.internal"
 	if c, e := ConnectTarget(context.Background(), wrongName, true); e == nil {

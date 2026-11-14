@@ -32,6 +32,9 @@ func ConnectDMLTarget(ctx context.Context, target Target) (*client.Conn, error) 
 	if err != nil {
 		return nil, err
 	}
+	if target.ProgramPermissions {
+		return c, nil
+	}
 	stop := context.AfterFunc(ctx, func() { c.Close() })
 	defer stop()
 	grants, err := c.Execute("SHOW GRANTS FOR CURRENT_USER()")

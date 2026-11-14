@@ -68,8 +68,8 @@ const fieldHints:Record<string,string>={
  'mail-ca-pem':'只接受 PEM CA 证书，不含私钥。留空使用系统信任库。',
  'db-proxy-certificate-id':'可留空使用平台自动生成的证书。自选证书必须包含代理公开主机名及私钥，未过期且未吊销；切换后客户端需要信任新证书。',
  'ssh-server-addr':'留空继承部署设置。格式为 IP:端口，例如 0.0.0.0:2022。',
- 'db-proxy-addr':'留空继承部署设置。格式为 IP:端口，例如 0.0.0.0:13306。',
- 'postgres-proxy-addr':'留空继承部署设置。格式为 IP:端口，例如 0.0.0.0:15432。',
+ 'db-proxy-addr':'默认填写 0.0.0.0:13306。Docker 部署时，填写的是容器内部监听地址。保存后等待配置发布成功；客户端使用宿主机映射端口。清空可继承部署设置。',
+ 'postgres-proxy-addr':'默认填写 0.0.0.0:15432。Docker 部署时，填写的是容器内部监听地址。保存后等待配置发布成功；客户端使用宿主机映射端口。清空可继承部署设置。',
  'password-expiration-period':'-1 表示不过期，1–3650 天；0 无效。已有本地密码到期后，下一次访问需要改密；升级前密码从本次升级时开始计时。外部身份提供方独立管理其密码期限。',
  'watermark-content':'纯文字，可用 {user}、{assetUser}、{asset} 分别插入平台用户、资产账户和资产名称。不支持 HTML。',
  'watermark-font-color':'支持 #RRGGBB、#RRGGBBAA、rgb() 或 rgba()；例如 rgba(128, 128, 128, 0.3)。',
@@ -93,7 +93,7 @@ export default function BackendConfiguration({section='branding'}:{section?:'bra
  const loginPolicy=useQuery({queryKey:['login-policy'],enabled:editing?.group==='loginPolicy',queryFn:()=>requests.get<{passwordEnabled:boolean;canDisable:boolean}>('/admin/login-policy',{errorMode:'local'}),retry:false});
  const needsProof=secretChanged||editing?.group==='captcha'||editing?.group==='databasePolicy'||editing?.group==='access'||editing?.group==='oauthServer'||editing?.group==='recording'||editing?.group==='loginPolicy'||editing?.group==='ldap'||editing?.group==='passkey'||editing?.group==='oauthLifetime';
  const selected:EditorGroup[]=section==='login'?[...(definitions.some(p=>p.key==='disable-password-login')?['loginPolicy' as const]:[]),...(definitions.some(p=>p.key==='login-captcha-enabled')?['captcha' as const]:[]),'sessions','locks','password']:section==='postgres'?['postgres',...(definitions.some(p=>p.key==='db-proxy-block-dml')?['databasePolicy' as const]:[])]:section==='ai'?['ai',...(definitions.some(p=>p.key==='llm-base-url')?['aiModel' as const]:[])]:[section];
- const open=(group:EditorGroup)=>{if(!current.data)return;form.resetFields();form.setFieldsValue(configurationPatch(definitions,group,current.data.values));setError('');setMailTab('connection');setAITab('switches');setEditing({snapshot:current.data,group})};
+ const open=(group:EditorGroup)=>{if(!current.data)return;form.resetFields();const values=configurationPatch(definitions,group,current.data.values);if(group==='listeners'){for(const [key,address] of Object.entries({'db-proxy-addr':'0.0.0.0:13306','postgres-proxy-addr':'0.0.0.0:15432'})){if(definitions.some(p=>p.key===key)&&!values[key])values[key]=address}}form.setFieldsValue(values);setError('');setMailTab('connection');setAITab('switches');setEditing({snapshot:current.data,group})};
  const close=()=>{if(busy)return;const discard=()=>{form.resetFields();setEditing(undefined)};const changed=clearMailPassword||editing&&definitions.filter(p=>propertyGroup(p.key)===editing.group).some(p=>form.getFieldValue(p.key)!==editing.snapshot.values[p.key]);if(changed){confirm.confirm({title:'放弃尚未保存的修改？',content:'当前填写内容尚未提交，关闭后需要重新填写。',okText:'放弃修改',cancelText:'继续编辑',onOk:discard})}else discard()};
  const save=async()=>{
   if(!editing)return;setBusy(true);setError('');
@@ -103,7 +103,7 @@ export default function BackendConfiguration({section='branding'}:{section?:'bra
    if(secretKey&&clearSecrets.length)delete patch[secretKey];
    const response=await fetch('/api/settings',{method:'PATCH',headers:{'Content-Type':'application/json','If-Match':`"settings-${editing.snapshot.id}"`},body:JSON.stringify({set:patch,clearSecrets,...(needsProof?{password:values._adminPassword,totp:values._adminTOTP}:{})})});
    if(!response.ok){const body=await response.json();throw Error(body.message??(response.status===409?'配置或备用登录状态已变化，请刷新后重试。':'配置提交失败'))}
-   setEditing(undefined);form.resetFields();setNotice('已保存新版本；请以页面顶部的应用状态为准。');
+   setEditing(undefined);form.resetFields();setNotice(editing.group==='listeners'?'已保存监听配置，请等待配置发布成功；以页面顶部的应用状态为准。':'已保存新版本；请以页面顶部的应用状态为准。');
    await Promise.all(['configuration-current','configuration-history','backend-settings','backend-branding','login-policy','ai-admin-settings','ai-settings','ai-status','ai-admin-profiles','ai-profiles','agent-install-defaults','r13-ldap-providers'].map(key=>cache.invalidateQueries({queryKey:[key]})));
   }catch(e){if(e instanceof Error)setError(e.message);else if(editing.group==='ai'&&e&&typeof e==='object'&&'errorFields' in e){setAITab('prompts')}else if((editing.group==='mail'||editing.group==='listeners'||editing.group==='aiModel'||editing.group==='ldap')&&e&&typeof e==='object'&&'errorFields' in e){const fields=(e as {errorFields:Array<{name:Array<string|number>}>}).errorFields;const key=String(fields[0]?.name[0]??'');setMailTab(key.startsWith('native-rdp-')?'rdp':/^(http-server|website-server)-/.test(key)?'public':['ldap-password','ldap-ca-pem','mail-password','mail-ca-pem','mail-insecure-skip-verify','ssh-server-private-key','llm-api-key','llm-proxy-url','llm-allow-private','_adminPassword','_adminTOTP'].includes(key)?'security':'connection')}}finally{setBusy(false)}
  };

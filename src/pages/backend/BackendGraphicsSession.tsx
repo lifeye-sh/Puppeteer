@@ -71,8 +71,8 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
    };
    const moves=coalesceMouse<Guacamole.Mouse.State>(s=>{if(!disposed)sendMouse(s)});
    flushMouse=moves.flush;
-   mouse.onmousemove=s=>moves.move({...s});
-   mouse.onmousedown=mouse.onmouseup=s=>{flushMouse();sendMouse(s)};
+   mouse.onmousemove=(s:Guacamole.Mouse.State)=>moves.move({...s});
+   mouse.onmousedown=mouse.onmouseup=(s:Guacamole.Mouse.State)=>{flushMouse();sendMouse(s)};
    const focus=()=>element.focus();const blur=()=>{flushMouse();keyboard.reset()};element.addEventListener('mousedown',focus);element.addEventListener('blur',blur);
    client.onerror=()=>{if(!disposed)setError('远程桌面连接已中断，请查看访问记录。')};
    close.current=()=>{if(disposed)return;disposed=true;moves.clear();clipboardSend.current=()=>false;keySend.current=()=>{};setRemoteClipboard(v=>({text:'',sequence:v.sequence+1}));clearTimeout(resizeTimer);resizeObserver.disconnect();display.onresize=null;keyboard.reset();keyboard.onkeydown=keyboard.onkeyup=null;mouse.onmousedown=mouse.onmouseup=mouse.onmousemove=null;element.removeEventListener('mousedown',focus);element.removeEventListener('blur',blur);client.disconnect();tunnel.disconnect();void requests.post(`/sessions/${reservation.id}/terminate`,undefined,{errorMode:'local'}).catch(()=>{})};
