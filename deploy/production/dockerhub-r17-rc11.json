@@ -1,0 +1,21 @@
+{
+  "product": "Puppeteer",
+  "version": "r17-rc11",
+  "sourceCheckout": "ee8b463be025d975df74fcd7fe530cb22f1ecef4",
+  "platform": "linux/amd64",
+  "schemaVersion": 107,
+  "images": [
+    {
+      "component": "server",
+      "reference": "cloners/puppeteer-server:r17-rc11",
+      "digest": "sha256:b3c418c2c858dbb8795d6a08a5101c66d63854b4c1c6641562d6a88a7c77eecc",
+      "pinnedReference": "cloners/puppeteer-server@sha256:b3c418c2c858dbb8795d6a08a5101c66d63854b4c1c6641562d6a88a7c77eecc"
+    },
+    {
+      "component": "web",
+      "reference": "cloners/puppeteer-web:r17-rc11",
+      "digest": "sha256:8db8d80ad99cf7abf63b6e56d5cea1d942a66b4d2c72eb517d08759d01c27add",
+      "pinnedReference": "cloners/puppeteer-web@sha256:8db8d80ad99cf7abf63b6e56d5cea1d942a66b4d2c72eb517d08759d01c27add"
+    }
+  ]
+}
