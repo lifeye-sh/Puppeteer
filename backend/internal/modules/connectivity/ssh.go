@@ -6,8 +6,8 @@ import (
 	"errors"
 	"golang.org/x/crypto/ssh"
 	"net"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/postgres"
 	"strconv"
 	"time"
 )

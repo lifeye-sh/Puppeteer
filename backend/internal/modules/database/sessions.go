@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 	"unicode/utf8"

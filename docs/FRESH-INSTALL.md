@@ -1,14 +1,14 @@
 # Puppeteer 全新部署指南
 
-适用版本：`r17-rc11` 候选发布版本（schema107）。部署方式：单台 Linux amd64 主机、Docker Compose、全新 PostgreSQL 数据卷，不迁移旧系统数据。
+适用源码：`r17-rc12` 源码候选（schema 110、能力版本 90）。本文从源码构建本地镜像，不要求 rc12 公共镜像已经发布。新安装使用单台 Linux amd64、Docker Compose 和全新 PostgreSQL 数据卷；已有数据按升级说明处理。
 
-最快方式是[一条命令安装](ONE-CLICK-INSTALL.md)。需要手动选择组件时使用[Docker Hub免编译安装](../deploy/production/dockerhub.md)；本文以下步骤用于源码构建。
+需要已发布镜像时使用[一键安装](ONE-CLICK-INSTALL.md)或[Docker Hub 安装](../deploy/production/dockerhub.md)，当前均为 rc11，功能与本文源码版本不同。仅使用网页内 RDP 时选择图形组件，无需原生 Worker，见[网页内 RDP](BROWSER-RDP.md)。
 
 本文按“源码构建 → 初始化配置 → 安装证书 → 启动 → 创建管理员 → 验证”的顺序执行。Docker 模拟环境已验收；正式环境请使用自己的域名、证书及独立密钥。仓库内的开发夹具、测试账号和 `backend/compose.yaml` 不用于正式安装。
 
 ## 1. 准备环境
 
-需要预先安装：Git、Node.js 24（含 npm）、Docker Engine、Docker Compose v2 插件。本文命令使用 Bash，执行账户需要 sudo 权限及 Docker 构建权限。Go 和 PostgreSQL 工具由镜像构建提供，无需在宿主机安装。
+需要预先安装：Git、Node.js 24（含 npm）、Docker Engine、Docker Compose v2 插件。自动部署接管还需要 Python 3、flock 和 systemd。本文命令使用 Bash，执行账户需要 sudo 权限及 Docker 构建权限。Go 和 PostgreSQL 工具由镜像构建提供，无需在宿主机安装。每一步成功后再继续；出现错误时停止，不能跳过检查。
 
 ```bash
 git --version
@@ -31,7 +31,7 @@ sudo docker compose version
 ```bash
 git clone https://github.com/lifeye-sh/Puppeteer.git
 cd Puppeteer
-git checkout r17-rc11
+git checkout r17-rc12
 git rev-parse HEAD
 npm ci
 npm run release:frontend
@@ -43,16 +43,18 @@ npm run verify:frontend
 ## 3. 生成全新的私有配置
 
 ```bash
-sudo node scripts/production-config.mjs /etc/puppeteer https://puppeteer.example.com 443
+sudo test ! -e /opt/puppeteer
+sudo install -d -m 0700 /opt/puppeteer
+sudo node scripts/production-config.mjs /opt/puppeteer/config https://puppeteer.example.com 443
 ```
 
-`/etc/puppeteer` 必须不存在。命令随机生成数据库密码、MFA/凭据加密密钥和 MP4 通信密钥，不提供默认管理员密码。生成结果包括：
+安装目录及配置目录必须不存在。命令随机生成数据库密码、MFA/凭据加密密钥和 MP4 通信密钥，不提供默认管理员密码。生成结果包括：
 
 | 路径 | 用途 |
 | --- | --- |
-| `/etc/puppeteer/production.env` | 镜像、HTTPS 来源、绑定地址、端口 |
-| `/etc/puppeteer/secrets/` | 数据库连接和应用密钥 |
-| `/etc/puppeteer/tls/` | 网页入口的证书及私钥 |
+| `/opt/puppeteer/config/production.env` | 镜像、HTTPS 来源、绑定地址、端口 |
+| `/opt/puppeteer/config/secrets/` | 数据库连接和应用密钥 |
+| `/opt/puppeteer/config/tls/` | 网页入口的证书及私钥 |
 
 生成器拒绝覆盖已有配置。安装中断后先查明原因，不能删除配置重新生成密钥来连接已有数据库，否则已加密内容可能无法解密。配置目录应独立加密备份；不要提交到 Git 或发送到聊天中。
 
@@ -61,9 +63,9 @@ sudo node scripts/production-config.mjs /etc/puppeteer https://puppeteer.example
 以下源路径为示例；`fullchain.pem` 应包含服务器证书及所需中间证书：
 
 ```bash
-sudo install -o 101 -g 101 -m 0400 /secure/fullchain.pem /etc/puppeteer/tls/server.crt
-sudo install -o 101 -g 101 -m 0400 /secure/privkey.pem /etc/puppeteer/tls/server.key
-sudoedit /etc/puppeteer/production.env
+sudo install -o 101 -g 101 -m 0400 /secure/fullchain.pem /opt/puppeteer/config/tls/server.crt
+sudo install -o 101 -g 101 -m 0400 /secure/privkey.pem /opt/puppeteer/config/tls/server.key
+sudoedit /opt/puppeteer/config/production.env
 ```
 
 初始配置只监听 `127.0.0.1`。服务器直接提供网页时，在防火墙已限制访问来源的前提下，将配置改为：
@@ -84,11 +86,11 @@ PUPPETEER_HTTPS_PORT=443
 
 ```bash
 dc() {
-  sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
+  sudo docker compose --env-file /opt/puppeteer/config/production.env -p puppeteer \
     -f deploy/production/compose.yaml "$@"
 }
 dc build
-sudo node scripts/production-preflight.mjs /etc/puppeteer/production.env
+sudo node scripts/production-preflight.mjs /opt/puppeteer/config/production.env
 ```
 
 ### 图形与 MP4：浏览器 RDP/VNC、共享文件、MP4 下载
@@ -98,12 +100,44 @@ sudo node scripts/production-preflight.mjs /etc/puppeteer/production.env
 ```bash
 sudo modprobe fuse
 test -c /dev/fuse
+```
+
+如果 `sudo docker info --format '{{json .SecurityOptions}}'` 包含 `apparmor`，先安装 AppArmor 工具并加载项目专用策略。以下命令使用固定项目名 `puppeteer`；已有策略必须与本次内容一致，校验失败时停止，不覆盖原文件：
+
+```bash
+sed 's/puppeteer-rdp-storage/puppeteer-rdp-storage-puppeteer/g' \
+  deploy/production/puppeteer-rdp-storage.apparmor | \
+  sudo tee /opt/puppeteer/config/drive-profile >/dev/null
+sudo apparmor_parser --skip-kernel-load --skip-cache /opt/puppeteer/config/drive-profile
+profile=/etc/apparmor.d/puppeteer-rdp-storage-puppeteer
+if sudo test -e "$profile" || sudo test -L "$profile"; then
+  sudo test ! -L "$profile" && sudo cmp /opt/puppeteer/config/drive-profile "$profile"
+else
+  sudo install -m 644 /opt/puppeteer/config/drive-profile "$profile"
+fi
+```
+
+上述检查通过后加载策略、生成叠加文件；未启用 AppArmor 的主机跳过此段：
+
+```bash
+sudo apparmor_parser -r /etc/apparmor.d/puppeteer-rdp-storage-puppeteer
+printf 'services:\n  guacd:\n    security_opt: ["apparmor=puppeteer-rdp-storage-puppeteer"]\n' | \
+  sudo tee /opt/puppeteer/graphics-apparmor.yaml >/dev/null
+```
+
+定义图形模式命令并构建：
+
+```bash
 dc() {
-  sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
-    -f deploy/production/compose.yaml -f deploy/production/services.yaml "$@"
+  local extra=()
+  if sudo test -f /opt/puppeteer/graphics-apparmor.yaml; then
+    extra+=(-f /opt/puppeteer/graphics-apparmor.yaml)
+  fi
+  sudo docker compose --env-file /opt/puppeteer/config/production.env -p puppeteer \
+    -f deploy/production/compose.yaml -f deploy/production/services.yaml "${extra[@]}" "$@"
 }
 dc build
-sudo node scripts/production-preflight.mjs /etc/puppeteer/production.env --services
+sudo node scripts/production-preflight.mjs /opt/puppeteer/config/production.env --services
 ```
 
 此模式增加 guacd 与 MP4 渲染器。共享文件系统需要 `/dev/fuse` 和模板中限定的挂载权限；仅 FUSE 守护进程使用 root，guacd 低权限运行。不要把容器改成 `privileged` 作为故障处理方式。宿主环境不支持 FUSE 时先采用核心安装。
@@ -152,11 +186,15 @@ curl --fail --show-error https://puppeteer.example.com/healthz
 
 ```bash
 dc() {
-  sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
+  local extra=()
+  if sudo test -f /opt/puppeteer/graphics-apparmor.yaml; then
+    extra+=(-f /opt/puppeteer/graphics-apparmor.yaml)
+  fi
+  sudo docker compose --env-file /opt/puppeteer/config/production.env -p puppeteer \
     -f deploy/production/compose.yaml -f deploy/production/services.yaml \
-    -f deploy/production/protocols.yaml "$@"
+    -f deploy/production/protocols.yaml "${extra[@]}" "$@"
 }
-sudo node scripts/production-preflight.mjs /etc/puppeteer/production.env --services --protocols
+sudo node scripts/production-preflight.mjs /opt/puppeteer/config/production.env --services --protocols
 dc up -d --no-build --wait
 dc up -d --no-deps --force-recreate --wait web
 ```
@@ -165,7 +203,39 @@ dc up -d --no-deps --force-recreate --wait web
 
 数据库代理的容器内部监听地址、宿主机映射端口、权限控制模式及目标TLS选项见[数据库代理配置](../deploy/production/README.md#数据库代理启用与凭据)。
 
-## 8. 部署验收
+## 8. 接入自动部署执行器
+
+只启动 Compose 不会创建执行器。使用新部署页面前，需要 Linux root、systemd、Python 3、flock 与可用的 Docker CLI。先确认所有服务健康，再为本次真实配置创建持久管理脚本。以下示例为图形模式；核心模式移除 services.yaml，其他叠加文件应完整保留。
+
+```bash
+repo_dir=$(pwd -P)
+sudo tee /opt/puppeteer/puppeteerctl >/dev/null <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+files=(-f '$repo_dir/deploy/production/compose.yaml' -f '$repo_dir/deploy/production/services.yaml')
+if [[ -f /opt/puppeteer/graphics-apparmor.yaml ]]; then
+  files+=(-f /opt/puppeteer/graphics-apparmor.yaml)
+fi
+exec docker compose --env-file /opt/puppeteer/config/production.env -p puppeteer "\${files[@]}" "\$@"
+EOF
+sudo chmod 700 /opt/puppeteer/puppeteerctl
+sudo /opt/puppeteer/puppeteerctl config --quiet
+sudo bash backend/deploy/enroll-deployd.sh /opt/puppeteer
+sudo systemctl is-active puppeteer-deployd-puppeteer.service
+sudo /opt/puppeteer/puppeteerctl ps
+```
+
+如果此前加载了 protocols.yaml、agents.yaml 或其他文件，创建脚本时须把这些 `-f` 项加入 files 数组，不能遗漏。接管保存原配置，创建 compose-managed.json、认证令牌及 Unix Socket，并重建 server/web；安排维护时间。应用容器不挂 Docker socket。接管失败会尝试恢复原服务并保留诊断信息。
+
+接管完成后，后续命令使用新的管理脚本，避免手动启动旧 Compose 覆盖自动部署结果：
+
+```bash
+dc() { sudo /opt/puppeteer/puppeteerctl "$@"; }
+```
+
+进入“平台配置 → 服务部署”确认状态可读取，再对需要的服务执行预检。Windows Docker Desktop 本地开发使用独立 Linux 执行器容器，与 Linux/systemd 安装不是同一流程；不在 Windows PowerShell 中执行上述 systemd 接管命令。详见 [执行器与故障排查](AUTO-DEPLOYMENT.md)。
+
+## 9. 部署验收
 
 - 用新管理员完成初始化、退出及重新登录；用普通用户检查未授权资产不可访问。
 - 检查真实资产连接、文件上传/下载、命令审计、会话关闭与访问记录。
@@ -176,7 +246,7 @@ dc up -d --no-deps --force-recreate --wait web
 
 不要导入开发数据库或历史验收数据。平台默认访问记录保留策略、录屏及共享目录配额可在管理页调整；容量需求以自己的使用量为准。
 
-## 9. 日常维护与排错
+## 10. 日常维护与排错
 
 ```bash
 dc ps
@@ -194,10 +264,12 @@ dc start
 | 证书错误 | 域名覆盖、有效期、中间证书链及客户端CA信任 |
 | 网页502 | server健康状态；更新server后重新创建web，使Nginx解析新容器地址 |
 | 预检查提示权限/密钥错误 | 通过sudo运行配置生成器；保留脚本分配的UID与权限，不使用chmod 777 |
+| 提示原生 RDP Worker 未部署 | 只使用网页 RDP 时无需该组件，检查 guacd 与目标 Windows，见 [网页内 RDP](BROWSER-RDP.md) |
+| 无法连接部署执行器 | 核对匹配镜像、systemd 服务、接管配置和套接字；不要只反复切换开关 |
 | 图形服务不健康 | 宿主机FUSE设备、容器挂载权限、guacd日志及实际目标连通性 |
 | MP4任务繁忙或失败 | 渲染器健康状态、临时磁盘、任务清理；429表示繁忙，507表示存储不足 |
 
-一键安装创建的已有部署可使用[升级脚本](UPGRADE.md)；本文源码安装布局不满足该脚本的目录约定，应使用原项目与叠加文件手动维护。
+已按上文完成接管的源码安装具备受管布局；未来升级仍需要目标版本已发布镜像清单。rc12 目前没有镜像发布清单，不能直接运行 `upgrade.sh --version r17-rc12`。保留本次源码、配置及镜像记录，升级前按[升级说明](UPGRADE.md)备份。
 
 应用更新和证书变更后的操作见[生产部署说明](../deploy/production/README.md)。不要执行 `docker compose down -v` 或删除数据卷来处理普通启动失败。数据库已有新写入后，不可简单切换旧镜像声称无损回滚；使用[恢复切换流程](../deploy/production/cutover.md)。
 

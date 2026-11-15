@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"slices"
 	"strconv"
 	"strings"

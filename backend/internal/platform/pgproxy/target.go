@@ -90,7 +90,7 @@ func targetConfig(t Target) (*pgx.ConnConfig, error) {
 	cfg.AfterConnect = nil
 	cfg.ConnectTimeout = t.Timeout
 	cfg.DialFunc = (&net.Dialer{Timeout: t.Timeout}).DialContext
-	cfg.RuntimeParams = map[string]string{"application_name": "next-terminal-readonly-proxy", "statement_timeout": "10000", "lock_timeout": "3000", "search_path": "pg_catalog, public"}
+	cfg.RuntimeParams = map[string]string{"application_name": "puppeteer-readonly-proxy", "statement_timeout": "10000", "lock_timeout": "3000", "search_path": "pg_catalog, public"}
 	if t.QueryTimeoutSeconds != 0 {
 		if t.QueryTimeoutSeconds < 1 || t.QueryTimeoutSeconds > 20 {
 			return nil, errors.New("invalid query timeout")

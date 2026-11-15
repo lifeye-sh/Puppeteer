@@ -3,7 +3,7 @@ package identity
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 )
 
 // QuarantineRestore revokes sessions and recovery challenges in an isolated restore.

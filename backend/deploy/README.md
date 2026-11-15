@@ -10,7 +10,7 @@
 
 填写 Agent 名称、目标机器实际可达的后端 HTTPS origin、允许拨号的 CIDR 与端口。后端生成受限设备身份，通过 SSH 的私有 tar 数据流上传程序和 0600 配置，不需要人工复制令牌。目标须为 Linux x86_64、运行中的 systemd，SSH 账号须为 root 或具有免密 sudo 权限，并具备 tar、sha256sum、useradd、install 等基础命令。
 
-安装创建 nt-agent 系统账户（若不存在）、/opt/next-terminal-agent、/var/lib/next-terminal-agent 和 /etc/systemd/system/nt-agent.service，启用开机启动。已有安装或同名服务会被拒绝，不覆盖。程序传输后校验 SHA256；只有服务启动且后端确认 Agent 可拨号后才报告成功。
+安装创建 nt-agent 系统账户（若不存在）、/opt/puppeteer-agent、/var/lib/puppeteer-agent 和 /etc/systemd/system/nt-agent.service，启用开机启动。已有安装或同名服务会被拒绝，不覆盖。程序传输后校验 SHA256；只有服务启动且后端确认 Agent 可拨号后才报告成功。
 
 任务进度持久化，关闭弹窗不影响执行；单任务最多三分钟，全局最多四个，同一资产仅一个运行任务。身份、资产、凭据或主机信任变更会中断任务。失败时本次设备 Key 撤销；若已经创建远端目录或服务，需运维检查并清理该失败安装后重试，系统不会自动删除可能需要排查的现场。重启遗留任务在超时后显示失败。
 
@@ -19,11 +19,11 @@
 ### 手工安装与高级配置
 
 1. 管理员在“Agent 网关”下载 Linux amd64 程序，创建限定目标 CIDR/端口的注册令牌。令牌十分钟有效且只能使用一次。
-2. Linux 创建专用普通用户 nt-agent；创建 /opt/next-terminal-agent 和 /var/lib/next-terminal-agent，所有者设为该用户，目录权限 0700。将程序安装到前者，权限 0700。将令牌通过安全渠道存为后者的 token.txt，权限 0600。
+2. Linux 创建专用普通用户 nt-agent；创建 /opt/puppeteer-agent 和 /var/lib/puppeteer-agent，所有者设为该用户，目录权限 0700。将程序安装到前者，权限 0700。将令牌通过安全渠道存为后者的 token.txt，权限 0600。
 3. 以 nt-agent 用户运行以下命令。endpoint 必须是 Agent 可以访问的后端 HTTPS 地址。成功登记后进程进入运行；确认在线后停止前台进程，并移除已消费的 token.txt。
 
 ```sh
-/opt/next-terminal-agent/nt-agent --endpoint https://backend.example.com --name site-a --token-file /var/lib/next-terminal-agent/token.txt --config /var/lib/next-terminal-agent/agent.json
+/opt/puppeteer-agent/nt-agent --endpoint https://backend.example.com --name site-a --token-file /var/lib/puppeteer-agent/token.txt --config /var/lib/puppeteer-agent/agent.json
 ```
 
 4. 保留自动生成配置中的 agentId、deviceKey，参考 [配置示例](agent.example.json) 补充采集与更新配置。配置文件必须是普通文件，最大 16 KiB，0600 或更严格。不要把令牌、设备 Key 或完整配置放进命令行、日志或代码库。

@@ -58,7 +58,7 @@ HTTP `/api/admin/properties` 的已有请求/返回结构沿用前端契约；st
 
 **schema70 集成状态（2026-11-11）：** local/signed 验证已接入服务启动配置、管理员复核导入、追加式许可历史、状态面板，以及用户/三类资产/主机与数据库会话准入。100并发 × 三类额度、错实例/过期/零配额/版本冲突、续租越过旧到期点的竞争测试通过。149个应用测试入口的完整分组回归、其余Go包、go vet和29项前端测试通过，已部署schema70/revision45并完成local面板验收；业务实例保持 local 默认不限配额。部署文件、公钥、接口与实际受控范围见 [操作说明](../acceptance/R16-entitlements-runbook.md)。该范围不等于全产品功能权益已覆盖。现有依赖为 go-jose/v4 v4.1.4，使用[固定版本官方文档](https://pkg.go.dev/github.com/go-jose/go-jose/v4@v4.1.4)。
 
-已实现的格式为compact JWS，header必须仅含alg=EdDSA、kid、typ=nt-license+jws；kid只查只读公钥副本，拒绝jku/jwk和重复字段。payload必须包含下文全部字段，iss=next-terminal-local-issuer，aud/product=next-terminal-backend，UUID实例与licenseId，schemaVersion=1。配额对象强制users/resources/sessions，null表示无限，数值0..1000000000；features为精确布尔字典。重复键、错误大小写、未知字段、超长文本、非法时刻均拒绝。快照每次检查签名/实例/有效期，过期不会返回有效功能；local空部署配置仅允许已实现能力。单测与go vet通过；测试镜像未启用CGO，未运行race检查。
+已实现的格式为compact JWS，header必须仅含alg=EdDSA、kid、typ=nt-license+jws；kid只查只读公钥副本，拒绝jku/jwk和重复字段。payload必须包含下文全部字段，iss=puppeteer-local-issuer，aud/product=puppeteer-backend，UUID实例与licenseId，schemaVersion=1。配额对象强制users/resources/sessions，null表示无限，数值0..1000000000；features为精确布尔字典。重复键、错误大小写、未知字段、超长文本、非法时刻均拒绝。快照每次检查签名/实例/有效期，过期不会返回有效功能；local空部署配置仅允许已实现能力。单测与go vet通过；测试镜像未启用CGO，未运行race检查。
 
 最新范围：AI于revision47，任务、通知、文件写入与独立RDP共享盘进程于revision48接入；资源默认值于revision49接入。剩余范围：不能仅给 features 填键便宣称对应入口已受控。全量配置适配、监听热切换、多节点配置一致性验收与 DBeaver/全站业务按钮矩阵仍需继续。管理员登录、审计读取和恢复入口在上述许可失效后保持可用。
 

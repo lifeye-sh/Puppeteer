@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"github.com/pkg/sftp"
 	"io"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"os"
 	"path"
 	"strings"

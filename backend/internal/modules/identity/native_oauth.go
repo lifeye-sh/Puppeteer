@@ -3,7 +3,7 @@ package identity
 import (
 	"context"
 	"net/url"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 	"strings"
 )

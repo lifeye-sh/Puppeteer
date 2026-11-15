@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/listener"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/listener"
 	"testing"
 	"time"
 )

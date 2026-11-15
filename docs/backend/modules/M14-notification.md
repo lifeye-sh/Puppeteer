@@ -72,7 +72,7 @@
 - 阶段：W3/W4；协作：M11、M18。
 - 功能要求：SQL 工单完成/失败/结果待核对后通知申请人；SMTP TLS、账号、发件人和测试发送归渠道模块。
 - 验收条件：发送失败可独立重试，不重做 SQL；不把数据库密码/完整秘密放进消息；配置测试与生产投递记录可区分。
-- 来源：[数据库审计](https://www.next-terminal.com/zh/docs/usage/database.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[数据库审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U23（主责 M11）、U29（主责 M16）、U31（主责 M18）。
 

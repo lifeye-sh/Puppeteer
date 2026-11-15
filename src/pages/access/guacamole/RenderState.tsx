@@ -2,7 +2,7 @@ import React from 'react';
 import {HashLoader} from 'react-spinners';
 import {ErrorAlert, GuacamoleStatus} from '@/pages/access/guacamole/ErrorAlert';
 import {useTranslation} from 'react-i18next';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 
 export enum GuacamoleState {
     IDLE = 0,

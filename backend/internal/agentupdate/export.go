@@ -113,6 +113,9 @@ func ExportRepository(repo, output string) (err error) {
 	if sm == nil || tm == nil || sm.Version != targets.Signed.Version || tm.Version != snapshot.Signed.Version {
 		return errors.New("release metadata versions differ")
 	}
+	if sm.VerifyLengthHashes(data["targets.json"]) != nil || tm.VerifyLengthHashes(data["snapshot.json"]) != nil {
+		return errors.New("release metadata length or digest mismatch")
+	}
 	target := targets.Signed.Targets["nt-agent-linux-amd64"]
 	if target == nil || len(targets.Signed.Targets) != 1 {
 		return errors.New("unexpected release targets")

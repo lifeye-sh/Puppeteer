@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base32"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"testing"
 	"time"
 )

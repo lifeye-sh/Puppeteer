@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/storage"
+	"puppeteer/backend/internal/modules/storage"
 	"syscall"
 	"testing"
 )

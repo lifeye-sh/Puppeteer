@@ -3,8 +3,8 @@ package system
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/modelendpoint"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/modelendpoint"
 	"strings"
 )
 

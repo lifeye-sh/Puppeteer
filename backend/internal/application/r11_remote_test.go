@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/webdav"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/backup"
+	"puppeteer/backend/internal/modules/backup"
 	"os"
 	"path/filepath"
 	"sync/atomic"

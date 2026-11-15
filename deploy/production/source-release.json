@@ -1,0 +1,11 @@
+{
+  "product": "Puppeteer",
+  "version": "r17-rc12",
+  "channel": "source-candidate",
+  "platform": "linux/amd64",
+  "schemaVersion": 110,
+  "capabilitiesRevision": 90,
+  "containerImagesPublished": false,
+  "publishedImageVersion": "r17-rc11",
+  "releaseNotes": "deploy/production/r17-rc12.md"
+}

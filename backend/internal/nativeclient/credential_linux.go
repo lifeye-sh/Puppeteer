@@ -104,10 +104,10 @@ func linuxCredentialLock(ctx context.Context, key string) (func(), error) {
 	if !checkDir(root) {
 		return nil, ErrCredentialUnavailable
 	}
-	if e = unix.Mkdirat(root, "next-terminal-native", 0700); e != nil && !errors.Is(e, unix.EEXIST) {
+	if e = unix.Mkdirat(root, "puppeteer-native", 0700); e != nil && !errors.Is(e, unix.EEXIST) {
 		return nil, ErrCredentialUnavailable
 	}
-	dir, e := unix.Openat(root, "next-terminal-native", unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC|unix.O_NOFOLLOW, 0)
+	dir, e := unix.Openat(root, "puppeteer-native", unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC|unix.O_NOFOLLOW, 0)
 	if e != nil {
 		return nil, ErrCredentialUnavailable
 	}
@@ -185,7 +185,7 @@ func (s *linuxCredentialStore) WithLock(ctx context.Context, fn func(SecretSlot)
 	}
 	_ = uconn.SetDeadline(time.Time{})
 	defer conn.Close()
-	v := &secretServiceSlot{ctx: ctx, conn: conn, attrs: map[string]string{"application": "next-terminal", "profile": "native-v1", "origin-sha256": s.key}}
+	v := &secretServiceSlot{ctx: ctx, conn: conn, attrs: map[string]string{"application": "puppeteer", "profile": "native-v1", "origin-sha256": s.key}}
 	if e = v.call(dbus.ObjectPath("/org/freedesktop/DBus"), "org.freedesktop.DBus.GetNameOwner", "org.freedesktop.secrets").Store(&v.owner); e != nil {
 		return ErrCredentialUnavailable
 	}

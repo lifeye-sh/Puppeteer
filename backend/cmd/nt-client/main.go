@@ -12,7 +12,7 @@ import (
 	"golang.org/x/term"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/nativeclient"
+	"puppeteer/backend/internal/nativeclient"
 	"os"
 	"os/exec"
 	"os/signal"

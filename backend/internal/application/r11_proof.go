@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/fault"
 	"slices"
 )
 

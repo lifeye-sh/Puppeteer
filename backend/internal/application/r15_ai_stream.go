@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"next-terminal/backend/internal/modules/ai"
-	"next-terminal/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/ai"
+	"puppeteer/backend/internal/modules/resource"
 	"strconv"
 	"time"
 )

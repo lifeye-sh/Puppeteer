@@ -2,7 +2,7 @@ package connectivity
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func (s *Service) RequestRotation(ctx context.Context, id string) error {

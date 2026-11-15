@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/ai"
+	"puppeteer/backend/internal/modules/ai"
 	"strings"
 	"sync/atomic"
 	"testing"

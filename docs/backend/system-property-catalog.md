@@ -1,6 +1,6 @@
 # 系统属性兼容目录
 
-以下103键来自[官方系统属性文档](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。官方 wireType 原样保留为 string；**本表默认值是本项目设计，不代表官方默认值**。运行实现按批交付；逐键状态以同目录JSON的validationStatus和[R16验收记录](acceptance/R16.md)为准，设计目录不代表全部完成。默认空值表示未配置，生成型私钥由相应启用流程生成；版本取构建元数据。JSON中 officialDefault 保留来源缺口。跨字段规则及effect语义见[配置实施规范](implementation/settings-entitlements.md)。当前前端还有文档页未列出的扩展键，见该规范。
+本表记录 Puppeteer 的配置设计。实际配置键、类型、默认值与校验以 backend/internal/modules/system/configuration.go 及配置实施规范为准；验收状态见 acceptance/R16.md。
 
 ## 类型与默认值
 

@@ -96,7 +96,7 @@
 - 阶段：W1/W3；协作：M01、M03、M06、M07。
 - 功能要求：用户/部门与资源/分组可组合授权；分组新增资产动态生效；到期采用服务器时间。上传、下载、创建文件/目录、编辑、删除、重命名、复制、粘贴分别决策。
 - 验收条件：UI 隐藏按钮后直接请求 API 仍被拒绝；授权到期和撤销影响新接入及可控制的现存操作；文件 chmod 单列动作，不由编辑权限暗中推出。
-- 来源：[资源授权与访问策略](https://www.next-terminal.com/zh/docs/usage/authorization.html)、[文件管理](https://www.next-terminal.com/zh/docs/usage/file-management.html)。
+- 来源：[资源授权与访问策略](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[文件管理](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U01（主责 M18）、U02（主责 M03）、U10（主责 M06）、U11（主责 M06）、U12（主责 M06）、U13（主责 M06）、U14（主责 M07）、U17（主责 M09）、U18（主责 M09）、U20（主责 M18）、U22（主责 M10）、U26（主责 M01）、U30（主责 M18）、U31（主责 M18）、U32（主责 M18）、U34（主责 M12）。
 

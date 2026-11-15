@@ -32,7 +32,7 @@ func TestR11WebDAVBrowserFixture(t *testing.T) {
 		t.Skip("requires explicit browser fixture")
 	}
 	dir := t.TempDir()
-	if e := os.Mkdir(filepath.Join(dir, "next-terminal"), 0700); e != nil {
+	if e := os.Mkdir(filepath.Join(dir, "puppeteer"), 0700); e != nil {
 		t.Fatal(e)
 	}
 	handler := &webdav.Handler{FileSystem: webdav.Dir(dir), LockSystem: webdav.NewMemLS()}

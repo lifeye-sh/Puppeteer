@@ -11,9 +11,9 @@ import (
 	"net"
 	"net/mail"
 	"net/url"
-	"next-terminal/backend/internal/modules/website"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/website"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 	"strings"
 	"time"
 )

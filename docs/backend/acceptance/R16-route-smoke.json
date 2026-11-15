@@ -11,7 +11,7 @@
     {
       "requestedPath": "/x-asset",
       "path": "/x-asset",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 471,
       "overflow": false,
       "errors": [],
@@ -21,7 +21,7 @@
     {
       "requestedPath": "/ai",
       "path": "/ai",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 445,
       "overflow": false,
       "errors": [],
@@ -31,7 +31,7 @@
     {
       "requestedPath": "/x-database-asset",
       "path": "/x-database-asset",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 1040,
       "overflow": false,
       "errors": [],
@@ -41,7 +41,7 @@
     {
       "requestedPath": "/x-website",
       "path": "/x-website",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 544,
       "overflow": false,
       "errors": [],
@@ -51,7 +51,7 @@
     {
       "requestedPath": "/x-snippet",
       "path": "/x-snippet",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 395,
       "overflow": false,
       "errors": [],
@@ -61,7 +61,7 @@
     {
       "requestedPath": "/x-access-request",
       "path": "/x-access-request",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 550,
       "overflow": false,
       "errors": [],
@@ -71,7 +71,7 @@
     {
       "requestedPath": "/x-db-work-order",
       "path": "/x-db-work-order",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 472,
       "overflow": false,
       "errors": [],
@@ -81,7 +81,7 @@
     {
       "requestedPath": "/storage",
       "path": "/storage",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 615,
       "overflow": false,
       "errors": [],
@@ -91,7 +91,7 @@
     {
       "requestedPath": "/notification-preferences",
       "path": "/notification-preferences",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 475,
       "overflow": false,
       "errors": [],
@@ -101,7 +101,7 @@
     {
       "requestedPath": "/asset",
       "path": "/asset",
-      "title": "Next Terminal · 新后端 · R16",
+      "title": "Puppeteer · 新后端 · R16",
       "bodyLength": 1686,
       "overflow": false,
       "errors": [],

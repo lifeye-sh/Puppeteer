@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 	"net/url"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"regexp"
 	"strconv"
 	"strings"

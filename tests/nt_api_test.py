@@ -11,22 +11,22 @@ from unittest.mock import patch
 import io
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-spec = importlib.util.spec_from_file_location('nt_api', Path(__file__).parents[1] / 'public/agent/next-terminal/scripts/nt_api.py')
+spec = importlib.util.spec_from_file_location('nt_api', Path(__file__).parents[1] / 'public/agent/puppeteer/scripts/nt_api.py')
 client = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(client)
 
 
 class ClientTests(unittest.TestCase):
     def test_persistent_skill_installation(self):
-        install_spec = importlib.util.spec_from_file_location('nt_install', Path(__file__).parents[1] / 'public/agent/next-terminal/install.py')
+        install_spec = importlib.util.spec_from_file_location('nt_install', Path(__file__).parents[1] / 'public/agent/puppeteer/install.py')
         installer = importlib.util.module_from_spec(install_spec)
         install_spec.loader.exec_module(installer)
-        source = Path(__file__).parents[1] / 'public/agent/next-terminal'
+        source = Path(__file__).parents[1] / 'public/agent/puppeteer'
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *args):
                 pass
             def do_GET(self):
-                name = self.path.removeprefix('/agent/next-terminal/')
+                name = self.path.removeprefix('/agent/puppeteer/')
                 data = (source / name).read_bytes()
                 self.send_response(200); self.end_headers(); self.wfile.write(data)
         server = HTTPServer(('127.0.0.1', 0), Handler)
@@ -34,7 +34,7 @@ class ClientTests(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as directory:
                 base = f'http://127.0.0.1:{server.server_port}'
-                target = Path(directory) / 'next-terminal-api'
+                target = Path(directory) / 'puppeteer-api'
                 installer.install(base, target)
                 self.assertEqual((target / 'SKILL.md').read_bytes(), (source / 'SKILL.md').read_bytes())
                 self.assertEqual((target / 'scripts/nt_api.py').read_bytes(), (source / 'scripts/nt_api.py').read_bytes())

@@ -2,9 +2,9 @@ package identity
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/federationconfig"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/federationconfig"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 type OIDCProvider = federationconfig.Provider

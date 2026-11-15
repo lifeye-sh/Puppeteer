@@ -4,9 +4,9 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/modules/connectivity"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/fault"
 	"time"
 )
 

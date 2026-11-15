@@ -13,8 +13,8 @@
   "keyFile": "",
   "updates": {
     "repository": "https://updates.example.com/agent",
-    "rootFile": "/var/lib/next-terminal-agent/trusted-root.json",
-    "stateDir": "/var/lib/next-terminal-agent/updates",
+    "rootFile": "/var/lib/puppeteer-agent/trusted-root.json",
+    "stateDir": "/var/lib/puppeteer-agent/updates",
     "autoInstall": false,
     "allowHttpDevelopment": false
   }

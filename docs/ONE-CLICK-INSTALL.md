@@ -1,8 +1,8 @@
 # 一条命令安装 Puppeteer
 
-适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
+适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL、Python 3、flock、systemd；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
 
-当前安装脚本固定后端/Web为 `r17-rc11`（schema107），图形和MP4沿用已有镜像摘要。具体内容见[发布说明](../deploy/production/r17-rc11.md)。已有安装请使用本文的升级入口，不要重复运行安装器。
+当前安装脚本固定后端/Web为 `r17-rc11`（schema107），图形和MP4沿用已有镜像摘要。具体内容见[rc11 镜像说明](../deploy/production/r17-rc11.md)。rc12 当前只提交源码候选，包含新自动化和 schema 110，但没有公共镜像清单；需要新功能时使用[源码构建](FRESH-INSTALL.md)，不要直接替换成未发布的 rc12 镜像标签。已有安装请使用本文的升级入口，不要重复运行安装器。
 
 本安装器不支持Snap封装的Docker。其文件访问和容器选项限制可能导致宿主机存在的`/opt/puppeteer/config/production.env`被Compose报告为不存在。安装器会提前拒绝此环境；不要通过删除安装目录、放宽密钥权限或关闭容器安全选项解决。Snap与普通Docker Engine可能管理不同的数据目录，已有容器时需先核对现有工作负载再安排切换。限制依据见[Canonical Docker Snap说明](https://github.com/canonical/docker-snap)。
 
@@ -26,7 +26,7 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 2. 下载固定版本的部署配置，生成独立数据库密码和应用密钥。
 3. 为该域名/IP生成HTTPS证书。
 4. 拉取按摘要固定的发布镜像，启动Web、后端、PostgreSQL、图形网关和MP4服务；默认配置MySQL/PostgreSQL代理监听及本机端口映射。
-5. 等待服务健康，检查后端就绪并输出访问地址。
+5. 等待服务健康，检查后端就绪并输出访问地址。匹配镜像含执行器时才自动接管；当前 rc11 镜像不含新的自动部署能力。
 
 完成后打开 **`https://服务器IP/setup`**，创建管理员即可。没有默认账号或密码。默认监听443端口，安装目录为`/opt/puppeteer`。首次初始化前请将服务器入口限制为管理员来源，完成管理员创建后再放行使用者；脚本不改动宿主机防火墙。
 
@@ -54,7 +54,15 @@ sudo bash install-puppeteer.sh --host 192.168.1.100 --core
 
 核心模式只启动Web、后端和数据库，不提供图形会话、共享盘及MP4渲染；仍默认配置数据库代理。其他参数见`bash install-puppeteer.sh --help`，可指定绑定IP、安装目录和Compose项目名。
 
+## 网页内 RDP
+
+默认完整安装包含 guacd；`--core` 不包含。目标 Windows 开启远程桌面，在平台添加目标地址、RDP 端口及凭据并授权，然后从“我的资产”打开浏览器连接。
+
+网页内 RDP 无需原生 Worker，也无需开启“原生 RDP”或映射平台的 3389/13389。“当前节点未部署原生 RDP Worker 接入配置”只描述原生客户端能力。guacd 的 4822 和 MP4 的 8090 保持内部网络使用。见[准备、示例与排错](BROWSER-RDP.md)。
+
 ## 安装后管理
+
+当前分支的新安装已自动加载项目专用 AppArmor 策略；下面的修复仅适用于已发布旧版本、尚未接管的默认安装。
 
 Ubuntu 启用 AppArmor 时，默认容器策略禁止 FUSE 挂载。若图形服务反复报告
 `/bin/fusermount: no such file or directory`，直接挂载失败可能被备用工具错误掩盖。
@@ -118,3 +126,31 @@ sudo bash upgrade-puppeteer.sh --enable-database-proxy --database-proxy-bind 0.0
 不指定绑定参数则新映射仅限本机。此选项只补缺失项，不重置现有端口、证书主机名、平台开关或其他叠加文件；已有本机映射不会被参数自动扩大为远程映射。默认主机名从原HTTPS来源提取，也可用 `--database-proxy-host` 指定；与已配置的主机名冲突时会拒绝。
 
 若旧实例已生成覆盖 `localhost` 的代理证书，它不会自动变成服务器证书：需在平台证书管理中准备覆盖实际代理主机名的服务端证书及私钥，在“网关监听”选择该数据库代理证书，并重新下载/配置客户端信任。网页HTTPS证书与数据库代理证书是两套独立配置。两个代理的平台监听开关也须开启。详细边界见[数据库代理启用说明](../deploy/production/README.md#数据库代理启用与凭据)。
+
+## 自动部署执行器
+
+当前分支脚本会在修改前检查 Python 3、systemd 和 flock。包含执行器的新版本镜像会由安装/升级脚本自动接管代理部署；已发布的 r17-rc11 不含该功能。依赖、操作步骤与边界见[代理自动部署](AUTO-DEPLOYMENT.md)。
+
+P1-0 统一配置状态使用自动数据库迁移 108，无需新增容器或端口。更新匹配前后端后，可在“平台配置 → 状态与发布 → 预检与服务”查看；宿主预检需要已接管的 P0 执行器。详见 [统一配置状态与只读预检](CONFIGURATION-STATUS.md)。
+
+## 图形组件启停（开发分支）
+
+匹配版本的安装/升级程序会接管本项目内部 guacd，管理员在“平台配置 → 服务部署 → 图形组件”完成预检和自动启停。无需公开 `4822` 端口；停用配置和数据卷在升级后保留。操作会中断已有连接；共享盘可在独立页签管理，见 [RDP 共享盘自动部署](RDP-DRIVE-AUTO-DEPLOYMENT.md)。适用条件、恢复及验证见 [图形组件自动部署](GRAPHICS-AUTO-DEPLOYMENT.md)。
+
+当前开发分支已接入共享盘自动预检与部署。新安装自动准备项目专用 AppArmor 策略，升级接管保留共享盘停用状态；页面操作会验证挂载读写，停用时移除设备与额外权限，保留 MyZone 数据。宿主不具备 FUSE 或必要策略解析能力时明确失败。详见 [共享盘部署条件与验收边界](RDP-DRIVE-AUTO-DEPLOYMENT.md)。
+
+## MP4 渲染器启停（开发分支）
+
+匹配的安装/升级程序自动接管内部 `mp4-renderer`；在“平台配置 → 服务部署 → MP4 渲染”完成预检、启停及样例转换验证。无需映射宿主端口。停用暂停并保留队列、原始录屏和缓存；授权缓存下载仍可用，重新启用恢复队列。升级保留停用 profile、地址、密钥和数据目录；外部或不兼容配方显示原因。详见 [MP4 自动部署](MP4-AUTO-DEPLOYMENT.md)。
+
+## 原生 RDP 能力识别（开发分支）
+
+监听与证书页面新增部署能力报告和只读预检，普通生产部署未配置 Worker 时明确显示原因。不会新增原生 RDP 服务或端口。专用部署需同步更新支持 `--capabilities` 的 Worker；旧 Worker 会报告检测协议不足，现有监听限制保留。详见 [原生 RDP 能力识别](NATIVE-RDP-CAPABILITY.md)。
+
+## 外部依赖与专项运维（开发分支）
+
+匹配版本自动应用迁移 109（统一依赖验证的清理记录），能力版本 89。邮件、身份、AI、备份、ACME 和连接资源可从原页面执行统一预检；备份写入/摘要/清理通过独立显式按钮进行。见 [外部依赖预检](EXTERNAL-DEPENDENCY-CHECKS.md)。
+
+安装/升级自动登记兼容的专项运维能力。管理员在「平台配置 → 服务部署」启停 Agent 签名更新仓库、WAL 归档或网页入口限制，系统自动完成预检、部署、验证和失败恢复，无需手工改 Compose 或安装定时任务。升级保留启停状态、WAL 原镜像恢复配方、数据/归档卷、密钥及仓库防回退记录，不自动启用未开启的功能。
+
+WAL 首次启用会自动构建固定 PG18 镜像并重建 PostgreSQL，须安排数据库连接中断窗口和备份空间；完整备份、命名恢复点归档与隔离恢复演练通过后才显示可恢复。停用保留数据和密钥。本地数据库备份不替代异地副本及应用文件/离线密钥备份。详见 [专项运维自动部署](OPERATIONS-AUTO-DEPLOYMENT.md)。旧已发布镜像不因下载新版脚本自动获得这些功能，须使用配套发布版本。

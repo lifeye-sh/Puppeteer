@@ -1,7 +1,7 @@
 package application
 
 import (
-	"next-terminal/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/connectivity"
 	"testing"
 )
 

@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func (a *App) routesR09WebsiteRecords(h func(string, func(http.ResponseWriter, *http.Request) error)) {

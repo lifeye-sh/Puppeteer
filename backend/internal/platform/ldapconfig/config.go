@@ -5,7 +5,7 @@ import (
 	"encoding/pem"
 	"github.com/go-ldap/ldap/v3"
 	"net/url"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"regexp"
 	"strconv"
 	"strings"

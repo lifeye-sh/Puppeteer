@@ -1,5 +1,6 @@
 # Development-only recorder acceptance; no production listener is enabled.
-FROM nt-native-rdp-worker:dev AS worker
+ARG NT_RDP_WORKER_IMAGE=nt-native-rdp-worker:dev
+FROM ${NT_RDP_WORKER_IMAGE} AS worker
 FROM nt-native-rdp-sdk:3.32.2
 RUN apk add --no-cache ffmpeg
 COPY --from=worker /opt/freerdp /opt/freerdp

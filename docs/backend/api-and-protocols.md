@@ -85,7 +85,7 @@ AuthPrompt 的 JSON 内容含 `kind=username/password/passphrase/keyboard-intera
 
 ## 图形 WebSocket 与原生客户端
 
-图形接口使用 Guacamole 协议帧和其 WebSocket 子协议，不能复用终端前缀协议，也不能把每帧当 JSON。Go 端负责认证、连接编排、协议边界校验、能力过滤和流转发；guacd 负责 RDP/VNC 协议转换。握手包含会话参数、显示尺寸及协议版本，兼容当前前端 `@dushixiang/guacamole-common-js` 的定制行为需要真实互通验证。
+图形接口使用 Guacamole 协议帧和其 WebSocket 子协议，不能复用终端前缀协议，也不能把每帧当 JSON。Go 端负责认证、连接编排、协议边界校验、能力过滤和流转发；guacd 负责 RDP/VNC 协议转换。握手包含会话参数、显示尺寸及协议版本，兼容当前前端 `@puppeteer/guacamole-common-js` 的定制行为需要真实互通验证。
 
 分享 token 在 query 中校验，绑定 readonly 策略；服务器不能信任客户端 interactive=false。剪贴板通过 Guacamole stream 传输，按 mimetype、最大长度、copy/paste 权限控制。录像流回放需要支持播放器的读取和定位行为，使用当前 GuacdPlayback 做验收。
 
@@ -118,7 +118,7 @@ AuthPrompt 的 JSON 内容含 `kind=username/password/passphrase/keyboard-intera
 
 当前 SSE：`/api/admin/tools/ping`、`/api/admin/tools/tcping`、`/api/admin/certificates/issued/log`。响应 `text/event-stream`，每条 `data: ...\n\n`，保持现有消费者读取的文本形式；comment 心跳不渲染。限制任务期限和次数，客户端断连取消操作，不允许自动重连创建无限探测任务。
 
-Agent 客户端还要求 `GET /swagger/doc.json`，且当前脚本对该地址不携 Key。兼容实现公开不含敏感配置的完整 schema，再按 `/api/account/info` 提供实际 permissions；schema 的可见性不等于权限。另需提供 `/agent/next-terminal/...` 安装文件、`/api/agent/version` 和受控下载接口。对脚本中的旧产品名/二进制名进行明确适配，不能下载无校验的任意外部可执行文件。
+Agent 客户端还要求 `GET /swagger/doc.json`，且当前脚本对该地址不携 Key。兼容实现公开不含敏感配置的完整 schema，再按 `/api/account/info` 提供实际 permissions；schema 的可见性不等于权限。另需提供 `/agent/puppeteer/...` 安装文件、`/api/agent/version` 和受控下载接口。对脚本中的旧产品名/二进制名进行明确适配，不能下载无校验的任意外部可执行文件。
 
 OIDC discovery/JWKS/token/userinfo、ACME challenge、网站域名入口、Agent 控制入口及原生协议 listener 不在普通 API 清单的覆盖范围，要单独注册和测试。
 

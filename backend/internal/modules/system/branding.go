@@ -8,7 +8,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	"image/png"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Accept bounded raster inputs, then re-encode so metadata, scripts and trailing

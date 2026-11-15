@@ -1,7 +1,7 @@
 package main
 
 import (
-	"next-terminal/backend/internal/modules/entitlements"
+	"puppeteer/backend/internal/modules/entitlements"
 )
 
 func loadEntitlements() (entitlements.CapabilityProvider, *entitlements.Verifier, error) {

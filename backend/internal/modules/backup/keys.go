@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 // RecoveryBundle is serialized only inside age ciphertext. The deployment's

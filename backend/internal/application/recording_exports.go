@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/jobs"
 	"os"
 	"path/filepath"
 	"time"

@@ -4,13 +4,13 @@ import {navigationGroups,visibleNavigation,navigationLocation} from '../src/page
 
 const features=Object.fromEntries(navigationGroups.flatMap(g=>g.pages).filter(p=>p.feature).map(p=>[p.feature,{state:'available'}]));
 const actions=[...new Set(navigationGroups.flatMap(g=>g.pages).map(p=>p.permission).filter(Boolean))];
-test('navigation is two levels with unique destinations and seven groups',()=>{
+test('navigation is two levels with unique destinations and eight groups',()=>{
  const all=navigationGroups.flatMap(g=>g.pages);
- assert.equal(navigationGroups.length,7);
+ assert.equal(navigationGroups.length,8);
  assert.equal(new Set(all.map(p=>p.path)).size,all.length);
- assert.equal(new Set(navigationGroups.map(g=>g.key)).size,7);
+ assert.equal(new Set(navigationGroups.map(g=>g.key)).size,8);
  for(const group of navigationGroups)assert.ok(group.pages.length>0&&group.pages.length<=9);
- const visible=visibleNavigation(actions,features);
+ const visible=visibleNavigation(actions,features,'admin');
  assert.equal(visible.flatMap(g=>g.pages).length,all.length);
 });
 test('ordinary users do not see management destinations or unavailable capabilities',()=>{
@@ -27,11 +27,23 @@ test('partial permissions do not reveal sibling management pages',()=>{
  assert.equal(navigationLocation('/user',visible),undefined);
 });
 test('active groups, authorization aliases and removed capability routes stay consistent',()=>{
- const all=visibleNavigation(actions,features);
+ const all=visibleNavigation(actions,features,'admin');
  assert.equal(navigationLocation('/x-asset',all).group.key,'workspace');
  assert.equal(navigationLocation('/asset',all).group.key,'resources');
  assert.equal(navigationLocation('/authorised-database-asset',all).page.path,'/authorised-asset');
  assert.equal(navigationLocation('/identity-settings',all).group.key,'identity');
  assert.equal(navigationLocation('/system-event',all).group.key,'operations');
  assert.equal(navigationLocation('/database-asset',visibleNavigation(actions,{})),undefined);
+});
+
+test('deployment navigation supports administrators and configuration readers without granting deployment authority',()=>{
+ const paths=(actions,features,type)=>visibleNavigation(actions,features,type).flatMap(g=>g.pages).map(p=>p.path);
+ assert.ok(paths(['identity.manage'],{},'admin').includes('/deployment-settings'));
+ assert.ok(!paths(['identity.manage'],{},'user').includes('/deployment-settings'));
+ assert.ok(paths(['settings.read'],features,'user').includes('/deployment-settings'));
+ assert.ok(!paths(['settings.read'],{},'user').includes('/deployment-settings'));
+ assert.ok(paths(['settings.read'],{},'user').includes('/policy-settings'));
+ for(const path of ['/system-status','/deployment-settings','/integration-settings','/policy-settings','/configuration-status','/setting']){
+  assert.equal(navigationLocation(path,visibleNavigation(actions,features,'admin')).group.key,'configuration');
+ }
 });

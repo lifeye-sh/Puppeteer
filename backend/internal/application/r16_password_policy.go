@@ -3,9 +3,9 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func (a *App) validateNewPassword(ctx context.Context, username, password string) error {

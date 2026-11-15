@@ -1,4 +1,4 @@
-export type NavigationPage = {path:string; label:string; permission?:string; feature?:string};
+export type NavigationPage = {path:string; label:string; permission?:string; feature?:string; accessAny?:{permission:string;feature?:string;adminOnly?:boolean}[]};
 export type NavigationGroup = {key:string; label:string; pages:NavigationPage[]};
 
 // One source for sidebar grouping, active items and breadcrumb ancestry.
@@ -60,13 +60,19 @@ export const navigationGroups:NavigationGroup[] = [
   {path:'/monitoring',label:'监控与告警',permission:'identity.manage'},
   {path:'/tools',label:'链路诊断',permission:'identity.manage'},
   {path:'/system-event',label:'备份与恢复',permission:'backup.manage'},
-  {path:'/setting',label:'通知配置',permission:'identity.manage'},
-  {path:'/system-status',label:'平台设置'},
+ ]},
+ {key:'configuration',label:'平台配置',pages:[
+  {path:'/system-status',label:'配置总览'},
+  {path:'/deployment-settings',label:'服务部署',accessAny:[{permission:'identity.manage',adminOnly:true},{permission:'settings.read',feature:'system.settings.revisions'}]},
+  {path:'/integration-settings',label:'外部依赖',permission:'settings.read',feature:'system.settings.revisions'},
+  {path:'/policy-settings',label:'业务策略',permission:'settings.read'},
+  {path:'/setting',label:'通知渠道与规则',permission:'identity.manage'},
+  {path:'/configuration-status',label:'状态与发布'},
  ]},
 ];
-export function visibleNavigation(actions:readonly string[],features:Record<string,{state:string}>) {
+export function visibleNavigation(actions:readonly string[],features:Record<string,{state:string}>,accountType?:string) {
  return navigationGroups.map(group=>({...group,pages:group.pages.filter(page=>
-  (!page.permission||actions.includes(page.permission))&&(!page.feature||features[page.feature]?.state==='available')
+  (!page.accessAny||page.accessAny.some(rule=>actions.includes(rule.permission)&&(!rule.adminOnly||accountType==='admin')&&(!rule.feature||features[rule.feature]?.state==='available')))&&(!page.permission||actions.includes(page.permission))&&(!page.feature||features[page.feature]?.state==='available')
  )})).filter(group=>group.pages.length>0);
 }
 const aliases:Record<string,string>={'/authorised-database-asset':'/authorised-asset','/authorised-website':'/authorised-asset'};

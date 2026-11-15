@@ -2,7 +2,7 @@ import {baseWebSocketUrl} from '@/api/core/requests';
 import {type GuacamoleStatus} from '@/pages/access/guacamole/ErrorAlert';
 import {GuacamoleRuntime} from '@/pages/access/guacamole/guacamole-runtime';
 import RenderState from '@/pages/access/guacamole/RenderState';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 import {useEffect, useRef, useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 

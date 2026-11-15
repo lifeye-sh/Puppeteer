@@ -16,7 +16,7 @@ import (
 
 const MaxManifest = 1 << 20
 const MaxArchive int64 = 100 << 30
-const SupportedSchema = 103
+const SupportedSchema = 110
 
 type Entry struct {
 	Path   string `json:"path"`

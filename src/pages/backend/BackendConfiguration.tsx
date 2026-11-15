@@ -6,6 +6,8 @@ import {useBackendRuntime} from '@/hook/BackendRuntimeContext';
 import requests from '@/api/core/requests';
 import Modal from './BackendFormModal';
 import BackendLogoInput from './BackendLogoInput';
+import BackendNativeRDPCapability from './BackendNativeRDPCapability';
+import BackendDependencyCheck,{dependencyDetails} from './BackendDependencyCheck';
 import BackendPasswordPolicyInput from './BackendPasswordPolicyInput';
 import BackendLDAPMappingInput from './BackendLDAPMappingInput';
 import BackendOriginListInput from './BackendOriginListInput';
@@ -26,7 +28,7 @@ const groups={
  network:{title:'客户端 IP',description:'选择 API 请求的来源 IP 提取方式和可信反向代理。',note:'默认 direct 使用直接连接地址。仅当直接连接来自可信网段时才接受指定请求头；x-forwarded-for 从右向左剥离可信代理，其他头只接受单个 IP。重复、非法或过长头回退到直接连接地址。放宽可信网段等待节点确认；网站流量仍使用网站网关的独立可信代理设置。不要把不受控的客户端网段加入可信列表。'},
  mail:{title:'平台邮件',description:'统一配置默认 SMTP 渠道，并在通知配置中绑定接收人和规则。',note:'独立创建的其他通知渠道保持不变。开启隐式TLS一般使用465端口；关闭时强制STARTTLS，不允许明文降级或跳过证书校验。内网服务可提供CA证书。密码仅返回掩码，留空或保留掩码表示保持原值；替换和清除需要管理员密码复核及已绑定的TOTP。配置随下一次邮件或验证消息投递使用，隔离恢复后保持禁用。'},
  databasePolicy:{title:'数据库原生写入',description:'控制 MySQL 原生客户端的 DML 写入。',note:'默认阻止写入。关闭后，仅配置独立原生 DML 凭据且用户拥有“数据库原生受控 DML 写入”权限的新连接可以写入；已连接只读会话不会升级。仍拒绝 DDL、存储过程、文件操作和跨数据库写入。重新阻止将关闭写连接，未提交事务由目标数据库回滚，网络中断导致无法确认的结果不会自动重试。PostgreSQL 保持只读；SQL 工单独立审批执行。'},
- listeners:{title:'网关监听',description:'配置管理 HTTP、网站 TLS、SSH、数据库及原生 RDP 接入。',note:'地址留空沿用服务部署配置；部署也未配置时不监听。地址示例 0.0.0.0:2022 或 127.0.0.1:13306，仅接受 IP 与端口。保存后先准备新端口及证书，成功后切换，新连接采用新配置，旧连接自然结束。准备失败保留旧监听并暂停新连接，请查看配置发布并重试。容器端口映射及外部防火墙需与监听地址匹配；SSH 用户仍须获准使用原生客户端。关闭监听不主动踢出已建立连接。'},
+ listeners:{title:'网关监听',description:'配置管理 HTTP、网站 TLS、SSH、数据库及原生 RDP 接入。',note:'地址留空沿用服务部署配置；部署也未配置时不监听。地址示例 0.0.0.0:2022 或 127.0.0.1:13306，仅接受 IP 与端口。保存后先准备新端口及证书，成功后切换，新连接采用新配置，旧连接自然结束。准备失败保留旧监听并暂停新连接，请查看配置发布并重试。容器端口映射及外部防火墙需与监听地址匹配；SSH 用户仍须获准使用原生客户端。关闭监听会断开该监听的已建立连接。'},
  password:{title:'密码安全',description:'管理本地密码强度和有效期。',note:'强度规则仅约束新设定的密码，推荐至少12字符并检查账号包含、常见弱密码和重复字符。有效期默认不限；启用后到期会话须验证原密码及已绑定的 TOTP，再修改密码。LDAP、数据库与远端资产的密码由各自系统管理。'},
  watermark:{title:'会话水印',description:'在网页终端、远程桌面和只读观察画面上显示访问标识。',note:'仅新建会话采用新配置，已建立连接保留原快照。水印是网页显示标识，不会写入远端桌面或录屏文件，也不覆盖原生客户端。不能替代权限控制和审计。'},
  resources:{title:'资源默认值',description:'设置个人存储、客户端证书期限和 Agent 安装默认地址。',note:'容量按 Byte 保存，默认 5 GiB；仅首次创建个人空间时应用，已有配额保持不变。0 表示新空间没有写入容量。证书默认90天，显式期限须为1–825天且不超过签发CA有效期。Agent 地址仅用于新安装和注册说明，已有设备不会重新指向其他服务器。'},
@@ -78,11 +80,11 @@ const fieldHints:Record<string,string>={
  'login-lock-account-duration':'0 表示不产生新锁定，已有锁定不会提前解除。',
  'login-session-count-limit':'仅在“限制每人登录会话数”开启时生效。',
 };
-export default function BackendConfiguration({section='branding'}:{section?:'branding'|'login'|'postgres'|'resources'|'watermark'|'listeners'|'mail'|'network'|'ai'|'ldap'|'access'|'passkey'|'oauthLifetime'|'recording'|'oauthServer'}){
+export default function BackendConfiguration({section='branding'}:{section?:'branding'|'login'|'postgres'|'resources'|'watermark'|'listeners'|'mail'|'network'|'ai'|'ldap'|'access'|'passkey'|'oauthLifetime'|'recording'|'oauthServer'|'aiModel'|'databasePolicy'}){
  const {account}=useBackendRuntime();const canWrite=!!account.actions?.includes('identity.manage');const cache=useQueryClient();
  const current=useConfiguration(),schema=useConfigurationSchema();
  const [editing,setEditing]=useState<{snapshot:Configuration;group:EditorGroup}>(),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
- const [form]=Form.useForm();const [confirm,confirmHolder]=AntModal.useModal();const definitions=schema.data?.properties??[];
+ const [form]=Form.useForm();const [confirm,confirmHolder]=AntModal.useModal();const definitions=schema.data?.properties??[];const managedKeys=schema.data?.deploymentManagedKeys??[];
  const [mailTab,setMailTab]=useState('connection');const [aiTab,setAITab]=useState('switches');
  const passwordType=Form.useWatch('password-strength-type',form);
  const ldapPassword=Form.useWatch('ldap-password',form);const modelKey=Form.useWatch('llm-api-key',form);const mailPassword=Form.useWatch('mail-password',form),sshPrivateKey=Form.useWatch('ssh-server-private-key',form),clearMailPassword=Form.useWatch('_clearSecret',form);
@@ -92,15 +94,26 @@ export default function BackendConfiguration({section='branding'}:{section?:'bra
  const certificates=useQuery({queryKey:['configuration-certificates'],enabled:editing?.group==='listeners',queryFn:()=>requests.get<Array<{id:string;name:string;kind:string;revokedAt?:string;notAfter:string}>>('/admin/certificates',{errorMode:'local'}),retry:false});
  const loginPolicy=useQuery({queryKey:['login-policy'],enabled:editing?.group==='loginPolicy',queryFn:()=>requests.get<{passwordEnabled:boolean;canDisable:boolean}>('/admin/login-policy',{errorMode:'local'}),retry:false});
  const needsProof=secretChanged||editing?.group==='captcha'||editing?.group==='databasePolicy'||editing?.group==='access'||editing?.group==='oauthServer'||editing?.group==='recording'||editing?.group==='loginPolicy'||editing?.group==='ldap'||editing?.group==='passkey'||editing?.group==='oauthLifetime';
- const selected:EditorGroup[]=section==='login'?[...(definitions.some(p=>p.key==='disable-password-login')?['loginPolicy' as const]:[]),...(definitions.some(p=>p.key==='login-captcha-enabled')?['captcha' as const]:[]),'sessions','locks','password']:section==='postgres'?['postgres',...(definitions.some(p=>p.key==='db-proxy-block-dml')?['databasePolicy' as const]:[])]:section==='ai'?['ai',...(definitions.some(p=>p.key==='llm-base-url')?['aiModel' as const]:[])]:[section];
- const open=(group:EditorGroup)=>{if(!current.data)return;form.resetFields();const values=configurationPatch(definitions,group,current.data.values);if(group==='listeners'){for(const [key,address] of Object.entries({'db-proxy-addr':'0.0.0.0:13306','postgres-proxy-addr':'0.0.0.0:15432'})){if(definitions.some(p=>p.key===key)&&!values[key])values[key]=address}}form.setFieldsValue(values);setError('');setMailTab('connection');setAITab('switches');setEditing({snapshot:current.data,group})};
+ const selected:EditorGroup[]=section==='login'?[...(definitions.some(p=>p.key==='disable-password-login')?['loginPolicy' as const]:[]),...(definitions.some(p=>p.key==='login-captcha-enabled')?['captcha' as const]:[]),'sessions','locks','password']:[section];
+ const open=(group:EditorGroup)=>{if(!current.data)return;form.resetFields();const values=configurationPatch(definitions,group,current.data.values);if(group==='listeners'){for(const [key,address] of Object.entries({'db-proxy-addr':'0.0.0.0:13306','postgres-proxy-addr':'0.0.0.0:15432'})){if(!managedKeys.includes(key)&&definitions.some(p=>p.key===key)&&!values[key])values[key]=address}}form.setFieldsValue(values);setError('');setMailTab('connection');setAITab('switches');setEditing({snapshot:current.data,group})};
  const close=()=>{if(busy)return;const discard=()=>{form.resetFields();setEditing(undefined)};const changed=clearMailPassword||editing&&definitions.filter(p=>propertyGroup(p.key)===editing.group).some(p=>form.getFieldValue(p.key)!==editing.snapshot.values[p.key]);if(changed){confirm.confirm({title:'放弃尚未保存的修改？',content:'当前填写内容尚未提交，关闭后需要重新填写。',okText:'放弃修改',cancelText:'继续编辑',onOk:discard})}else discard()};
+ const [saveStage,setSaveStage]=useState('');
  const save=async()=>{
-  if(!editing)return;setBusy(true);setError('');
+  if(!editing)return;setBusy(true);setError('');setSaveStage('正在校验表单…');
   try{
    const values=await form.validateFields();const patch=configurationPatch(definitions,editing.group,values);
+   for(const key of managedKeys)delete patch[key];
    const clearSecrets=secretKey&&values._clearSecret?[secretKey]:[];
    if(secretKey&&clearSecrets.length)delete patch[secretKey];
+   if(editing.group==='listeners'){
+    setSaveStage('正在预检进程监听端口…');
+    const set=Object.fromEntries(Object.entries(patch).filter(([key])=>/^(ssh-server|db-proxy|postgres-proxy|website-server|native-rdp)-(enabled|addr)$/.test(key)||key==='http-server-addr'||key==='native-rdp-public-address'));
+    const preflight=await fetch('/api/settings/listeners/preflight',{method:'POST',headers:{'Content-Type':'application/json','If-Match':`"settings-${editing.snapshot.id}"`},body:JSON.stringify({set})});
+    const result=await preflight.json();
+    if(!preflight.ok)throw Error(result.message??'监听预检失败，请刷新后重试。');
+    if(!result.passed)throw Error(result.checks.filter((c:{passed:boolean})=>!c.passed).map((c:{name:string;reason:string})=>`${c.name}：${c.reason}`).join('；'));
+   }
+   setSaveStage('正在提交配置，提交后请查看配置发布状态。');
    const response=await fetch('/api/settings',{method:'PATCH',headers:{'Content-Type':'application/json','If-Match':`"settings-${editing.snapshot.id}"`},body:JSON.stringify({set:patch,clearSecrets,...(needsProof?{password:values._adminPassword,totp:values._adminTOTP}:{})})});
    if(!response.ok){const body=await response.json();throw Error(body.message??(response.status===409?'配置或备用登录状态已变化，请刷新后重试。':'配置提交失败'))}
    setEditing(undefined);form.resetFields();setNotice(editing.group==='listeners'?'已保存监听配置，请等待配置发布成功；以页面顶部的应用状态为准。':'已保存新版本；请以页面顶部的应用状态为准。');
@@ -108,6 +121,7 @@ export default function BackendConfiguration({section='branding'}:{section?:'bra
   }catch(e){if(e instanceof Error)setError(e.message);else if(editing.group==='ai'&&e&&typeof e==='object'&&'errorFields' in e){setAITab('prompts')}else if((editing.group==='mail'||editing.group==='listeners'||editing.group==='aiModel'||editing.group==='ldap')&&e&&typeof e==='object'&&'errorFields' in e){const fields=(e as {errorFields:Array<{name:Array<string|number>}>}).errorFields;const key=String(fields[0]?.name[0]??'');setMailTab(key.startsWith('native-rdp-')?'rdp':/^(http-server|website-server)-/.test(key)?'public':['ldap-password','ldap-ca-pem','mail-password','mail-ca-pem','mail-insecure-skip-verify','ssh-server-private-key','llm-api-key','llm-proxy-url','llm-allow-private','_adminPassword','_adminTOTP'].includes(key)?'security':'connection')}}finally{setBusy(false)}
  };
  const field=(p:Definition)=>{
+  if(managedKeys.includes(p.key))return <Form.Item key={p.key} label={p.label}><Typography.Text type="secondary">由“代理部署”管理，请在那里查看和修改服务及端口。</Typography.Text></Form.Item>;
   const full=p.key==='passkey-origins'||p.key==='ldap-user-property-mapping'||p.key==='ldap-ca-pem'||p.key==='llm-shell-prompt'||p.key==='llm-audit-prompt'||p.key==='ip-trust-list'||p.key==='mail-ca-pem'||p.type==='secret'||p.key==='password-strength-policy'||p.key==='system-logo'||p.key==='system-copyright'||p.key==='watermark-content'||p.key==='watermark-font-color';
   return <Form.Item key={p.key} className={full?'nt-settings-field-full':undefined} name={p.key} label={p.label} valuePropName={p.type==='boolean'?'checked':'value'} extra={fieldHints[p.key]??(p.type==='integer'?`${p.min}–${p.max} ${p.unit} · 默认 ${p.default} ${p.unit}`:undefined)} rules={p.type==='number'?[{required:true},{type:'number',min:p.min,max:p.max},{validator:(_,v)=>v<0&&v!==-1?Promise.reject(Error('仅支持 -1 或 0–2')):Promise.resolve()}]:p.type==='integer'?[{required:true},{type:'integer',min:p.min,max:p.max},{validator:(_,v)=>p.key==='access-max-idle-second'&&v===0?Promise.reject(Error('请填写 -1 或 1–86400 秒')):Promise.resolve()}]:p.type==='string'?[{required:p.min>0,max:p.max}]:[]}>
    {p.key==='passkey-origins'?<BackendOriginListInput/>:p.key==='ldap-user-property-mapping'?<BackendLDAPMappingInput/>:p.key==='ldap-identity-attribute'?<Select disabled={!!editing?.snapshot.values['ldap-url']} options={[{value:'entryUUID',label:'entryUUID（OpenLDAP）'},{value:'objectGUID',label:'objectGUID（Active Directory）'}]}/>:p.key==='llm-shell-prompt'||p.key==='llm-audit-prompt'?<Input.TextArea rows={4} maxLength={p.max} showCount placeholder="补充说明；留空使用平台内置规则"/>:p.key==='ssh-server-private-key'?<Input.TextArea rows={4} autoComplete="off" maxLength={p.max} disabled={!!clearMailPassword} placeholder="粘贴未加密的 OpenSSH / PEM 私钥；留空保持原值"/>:p.type==='secret'?<Input.Password autoComplete="new-password" maxLength={p.max} disabled={!!clearMailPassword}/>:(p.key==='ldap-ca-pem'||p.key==='mail-ca-pem'||p.key==='ip-trust-list')?<Input.TextArea rows={3} maxLength={p.max}/>:p.key==='llm-protocol'?<Select options={[{value:'openai',label:'OpenAI Chat Completions'},{value:'responses',label:'OpenAI Responses'},{value:'anthropic',label:'Anthropic Messages'}]}/>:p.key==='db-proxy-certificate-id'?<Select loading={certificates.isFetching} options={[{value:'',label:'自动生成的平台证书'},...(certificates.data??[]).filter(c=>c.kind==='server'&&!c.revokedAt&&Date.parse(c.notAfter)>Date.now()).map(c=>({value:c.id,label:c.name}))]} notFoundContent={certificates.error?'证书读取失败':'没有可用证书'}/>:p.key==='password-strength-type'?<Select options={[{value:'recommend',label:'推荐规则'},{value:'customize',label:'自定义规则'}]}/>:p.key==='password-strength-policy'?<BackendPasswordPolicyInput disabled={passwordType!=='customize'}/>:p.key==='system-logo'?<BackendLogoInput/>:p.type==='boolean'?<Switch disabled={p.key==='mail-insecure-skip-verify'}/>:p.type==='string'?<Input maxLength={p.max} disabled={p.key==='oidc-server-issuer'?!!editing?.snapshot.values[p.key]:['ldap-url','ldap-base-dn'].includes(p.key)&&!!editing?.snapshot.values['ldap-url']}/>:<InputNumber min={p.min} max={p.max} precision={p.type==='number'?undefined:0} step={p.type==='number'?0.1:1} style={{width:'100%'}}/>}
@@ -118,13 +132,16 @@ export default function BackendConfiguration({section='branding'}:{section?:'bra
   {notice&&<Alert type={current.data?.state==='effective'?'success':'info'} showIcon closable onClose={()=>setNotice('')} title={current.data?.state==='effective'?'配置已由在线节点应用，各参数按对应生效时机执行。':notice}/>}
   {selected.map(group=><Card key={group} title={groups[group].title} loading={current.isPending||schema.isPending} extra={canWrite&&<Button icon={<EditOutlined/>} disabled={!current.data||!schema.data} onClick={()=>open(group)}>编辑{group==='sessions'?'登录会话':group==='locks'?'失败保护':'配置'}</Button>}>
    <p className="nt-settings-description">{groups[group].description}</p>
+   {group==='listeners'&&<BackendNativeRDPCapability/>}
+   {dependencyDetails[group]&&<BackendDependencyCheck feature={group}/>}{group==='oauthServer'&&<BackendDependencyCheck feature="native-client"/>}
    {group==='listeners'&&current.data?.readOnly&&<Typography.Paragraph type="secondary">SSH 网关身份：{current.data.readOnly['ssh-server-private-key-exists']?'已有主机密钥':'监听启用时自动生成'}（只读状态；当前公开指纹见原生客户端入口）</Typography.Paragraph>}
    {group==='branding'&&<div className="nt-brand-preview"><img src={`/api/logo?v=${current.data?.id??0}`} alt="当前系统 Logo"/><div><strong>{String(current.data?.values['system-name']??'Puppeteer')}</strong><span>{String(current.data?.values['system-copyright']??'')}</span></div><Tag variant="filled">当前展示</Tag></div>}
-   <div className="nt-settings-values">{definitions.filter(p=>propertyGroup(p.key)===group).map(p=><div className="nt-settings-value" key={p.key}><span>{p.label}</span><strong>{p.key==='password-strength-policy'&&current.data?.values['password-strength-type']!=='customize'?'未启用（使用推荐规则）':displayConfiguration(current.data?.values[p.key],p)}</strong></div>)}</div>
+   <div className="nt-settings-values">{definitions.filter(p=>propertyGroup(p.key)===group).map(p=><div className="nt-settings-value" key={p.key}><span>{p.label}</span><strong>{p.key==='password-strength-policy'&&current.data?.values['password-strength-type']!=='customize'?'未启用（使用推荐规则）':managedKeys.includes(p.key)?'由代理部署管理':displayConfiguration(current.data?.values[p.key],p)}</strong></div>)}</div>
    <Collapse ghost size="small" items={[{key:'effect',label:'生效范围与注意事项',children:<Typography.Paragraph type="secondary" style={{margin:0}}>{groups[group].note}</Typography.Paragraph>}]}/>
   </Card>)}
   <Modal className="nt-settings-editor" width={760} open={!!editing} title={`编辑${editing?groups[editing.group].title:''}`} onCancel={close} onOk={()=>void save()} confirmLoading={busy} mask={{closable:false}} keyboard={!busy} cancelButtonProps={{disabled:busy}} forceRender>
    <div className="nt-settings-editor-note"><Tag color="blue">基于版本 {editing?.snapshot.id}</Tag><Typography.Text type="secondary">仅保存当前分组，其他配置保持不变。</Typography.Text></div>
+   {busy&&saveStage&&<Alert type="info" showIcon title={saveStage}/>}
    {error&&<Alert type="error" showIcon title={error}/>}
    <Form form={form} layout="vertical" preserve={false}>{editing?.group==='ldap'?<Tabs activeKey={mailTab} onChange={setMailTab} items={[
  {key:'connection',label:'目录与账号',forceRender:true,children:<div className="nt-mail-fields">{definitions.filter(p=>propertyGroup(p.key)==='ldap'&&!['ldap-password','ldap-ca-pem'].includes(p.key)).map(field)}</div>},

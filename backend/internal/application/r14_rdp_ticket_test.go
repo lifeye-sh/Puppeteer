@@ -3,9 +3,9 @@ package application
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/entitlements"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/entitlements"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/session"
 	"strings"
 	"sync"
 	"sync/atomic"

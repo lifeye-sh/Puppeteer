@@ -5,7 +5,7 @@ import (
 	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/notification"
+	"puppeteer/backend/internal/modules/notification"
 	"sync"
 	"sync/atomic"
 	"testing"

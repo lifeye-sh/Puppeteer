@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"next-terminal/backend/internal/modules/website"
+	"puppeteer/backend/internal/modules/website"
 	"strings"
 	"testing"
 	"time"

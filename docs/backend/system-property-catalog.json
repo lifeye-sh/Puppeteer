@@ -1,5 +1,5 @@
 {
-  "source": "https://www.next-terminal.com/zh/docs/usage/system-properties.html",
+  "source": "../../backend/internal/modules/system/configuration.go",
   "reviewDate": "2026-11-12",
   "properties": [
     {
@@ -15,8 +15,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-use-ssl",
@@ -31,8 +30,7 @@
       "validation": "仅 true/false；禁止通过字符串真值判断",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-host",
@@ -47,8 +45,7 @@
       "validation": "域名或IP，≤253字符；邮件开启必填",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-port",
@@ -63,8 +60,7 @@
       "validation": "1..65535",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-username",
@@ -79,8 +75,7 @@
       "validation": "≤1024字符，无NUL；所属服务开启时必填",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-password",
@@ -95,8 +90,7 @@
       "validation": "空默认不清除；显式clear；≤64KiB；开启所属服务时按认证方式检查",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-insecure-skip-verify",
@@ -111,8 +105,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "mail-from",
@@ -127,8 +120,7 @@
       "validation": "合法邮箱，邮件开启必填",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "login-lock-enabled",
@@ -144,7 +136,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -163,7 +154,6 @@
       "access": "read-write",
       "defaultSource": "preserve-existing-enforced-default-2026-11-11",
       "internalUnit": "minutes",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/identity/management.go; backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -182,7 +172,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "count",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/identity/management.go; backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -201,7 +190,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "minutes",
-      "officialDefault": "未在本页明确",
       "unitEvidence": "src/pages/sysconf/SecurityLoginLockSetting.tsx；src/react-i18next/locales/zh-CN.json",
       "implementation": "backend/internal/modules/identity/management.go; backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
@@ -221,7 +209,6 @@
       "access": "read-write",
       "defaultSource": "preserve-existing-IP-behavior-and-shared-proxy-safety-2026-11-11",
       "internalUnit": "minutes",
-      "officialDefault": "未在本页明确",
       "unitEvidence": "src/pages/sysconf/SecurityLoginLockSetting.tsx；src/react-i18next/locales/zh-CN.json",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
@@ -240,7 +227,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -256,8 +242,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "password-strength-type",
@@ -272,8 +257,7 @@
       "validation": "recommend/customize",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "password-strength-policy",
@@ -294,8 +278,7 @@
       "validation": "minLength 8..128；minCharacterType 1..3；其余bool；拒绝未知字段；customize时执行",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "login-session-duration",
@@ -312,7 +295,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "minutes",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/identity/service.go; backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -330,7 +312,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "preserve-existing-unlimited-behavior-2026-11-11",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -349,7 +330,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "count",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -367,8 +347,7 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "internalUnit": "days",
-      "officialDefault": "未在本页明确"
+      "internalUnit": "days"
     },
     {
       "key": "disable-password-login",
@@ -384,7 +363,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -400,8 +378,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "access-mfa-expires-at",
@@ -418,7 +395,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "minutes",
-      "officialDefault": "未在本页明确",
       "unitEvidence": "src/pages/sysconf/AssetAccessEntrySetting.tsx"
     },
     {
@@ -435,7 +411,6 @@
       "effect": "readonly",
       "access": "read-only",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md#ssh-主机身份与只读配置-schema81"
     },
     {
@@ -453,7 +428,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "days",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md#资源默认值-schema71"
     },
     {
@@ -470,8 +444,7 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "internalUnit": "seconds",
-      "officialDefault": "未在本页明确"
+      "internalUnit": "seconds"
     },
     {
       "key": "ssh-server-enabled",
@@ -486,8 +459,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "listener",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "ssh-server-addr",
@@ -502,8 +474,7 @@
       "validation": "使用net.SplitHostPort校验；端口1..65535；端口冲突拒绝",
       "effect": "listener",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "ssh-server-private-key",
@@ -519,7 +490,6 @@
       "effect": "listener",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md#ssh-主机身份与只读配置-schema81"
     },
     {
@@ -536,7 +506,6 @@
       "effect": "readonly",
       "access": "read-only",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md#ssh-主机身份与只读配置-schema81"
     },
     {
@@ -553,7 +522,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/forward_configuration.go"
     },
     {
@@ -570,7 +538,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/forward_configuration.go"
     },
     {
@@ -587,7 +554,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -603,8 +569,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "listener",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "db-proxy-addr",
@@ -619,8 +584,7 @@
       "validation": "使用net.SplitHostPort校验；端口1..65535；端口冲突拒绝",
       "effect": "listener",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "db-proxy-block-dml",
@@ -635,8 +599,7 @@
       "validation": "仅 true/false；禁止通过字符串真值判断",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "recording-enabled",
@@ -652,7 +615,6 @@
       "effect": "new-session; disable waits for ACK, existing sessions unchanged",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/audit/terminal.go"
     },
     {
@@ -670,7 +632,6 @@
       "access": "read-write",
       "defaultSource": "user-31-day-access-retention; upgrade inherits existing access retention",
       "internalUnit": "days",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/audit/retention.go"
     },
     {
@@ -688,7 +649,6 @@
       "access": "read-write",
       "defaultSource": "preserve-existing-retention-2026-11-11",
       "internalUnit": "days",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/audit_retention.go",
       "evidence": "acceptance/R16.md"
     },
@@ -707,7 +667,6 @@
       "access": "read-write",
       "defaultSource": "preserve-existing-retention-2026-11-11",
       "internalUnit": "days",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/audit_retention.go",
       "evidence": "acceptance/R16.md"
     },
@@ -726,7 +685,6 @@
       "access": "read-write",
       "defaultSource": "preserve-existing-retention-2026-11-11",
       "internalUnit": "days",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/audit_retention.go",
       "evidence": "acceptance/R16.md"
     },
@@ -745,7 +703,6 @@
       "access": "read-write",
       "defaultSource": "preserve-existing-retention-2026-11-11",
       "internalUnit": "days",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/audit_retention.go",
       "evidence": "acceptance/R16.md"
     },
@@ -763,7 +720,6 @@
       "effect": "live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -781,7 +737,6 @@
       "effect": "live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -799,7 +754,6 @@
       "effect": "live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -817,7 +771,6 @@
       "effect": "live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "implementation": "backend/internal/modules/system/configuration.go",
       "evidence": "acceptance/R16.md"
     },
@@ -835,7 +788,6 @@
       "effect": "readonly",
       "access": "read-only",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md#ssh-主机身份与只读配置-schema81"
     },
     {
@@ -852,7 +804,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_watermark_test.go",
       "runtimeScope": "New session snapshot; browser SSH/Telnet/RDP/VNC and observers; not burned into recording or native client display"
     },
@@ -870,7 +821,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_watermark_test.go",
       "runtimeScope": "New session snapshot; browser SSH/Telnet/RDP/VNC and observers; not burned into recording or native client display"
     },
@@ -888,7 +838,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_watermark_test.go",
       "runtimeScope": "New session snapshot; browser SSH/Telnet/RDP/VNC and observers; not burned into recording or native client display"
     },
@@ -906,7 +855,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_watermark_test.go",
       "runtimeScope": "New session snapshot; browser SSH/Telnet/RDP/VNC and observers; not burned into recording or native client display"
     },
@@ -924,7 +872,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_watermark_test.go",
       "runtimeScope": "New session snapshot; browser SSH/Telnet/RDP/VNC and observers; not burned into recording or native client display"
     },
@@ -943,7 +890,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "px",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_watermark_test.go",
       "runtimeScope": "New session snapshot; browser SSH/Telnet/RDP/VNC and observers; not burned into recording or native client display"
     },
@@ -961,7 +907,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -979,7 +924,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -997,7 +941,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -1015,7 +958,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -1033,7 +975,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -1052,7 +993,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "count",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -1070,7 +1010,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -1092,7 +1031,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "backend/internal/application/r16_managed_ldap_test.go; backend/internal/application/r16_ldap_mapping_test.go",
       "runtimeScope": "Managed default directory; independent directories preserved; password/MFA proof; enabling waits for online ACK, disabling immediate; immutable identity boundary; paged complete preview; email unverified; isolated restore disabled"
     },
@@ -1111,7 +1049,6 @@
       "access": "read-write",
       "defaultSource": "existing-product-default-5GiB",
       "internalUnit": "bytes",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md#资源默认值-schema71"
     },
     {
@@ -1127,8 +1064,7 @@
       "validation": "HTTPS根URL；无userinfo/query/fragment/API子路径；启用注册时必填",
       "effect": "new-session",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "asset-group-tree",
@@ -1143,8 +1079,7 @@
       "validation": "只读兼容资源分组投影；一次性旧值迁移走M03/M09用例；不可直接写settings",
       "effect": "readonly",
       "access": "read-only",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "website-group-tree",
@@ -1159,8 +1094,7 @@
       "validation": "只读兼容资源分组投影；一次性旧值迁移走M03/M09用例；不可直接写settings",
       "effect": "readonly",
       "access": "read-only",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "ip-extractor",
@@ -1175,8 +1109,7 @@
       "validation": "direct/x-real-ip/x-forwarded-for或合法自定义header；禁止敏感header",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "ip-trust-list",
@@ -1191,8 +1124,7 @@
       "validation": "最多1024项IPv4/IPv6 CIDR；wire逗号分隔；不自动信任私网",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "passkey-enabled",
@@ -1207,8 +1139,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "compatibility: permit existing explicit deployment RP; no valid RP means unavailable",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "compatibility: permit existing explicit deployment RP; no valid RP means unavailable"
     },
     {
       "key": "passkey-domain",
@@ -1223,8 +1154,7 @@
       "validation": "RP ID非URL；必须匹配允许origin的注册域；开启必填",
       "effect": "new-session",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "passkey-origins",
@@ -1239,8 +1169,7 @@
       "validation": "1–16个精确HTTPS Origin；与RP匹配且属于部署API白名单；空RP+[]同时继承部署配置",
       "effect": "new-session",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "wechat-work-enabled",
@@ -1256,7 +1185,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1273,7 +1201,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1290,7 +1217,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1307,7 +1233,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1324,7 +1249,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1341,7 +1265,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1358,7 +1281,6 @@
       "effect": "security-live",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1375,7 +1297,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1392,7 +1313,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1409,7 +1329,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1426,7 +1345,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1443,7 +1361,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1460,7 +1377,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1476,8 +1392,7 @@
       "validation": "仅 true/false；开启前满足所属功能的跨字段校验",
       "effect": "security-live",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "oidc-server-issuer",
@@ -1492,8 +1407,7 @@
       "validation": "固定HTTPS issuer；无query/fragment；开启必填；变更需吊销相关token",
       "effect": "new-session",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "oidc-server-signing-key",
@@ -1509,7 +1423,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1526,7 +1439,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1544,7 +1456,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "seconds",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1562,7 +1473,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "seconds",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1580,7 +1490,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "seconds",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1598,7 +1507,6 @@
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
       "internalUnit": "seconds",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1615,7 +1523,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1631,8 +1538,7 @@
       "validation": "空串/掩码保持；显式clear；最长4096字符，拒绝控制字符；修改需管理员密码和已绑定MFA",
       "effect": "new-session",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "llm-base-url",
@@ -1647,8 +1553,7 @@
       "validation": "HTTPS；明确允许内网时可用HTTP；拒绝凭据/query/fragment；域名解析后固定合法IP",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "llm-model",
@@ -1663,8 +1568,7 @@
       "validation": "启用必填，最多200字符；模型发现或模拟服务验证，未知模型由服务明确报错",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "llm-temperature",
@@ -1679,8 +1583,7 @@
       "validation": "-1省略参数或有限数0..2；不支持时设为-1使用模型默认",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "llm-max-tokens",
@@ -1696,8 +1599,7 @@
       "effect": "next-job",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "internalUnit": "tokens",
-      "officialDefault": "未在本页明确"
+      "internalUnit": "tokens"
     },
     {
       "key": "llm-proxy-url",
@@ -1712,8 +1614,7 @@
       "validation": "HTTP/HTTPS CONNECT与SOCKS5/SOCKS5h；SOCKS明确端口；不接受URL凭据；两跳本地DNS校验与固定，包括SOCKS5h",
       "effect": "next-job",
       "access": "read-write",
-      "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确"
+      "defaultSource": "project-design-2026-10-26"
     },
     {
       "key": "llm-shell-prompt",
@@ -1729,7 +1630,6 @@
       "effect": "next-job",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1746,7 +1646,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1763,7 +1662,6 @@
       "effect": "next-job",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     },
     {
@@ -1780,7 +1678,6 @@
       "effect": "new-session",
       "access": "read-write",
       "defaultSource": "project-design-2026-10-26",
-      "officialDefault": "未在本页明确",
       "runtimeEvidence": "acceptance/R16.md"
     }
   ],

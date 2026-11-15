@@ -6,7 +6,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"net"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"os"
 	"time"
 

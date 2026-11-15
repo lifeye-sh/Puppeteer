@@ -9,7 +9,7 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"net/netip"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 )

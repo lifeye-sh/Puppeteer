@@ -14,7 +14,7 @@
 | D06 | M18 / 各领域 owner | 103 个文档属性逐项定义内部类型、默认值、校验和应用方式 | [配置目录](system-property-catalog.md) |
 | D07 | M10 / M01、M02、M04、M08、M11 | MySQL TLS完整认证、专用密码验证器、协议审计与PG扩展 | [数据库认证](implementation/database-auth.md) |
 
-原生 RDP 是 Go 主架构中的独立 C 协议进程，不要求用 Go 重写 RDP。浏览器 RDP/VNC 继续使用 guacd；两者分别验收，不能相互代替。Termark 公开 URI 接入不等于实现其 Next Terminal 目录同步和私有 HTTPS 帧协议。自有归档不宣称可导入官方 `.ntbak`。
+原生 RDP 是 Go 主架构中的独立 C 协议进程，不要求用 Go 重写 RDP。浏览器 RDP/VNC 继续使用 guacd；两者分别验收，不能相互代替。Termark 公开 URI 接入不等于实现其 Puppeteer 目录同步和私有 HTTPS 帧协议。自有归档不宣称可导入官方 `.ntbak`。
 
 ## 技术组件与采购边界
 

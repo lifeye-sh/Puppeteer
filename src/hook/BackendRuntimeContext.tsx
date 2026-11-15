@@ -2,7 +2,9 @@ import {useBackendBranding} from './useBackendBranding';
 import {createContext, useContext, useEffect, useRef, type ReactNode} from 'react';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {Navigate, useLocation} from 'react-router-dom';
-import {Button, Result, Spin} from 'antd';
+import {Alert, Button, Result, Spin} from 'antd';
+import {isApiError} from '@/api/core/api-error';
+import DeploymentProgressFallback from '@/components/DeploymentProgressFallback';
 import requests from '@/api/core/requests';
 import accountApi, {type AccountInfo} from '@/api/account-api';
 import {clearCurrentUser} from '@/utils/permission';
@@ -74,14 +76,17 @@ export function BackendRuntimeProvider({children}: {children: ReactNode}) {
     }, [query.data, queryClient]);
     if (publicPage) return <>{children}</>;
     if (query.isPending) return <Spin fullscreen description="正在验证新后端身份…"/>;
-    if (query.isError) {
+    const temporaryOutage = query.isError && isApiError(query.error)
+        && (query.error.kind === 'network' || [502, 503, 504].includes(query.error.status));
+    if (query.isError && !(temporaryOutage && query.data)) {
         const status = (query.error as {status?: number}).status;
         if (status === 418) return <Navigate to="/setup" replace/>;
         if (status === 401) return <Navigate to={pathname==='/website-login'?`/login?return=${encodeURIComponent(pathname+search)}`:'/login'} replace/>;
-        return <Result status="error" title="新后端暂不可用" subTitle={query.error.message}
-            extra={<Button onClick={() => void query.refetch()}>重试连接</Button>}/>;
+        return <>{temporaryOutage&&<DeploymentProgressFallback/>}<Result status="error" title="新后端暂不可用" subTitle={query.error.message}
+            extra={<Button onClick={() => void query.refetch()}>重试连接</Button>}/></>;
     }
-    return <Context.Provider value={query.data}>{children}</Context.Provider>;
+    if (!query.data) return <Spin fullscreen description="正在恢复连接…"/>;
+    return <Context.Provider value={query.data}>{temporaryOutage&&<Alert type="info" showIcon title="平台连接暂时中断，正在自动重连；已受理的部署任务会继续执行。"/>}{children}</Context.Provider>;
 }
 
 export function useBackendRuntime() {

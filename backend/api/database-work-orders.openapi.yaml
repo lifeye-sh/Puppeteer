@@ -442,7 +442,7 @@ paths:
         Cache-Control:no-store; no private key.
       responses:
         '200':
-          description: next-terminal-mysql.pem attachment
+          description: puppeteer-mysql.pem attachment
           content:
             application/x-pem-file:
               schema:

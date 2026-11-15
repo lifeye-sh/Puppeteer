@@ -2,10 +2,10 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/automation"
-	"next-terminal/backend/internal/modules/vault"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/modules/automation"
+	"puppeteer/backend/internal/modules/vault"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/jobs"
 	"strings"
 )
 

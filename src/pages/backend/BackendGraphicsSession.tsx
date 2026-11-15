@@ -3,7 +3,7 @@ import {coalesceMouse} from './graphics-mouse';
 import SessionWatermark from '@/pages/access/SessionWatermark';
 import type {SessionWatermark as WatermarkConfig} from '@/api/session-api';
 import {useEffect,useRef,useState} from 'react';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 import requests from '@/api/core/requests';
 import BackendRDPToolbox from './BackendRDPToolbox';
 import type {TerminalAsset} from './BackendTerminalWorkspace';

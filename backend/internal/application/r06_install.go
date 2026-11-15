@@ -16,10 +16,10 @@ import (
 	"time"
 
 	"golang.org/x/crypto/ssh"
-	"next-terminal/backend/internal/agent"
-	"next-terminal/backend/internal/modules/connectivity"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/agent"
+	"puppeteer/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 type agentInstallInput struct {
@@ -342,7 +342,7 @@ func (a *App) installAgent(r *http.Request, id string, in agentInstallInput) {
 	_ = reader.Close()
 	uploadErr := <-uploaded
 	if e != nil || uploadErr != nil {
-		message = "上传或服务安装失败；设备凭据已撤销。请检查权限/磁盘及 /opt/next-terminal-agent、/var/lib/next-terminal-agent 中的残留，安装不会覆盖已有文件"
+		message = "上传或服务安装失败；设备凭据已撤销。请检查权限/磁盘及 /opt/puppeteer-agent、/var/lib/puppeteer-agent 中的残留，安装不会覆盖已有文件"
 		return
 	}
 	if e = progress("waiting_online", "服务已启动，等待 Agent 与后端建立认证连接"); e != nil {
@@ -431,9 +431,9 @@ command -v tar >/dev/null
 command -v sha256sum >/dev/null
 if test "$(id -u)" = 0; then mode=root; else sudo -n true; mode=sudo; fi
 if test "$mode" = root; then
- sh -c 'test ! -e /opt/next-terminal-agent && test ! -e /var/lib/next-terminal-agent && test ! -e /etc/systemd/system/nt-agent.service && ! systemctl cat nt-agent.service >/dev/null 2>&1 && command -v useradd >/dev/null'
+ sh -c 'test ! -e /opt/puppeteer-agent && test ! -e /var/lib/puppeteer-agent && test ! -e /etc/systemd/system/nt-agent.service && ! systemctl cat nt-agent.service >/dev/null 2>&1 && command -v useradd >/dev/null'
 else
- sudo -n sh -c 'test ! -e /opt/next-terminal-agent && test ! -e /var/lib/next-terminal-agent && test ! -e /etc/systemd/system/nt-agent.service && ! systemctl cat nt-agent.service >/dev/null 2>&1 && command -v useradd >/dev/null'
+ sudo -n sh -c 'test ! -e /opt/puppeteer-agent && test ! -e /var/lib/puppeteer-agent && test ! -e /etc/systemd/system/nt-agent.service && ! systemctl cat nt-agent.service >/dev/null 2>&1 && command -v useradd >/dev/null'
 fi
 printf '%s' "$mode"`
 const installScript = `set -eu
@@ -445,12 +445,12 @@ tar -xf - -C "$stage"
 echo '%s  '"$stage/nt-agent" | sha256sum -c - >/dev/null
 test ! -e /etc/systemd/system/nt-agent.service
 ! systemctl cat nt-agent.service >/dev/null 2>&1
-mkdir -m 755 /opt/next-terminal-agent
-mkdir -m 700 /var/lib/next-terminal-agent
-if ! id nt-agent >/dev/null 2>&1; then useradd --system --no-create-home --home-dir /var/lib/next-terminal-agent --shell /bin/false nt-agent; fi
-install -m 755 "$stage/nt-agent" /opt/next-terminal-agent/nt-agent
-install -m 600 "$stage/agent.json" /var/lib/next-terminal-agent/agent.json
-chown -R nt-agent /var/lib/next-terminal-agent
+mkdir -m 755 /opt/puppeteer-agent
+mkdir -m 700 /var/lib/puppeteer-agent
+if ! id nt-agent >/dev/null 2>&1; then useradd --system --no-create-home --home-dir /var/lib/puppeteer-agent --shell /bin/false nt-agent; fi
+install -m 755 "$stage/nt-agent" /opt/puppeteer-agent/nt-agent
+install -m 600 "$stage/agent.json" /var/lib/puppeteer-agent/agent.json
+chown -R nt-agent /var/lib/puppeteer-agent
 (set -C; cat "$stage/nt-agent.service" > /etc/systemd/system/nt-agent.service)
 chmod 644 /etc/systemd/system/nt-agent.service
 systemctl daemon-reload
@@ -464,13 +464,13 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=nt-agent
-ExecStart=/opt/next-terminal-agent/nt-agent --config /var/lib/next-terminal-agent/agent.json
+ExecStart=/opt/puppeteer-agent/nt-agent --config /var/lib/puppeteer-agent/agent.json
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=/var/lib/next-terminal-agent
+ReadWritePaths=/var/lib/puppeteer-agent
 UMask=0077
 [Install]
 WantedBy=multi-user.target

@@ -2,7 +2,7 @@ package identity
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Preparing a local account is an explicit administrator action. It never

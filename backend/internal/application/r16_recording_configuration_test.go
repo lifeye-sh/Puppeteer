@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/websocket"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"testing"
 )

@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/connectivity"
 	"sync"
 	"sync/atomic"
 	"testing"

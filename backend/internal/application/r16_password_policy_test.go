@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 	"testing"
 )
 

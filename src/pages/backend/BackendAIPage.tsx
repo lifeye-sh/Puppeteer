@@ -1,3 +1,5 @@
+import BackendDependencyCheck from './BackendDependencyCheck';
+import {settingsDestination} from './platform-settings-model';
 import {useEffect, useRef, useState} from 'react';
 import {Alert, Button, Card, Collapse, Empty, Form, Input, InputNumber, Popconfirm, Select, Space, Switch, Table, Tag, Typography} from 'antd';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
@@ -33,11 +35,11 @@ function Profiles(){
   <Space wrap><Switch checked={settings.data?.enabled??false} disabled={!settings.data||busy} onChange={enabled=>void run(()=>requests.put('/admin/ai/settings',{...settings.data,enabled},opts))}/><span>启用 AI 对话</span><Button type="primary" onClick={()=>edit(null)}>新建模型配置</Button></Space>
   <Space><Switch aria-label="启用只读上下文" checked={settings.data?.readonlyEnabled??false} disabled={!settings.data||busy} onChange={readonlyEnabled=>void run(()=>requests.put('/admin/ai/settings',{...settings.data,readonlyEnabled},opts))}/><span>启用资产与会话只读上下文</span></Space>
   <Collapse items={[{key:"assets",label:"逐个资产开放 AI",children:<AIAssetSettings/>},{key:"policy",label:"执行策略、提示词与预算",children:<AIPolicy/>}]}/>
-  <Table rowKey="id" dataSource={profiles.data||[]} loading={profiles.isLoading} scroll={{x:650}} pagination={false} columns={[
+  <Table rowKey="id" dataSource={profiles.data||[]} expandable={{expandedRowRender:v=><BackendDependencyCheck feature={`ai-profile:${v.id}`}/>}} loading={profiles.isLoading} scroll={{x:650}} pagination={false} columns={[
    {title:'名称',dataIndex:'name'},{title:'模型',dataIndex:'model'},
    {title:'状态',render:(_,p:Profile)=><Tag color={p.enabled?'green':'default'}>{p.enabled?'启用':'停用'}</Tag>},
    {title:'密钥',render:(_,p:Profile)=>p.hasKey?'已配置':'未配置'},
-   {title:'操作',render:(_,p:Profile)=>p.managed?<Link to="/system-status?section=ai">平台设置管理</Link>:<Space><Button type="link" onClick={()=>edit(p)}>编辑</Button><Popconfirm title="删除此模型配置？已有对话历史会保留。" onConfirm={()=>run(()=>requests.delete('/admin/ai/profiles/'+p.id,opts))}><Button type="link" danger disabled={busy}>删除</Button></Popconfirm></Space>}
+   {title:'操作',render:(_,p:Profile)=>p.managed?<Link to={settingsDestination('aiModel')}>平台设置管理</Link>:<Space><Button type="link" onClick={()=>edit(p)}>编辑</Button><Popconfirm title="删除此模型配置？已有对话历史会保留。" onConfirm={()=>run(()=>requests.delete('/admin/ai/profiles/'+p.id,opts))}><Button type="link" danger disabled={busy}>删除</Button></Popconfirm></Space>}
   ]}/>
   <Modal title={editing?'编辑模型配置':'新建模型配置'} open={editing!==undefined} onCancel={()=>setEditing(undefined)} confirmLoading={busy} onOk={async()=>{const values=await form.validateFields();await run(async()=>{const payload={...values,version:editing?.version||0};if(editing)await requests.put('/admin/ai/profiles/'+editing.id,payload,opts);else await requests.post('/admin/ai/profiles',payload,opts);setEditing(undefined)})}}>
    {error&&<Alert type="error" title={error}/>}

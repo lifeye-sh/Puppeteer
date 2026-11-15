@@ -4,8 +4,8 @@ package application
 
 import (
 	"errors"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/listener"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/listener"
 )
 
 func (a *App) managedRDPSpec(v system.ConfigurationValues) (*listener.Spec, error) {

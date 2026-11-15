@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/jobs"
 )
 
 type Export struct {

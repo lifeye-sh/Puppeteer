@@ -2,8 +2,8 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/agent"
-	"next-terminal/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/agent"
+	"puppeteer/backend/internal/modules/connectivity"
 	"testing"
 	"time"
 )

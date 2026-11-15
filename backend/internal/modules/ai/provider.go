@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"next-terminal/backend/internal/platform/modelendpoint"
+	"puppeteer/backend/internal/platform/modelendpoint"
 	"strings"
 	"time"
 )

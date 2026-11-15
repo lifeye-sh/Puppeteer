@@ -1,3 +1,5 @@
+import BackendDependencyCheck from './BackendDependencyCheck';
+import {settingsDestination} from './platform-settings-model';
 import {Alert,Button,Form,Input,Table,Tag,Space,Switch,Select} from 'antd';
 import {useState} from 'react';
 import {Link} from 'react-router-dom';
@@ -18,7 +20,7 @@ export default function BackendOIDCProviders(){
  {checkResult&&<Alert closable onClose={()=>setCheckResult(undefined)} type={checkResult.ok?'success':'error'} title={checkResult.text}/>}
  {query.error&&<Alert type="error" title={query.error.message}/>}
  <Button type="primary" style={{margin:'12px 0'}} onClick={()=>edit()}>新建提供方</Button>
- <Table<Provider> rowKey="id" size="small" loading={query.isLoading} dataSource={query.data?.items??[]} pagination={{pageSize:10}} scroll={{x:800}} columns={[{title:'名称',dataIndex:'name'},{title:'类型',dataIndex:'kind'},{title:'Issuer',dataIndex:'issuer'},{title:'客户端 ID',dataIndex:'clientId'},{title:'客户端密钥',render:(_,v)=>v.hasSecret?'已配置':'未配置'},{title:'状态',render:(_,v)=><Tag>{(v.bindingEnabled?'允许绑定':'禁止新绑定')+' · '+(v.enabled?'登录已启用':'登录未启用')}</Tag>},{title:'操作',render:(_,v)=><Space>{v.settingsManaged?<Link to={`/system-status?section=${v.kind==='wecom'?'wecomProvider':'oidcProvider'}`}>平台设置</Link>:<Button type="link" onClick={()=>edit(v)}>编辑</Button>}<Button type="link" loading={checking===v.id} disabled={!!checking} onClick={()=>void check(v)}>检测配置</Button><Button type="link" onClick={()=>{close();setTesting(v);setOpen(true)}}>验证授权</Button></Space>}]}/>
+ <Table<Provider> rowKey="id" expandable={{expandedRowRender:v=><BackendDependencyCheck feature={`oidc-provider:${v.id}`}/>}} size="small" loading={query.isLoading} dataSource={query.data?.items??[]} pagination={{pageSize:10}} scroll={{x:800}} columns={[{title:'名称',dataIndex:'name'},{title:'类型',dataIndex:'kind'},{title:'Issuer',dataIndex:'issuer'},{title:'客户端 ID',dataIndex:'clientId'},{title:'客户端密钥',render:(_,v)=>v.hasSecret?'已配置':'未配置'},{title:'状态',render:(_,v)=><Tag>{(v.bindingEnabled?'允许绑定':'禁止新绑定')+' · '+(v.enabled?'登录已启用':'登录未启用')}</Tag>},{title:'操作',render:(_,v)=><Space>{v.settingsManaged?<Link to={settingsDestination(v.kind==='wecom'?'wecomProvider':'oidcProvider')}>平台设置</Link>:<Button type="link" onClick={()=>edit(v)}>编辑</Button>}<Button type="link" loading={checking===v.id} disabled={!!checking} onClick={()=>void check(v)}>检测配置</Button><Button type="link" onClick={()=>{close();setTesting(v);setOpen(true)}}>验证授权</Button></Space>}]}/>
  <Modal open={open} title={testing?'验证 '+testing.name:editing?'编辑身份提供方':'新建身份提供方'} onCancel={close} onOk={()=>void save()} confirmLoading={busy}>
  {error&&<Alert type="error" title={error}/>}
  <Form name="oidc-provider" form={form} layout="vertical" preserve={false}>

@@ -244,7 +244,7 @@ const AssetRecordingSetting = ({
             label={t('settings.asset_access.recording_path')}
             extra={t('settings.asset_access.recording_path_readonly_tip')}
         >
-            <Input disabled placeholder="/usr/local/next-terminal/data/recording" style={{maxWidth: 520}}/>
+            <Input disabled placeholder="/usr/local/puppeteer/data/recording" style={{maxWidth: 520}}/>
         </Form.Item>}
 
         {recordingType === 's3' && <>

@@ -3,7 +3,7 @@ package system
 import (
 	"context"
 	"github.com/google/uuid"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func isFederationDepartmentKey(key string) bool {

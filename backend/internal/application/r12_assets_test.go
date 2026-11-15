@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/pki"
 	"testing"
 )
 

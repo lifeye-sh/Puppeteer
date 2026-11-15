@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/secretbox"
 	"regexp"
 	"time"
 )

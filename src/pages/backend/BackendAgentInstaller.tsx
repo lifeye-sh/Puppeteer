@@ -32,7 +32,7 @@ export default function BackendAgentInstaller(){
   ]}/>
   <Modal title="选择资产并安装 Agent" open={open} width={680} confirmLoading={busy} okText="开始安装" onOk={()=>form.submit()} onCancel={()=>!busy&&setOpen(false)} maskClosable={!busy}>
    <Space orientation="vertical" style={{width:'100%'}}>
-    <Alert type="info" title="安装到 /opt/next-terminal-agent 和 /var/lib/next-terminal-agent，创建 nt-agent 服务账户并启用开机启动。安装进度保留在列表中，关闭弹窗不会中止已提交任务。"/>
+    <Alert type="info" title="安装到 /opt/puppeteer-agent 和 /var/lib/puppeteer-agent，创建 nt-agent 服务账户并启用开机启动。安装进度保留在列表中，关闭弹窗不会中止已提交任务。"/>
     {(error||assets.error||defaults.error)&&<Alert type="error" title={error||assets.error?.message||defaults.error?.message}/>}
     <Form form={form} layout="vertical" initialValues={{ports:'22',allowInsecureDevelopment:false}} onFinish={v=>void submit(v)}>
      <Form.Item name="assetId" label="安装目标资产" rules={[{required:true}]} extra="输入名称或地址搜索资产。系统与权限将在连接后检查；未核验的主机不会自动信任。">

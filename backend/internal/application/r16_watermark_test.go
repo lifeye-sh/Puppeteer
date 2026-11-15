@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 )
 
 func TestR16WatermarkSnapshotAndAuthorizedViews(t *testing.T) {

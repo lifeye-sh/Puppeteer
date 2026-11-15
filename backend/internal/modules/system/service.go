@@ -2,7 +2,7 @@ package system
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/postgres"
 )
 
 type State struct {

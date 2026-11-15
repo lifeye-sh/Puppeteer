@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 )

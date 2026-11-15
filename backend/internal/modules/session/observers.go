@@ -2,7 +2,7 @@ package session
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"time"
 )
 

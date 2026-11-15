@@ -14,7 +14,7 @@ export default function BackendPostgresConnection({host,port,database,username,c
     {key:'user',label:'用户名',span:2,children:<Typography.Text copyable>{username}</Typography.Text>},
    ]}/>
    <Typography.Paragraph>密码使用<Link to="/info">我的账号</Link>中生成的数据库专用密码。旧版 MySQL 密码需由本人重置以生成 SCRAM 材料；重置会使旧密码失效。</Typography.Paragraph>
-   <Button href="/api/database-proxy/certificate" download="next-terminal-mysql.pem">下载代理证书</Button>
+   <Button href="/api/database-proxy/certificate" download="puppeteer-mysql.pem">下载代理证书</Button>
    <Typography.Paragraph>在 SSL 页启用 SSL，验证模式选择 <Typography.Text code>verify-full</Typography.Text>，根证书选择刚下载的 PEM 文件。驱动属性设置 <Typography.Text code>readOnly=true</Typography.Text> 和 <Typography.Text code>readOnlyMode=always</Typography.Text>；保留默认扩展查询模式，不填写自定义 currentSchema 或 options。</Typography.Paragraph>
    <Typography.Text type="secondary">可复制 JDBC URL；用户名、密码和根证书路径在连接属性中单独填写。</Typography.Text>
    <Typography.Paragraph copyable={{text:jdbc}} style={{overflowWrap:'anywhere',fontFamily:'monospace'}}>{jdbc}</Typography.Paragraph>

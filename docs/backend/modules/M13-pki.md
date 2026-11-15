@@ -78,7 +78,7 @@
 - 阶段：W3；协作：M01、M04、M09、M16。
 - 功能要求：自签/导入/ACME 服务证书；客户端证书生成及 .p12 下载、状态/指纹/序列号/最近使用、吊销重颁；站点证书优先于默认项。
 - 验收条件：无证书、过期、吊销及其他 CA 证书不能通过；变更默认项展示受影响站点；证书通过不等于获得资源授权；CA 备份/恢复和轮换联动。
-- 来源：[mTLS 双向认证](https://www.next-terminal.com/zh/docs/usage/mtls.html)、[Web 资产](https://www.next-terminal.com/zh/docs/usage/website.html)、[命令行工具参考](https://www.next-terminal.com/zh/docs/usage/cli.html)。
+- 来源：[mTLS 双向认证](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[Web 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[命令行工具参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U11（主责 M06）、U13（主责 M06）、U17（主责 M09）、U28（主责 M16）、U30（主责 M18）。
 

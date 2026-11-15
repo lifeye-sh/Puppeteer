@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 import {baseUrl} from "@/api/core/requests";
 import times from '@/components/time/times';
 import {useTranslation} from "react-i18next";

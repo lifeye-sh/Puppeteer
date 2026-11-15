@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"next-terminal/backend/internal/modules/audit"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/audit"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 	"time"
 )

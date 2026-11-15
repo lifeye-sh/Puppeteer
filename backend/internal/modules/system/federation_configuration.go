@@ -2,8 +2,8 @@ package system
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/federationconfig"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/federationconfig"
 	"strings"
 )
 

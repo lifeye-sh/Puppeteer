@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 	"strconv"
 	"time"
 )

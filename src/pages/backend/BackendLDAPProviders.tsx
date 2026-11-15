@@ -1,3 +1,5 @@
+import BackendDependencyCheck from './BackendDependencyCheck';
+import {settingsDestination} from './platform-settings-model';
 import {Link} from 'react-router-dom';
 import BackendLDAPSync from './BackendLDAPSync';
 import {Alert,Button,Form,Input,InputNumber,Select,Switch,Space,Table,Tag} from 'antd';
@@ -15,7 +17,7 @@ export default function BackendLDAPProviders(){
  return <><Alert type="info" showIcon title="LDAP 目录验证" description="支持 LDAPS 和强制 StartTLS。可检测服务账号及用户密码；用户在个人中心绑定后可使用 LDAP 登录；不会按邮箱自动合并账号。"/>
  {result&&<Alert type="success" showIcon title={result} closable onClose={()=>setResult('')}/>}{query.error&&<Alert type="error" title={query.error.message}/>}
  <Button type="primary" style={{margin:'12px 0'}} onClick={()=>edit()}>新建目录</Button>
- <Table<Provider> rowKey="id" size="small" loading={query.isLoading} dataSource={query.data?.items??[]} pagination={{pageSize:10}} scroll={{x:900}} columns={[{title:'名称',dataIndex:'name'},{title:'目录地址',dataIndex:'url'},{title:'Base DN',dataIndex:'baseDN'},{title:'身份属性',dataIndex:'identityAttribute'},{title:'服务凭据',render:(_,p)=>p.hasSecret?'已加密保存':'未配置'},{title:'状态',render:(_,p)=><Space><Tag>{p.enabled?'登录已开放':'登录关闭'}</Tag><Tag>{p.bindingEnabled?'绑定已开放':'绑定关闭'}</Tag></Space>},{title:'操作',render:(_,p)=><Space><>{p.settingsManaged?<Link to="/system-status?section=ldap">平台配置</Link>:<Button type="link" onClick={()=>edit(p)}>编辑</Button>}</><Button type="link" onClick={()=>{close();setTesting(p);setOpen(true)}}>检测目录</Button><BackendLDAPSync provider={p}/></Space>}]}/>
+ <Table<Provider> rowKey="id" expandable={{expandedRowRender:v=><BackendDependencyCheck feature={`ldap-directory:${v.id}`}/>}} size="small" loading={query.isLoading} dataSource={query.data?.items??[]} pagination={{pageSize:10}} scroll={{x:900}} columns={[{title:'名称',dataIndex:'name'},{title:'目录地址',dataIndex:'url'},{title:'Base DN',dataIndex:'baseDN'},{title:'身份属性',dataIndex:'identityAttribute'},{title:'服务凭据',render:(_,p)=>p.hasSecret?'已加密保存':'未配置'},{title:'状态',render:(_,p)=><Space><Tag>{p.enabled?'登录已开放':'登录关闭'}</Tag><Tag>{p.bindingEnabled?'绑定已开放':'绑定关闭'}</Tag></Space>},{title:'操作',render:(_,p)=><Space><>{p.settingsManaged?<Link to={settingsDestination('ldap')}>平台配置</Link>:<Button type="link" onClick={()=>edit(p)}>编辑</Button>}</><Button type="link" onClick={()=>{close();setTesting(p);setOpen(true)}}>检测目录</Button><BackendLDAPSync provider={p}/></Space>}]}/>
  <Modal open={open} title={testing?'检测 '+testing.name:editing?'编辑 LDAP 目录':'新建 LDAP 目录'} onCancel={close} onOk={()=>void submit()} confirmLoading={busy} okText={testing?'开始检测':'保存'}>
  {error&&<Alert type="error" title={error}/>}
  <Form form={form} layout="vertical" preserve={false}>

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"next-terminal/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/pki"
 	"os"
 	"testing"
 )

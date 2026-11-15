@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/session"
 	"strings"
 	"sync/atomic"
 	"testing"

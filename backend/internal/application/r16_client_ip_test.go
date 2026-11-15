@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/modules/website"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/website"
 	"testing"
 )
 

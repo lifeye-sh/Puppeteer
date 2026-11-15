@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"strings"
 	"sync"
 	"testing"

@@ -3,8 +3,8 @@ package vault
 import (
 	"context"
 	"golang.org/x/crypto/ssh"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/jobs"
 )
 
 type RotationRun struct {

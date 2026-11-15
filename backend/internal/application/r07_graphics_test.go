@@ -8,7 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/platform/guac"
+	"puppeteer/backend/internal/platform/guac"
 	"os"
 	"strings"
 	"sync/atomic"

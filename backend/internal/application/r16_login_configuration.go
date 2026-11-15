@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func (a *App) validateLoginConfiguration(ctx context.Context, patch map[string]json.RawMessage, u *identity.User) error {

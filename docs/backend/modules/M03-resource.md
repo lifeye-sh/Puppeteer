@@ -75,21 +75,21 @@
 - 阶段：W2；协作：M02、M06。
 - 功能要求：分组树、搜索、分页和数量统计均限定授权范围；浏览器、原生客户端分别返回支持的协议与能力。
 - 验收条件：数据库资产不会被当成浏览器 SQL 会话；多标签独立建立或离开会话，不误结束其他标签连接。
-- 来源：[浏览器访问工作区](https://www.next-terminal.com/zh/docs/usage/access.html)、[资产管理总览](https://www.next-terminal.com/zh/docs/usage/asset.html)。
+- 来源：[浏览器访问工作区](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[资产管理总览](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U03 资产类型化配置
 
 - 阶段：W1/W3；协作：M05、M06。
 - 功能要求：分别校验协议端口、账号模式、SSH 超时 1–300 秒、保活、环境变量、退格模式、OS 探测、RDP 域/安全/显示/音频/PDU/RemoteApp/驱动器，以及 WOL 网络参数。
 - 验收条件：RDP/VNC 拒绝私钥账号模式；Telnet 使用交互登录且不创建 SFTP 能力；导入模板与单条保存使用同一校验器。
-- 来源：[资产管理总览](https://www.next-terminal.com/zh/docs/usage/asset.html)、[SSH 资产](https://www.next-terminal.com/zh/docs/usage/ssh.html)、[Windows / RDP 资产](https://www.next-terminal.com/zh/docs/usage/rdp.html)、[VNC 与 Telnet 资产](https://www.next-terminal.com/zh/docs/usage/vnc-telnet.html)。
+- 来源：[资产管理总览](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[SSH 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[Windows / RDP 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[VNC 与 Telnet 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U04 SSH 名称与别名解析
 
 - 阶段：W3；协作：M06。
 - 功能要求：别名以字母开头，仅含英文字母、数字、下划线、中划线；支持文档中的 username:asset-name 入口，并结合前端别名提示制定解析规则。
 - 验收条件：本方案采用别名优先、名称兼容回退；只解析已授权 SSH 资产；重名或别名与名称碰撞时拒绝歧义，不静默选中另一主机。
-- 来源：[资产管理总览](https://www.next-terminal.com/zh/docs/usage/asset.html)、[SSH 代理服务器](https://www.next-terminal.com/zh/docs/usage/ssh-server.html)。
+- 来源：[资产管理总览](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[SSH 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U05（主责 M02）、U06（主责 M04）、U10（主责 M06）、U11（主责 M06）、U13（主责 M06）、U22（主责 M10）、U35（主责 M17）。
 

@@ -3,7 +3,7 @@ package audit
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/postgres"
 	"time"
 )
 

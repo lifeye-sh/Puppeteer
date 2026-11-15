@@ -14,10 +14,10 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"next-terminal/backend/internal/application"
-	"next-terminal/backend/internal/modules/backup"
-	"next-terminal/backend/internal/platform/deployment"
-	"next-terminal/backend/migrations"
+	"puppeteer/backend/internal/application"
+	"puppeteer/backend/internal/modules/backup"
+	"puppeteer/backend/internal/platform/deployment"
+	"puppeteer/backend/migrations"
 )
 
 // prepareRestore never swaps a running database. The next maintenance stage

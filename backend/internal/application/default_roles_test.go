@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/migrations"
+	"puppeteer/backend/migrations"
 	"testing"
 )
 

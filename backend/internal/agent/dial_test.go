@@ -2,7 +2,7 @@ package agent
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/connectivity/agentwire"
+	"puppeteer/backend/internal/modules/connectivity/agentwire"
 	"testing"
 	"time"
 )

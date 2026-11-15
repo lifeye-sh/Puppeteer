@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/gorilla/websocket"
-	"next-terminal/backend/internal/modules/session"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/system"
 	"testing"
 )
 

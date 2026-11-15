@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/modules/website"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/website"
 	"strings"
 )
 

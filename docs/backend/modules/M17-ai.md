@@ -84,7 +84,7 @@
 - 阶段：W4；协作：M03、M06、M08、M18。
 - 功能要求：系统 LLM、Shell 助手/审计助手及单资产 AI 设置分别生效；模型、代理、提示词和执行策略类型化管理。
 - 验收条件：系统或资产关闭时不能通过直接 API 执行工具；审计助手只读取已授权日志；模型密钥不进入配置列表和会话审计。
-- 来源：[SSH 资产](https://www.next-terminal.com/zh/docs/usage/ssh.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[SSH 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U31（主责 M18）。
 

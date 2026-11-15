@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/jobs"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 func (s *Service) Destinations(ctx context.Context) ([]Destination, error) {

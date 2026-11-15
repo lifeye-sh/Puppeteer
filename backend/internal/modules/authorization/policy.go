@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/netip"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"regexp"
 	"slices"
 	"sort"

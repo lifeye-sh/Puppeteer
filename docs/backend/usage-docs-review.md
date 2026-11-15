@@ -1,6 +1,6 @@
-# 使用文档核对与后端规划修订
+# 项目需求与后端规划
 
-核对日期：2026-10-26。从[快速开始](https://www.next-terminal.com/zh/docs/usage/readme.html)及中文使用文档导航、站点 sitemap 枚举，共读取 **27 篇使用文档、4 篇直接关联资料，检查 58 处截图/图示引用**。正文已完整阅读，不只抽取标题；清单、正文摘要哈希、页面来源及逐项模块映射见[覆盖矩阵](usage-coverage.md)与[来源记录](usage-docs-sources.json)。Web 资产页嵌入的 Bilibili 视频无法通过阅读工具访问，未取得字幕或逐帧观看，因此不声称已覆盖该视频内容。
+本文件记录 Puppeteer 的业务需求和模块边界。主题索引与覆盖矩阵均指向本仓库需求定义，功能是否已交付以源码和验收记录为准。
 
 本次保留 **Go + PostgreSQL、18 个业务模块 + F00**，增加 36 项可追踪开发需求、103 个底层配置键目录，以及身份恢复、数据库认证、访问审计的 3 张逻辑表。文档核对时为 122 张逻辑表；R01 后新增 F00 迁移技术账本，共登记 123 张表，其中仅 7 张的 R01 字段子集已生成真实迁移，其余仍为设计。实际实现见 [后端运行说明](../../backend/README.md)。原有前端中的 AI、轮换、审批等能力继续保留，使用文档未单独描述不构成删除理由。
 
@@ -39,7 +39,7 @@
 | Termark | 随实际代理能力，不能默认等同 Web | 随实际代理能力 | 设备授权与目录同步、HTTPS 隧道、前置认证、mTLS |
 | 数据库客户端 | 不使用会话文件 API | M10 自有连接状态 | MySQL 协议分类/事务/预处理；PG 单独扩展 |
 
-原生 RDP 限制来源：[RDP 代理服务器](https://www.next-terminal.com/zh/docs/usage/rdp-server.html)。新后端可以增加终止能力，但必须作为另行实现并验证的扩展；未通过前返回 `unsupported`，禁止静默成功。若某种入口无法执行当前资源要求的文件、剪贴板或撤权策略，拒绝该入口，不能仅靠生成客户端配置文件实施访问控制。
+原生 RDP 限制来源：[RDP 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。新后端可以增加终止能力，但必须作为另行实现并验证的扩展；未通过前返回 `unsupported`，禁止静默成功。若某种入口无法执行当前资源要求的文件、剪贴板或撤权策略，拒绝该入口，不能仅靠生成客户端配置文件实施访问控制。
 
 ## 需要明确记录的文档差异
 
@@ -84,7 +84,7 @@
 
 [系统属性目录](system-property-catalog.json)登记了 103 个官方键及其领域所有者。原表均声明 string，内部必须分别解析 bool、枚举、整数、时长、字节数、URL、秘密引用。官方原始单位保留在 unit；本轮依据 UI 确认 `access-mfa-expires-at` 为分钟，并在 internalUnit 和设计规范补齐内部单位。103 键均已填写 proposedDefault、validation、effect；官方未知默认值仍单独保留。兼容 property API 由 M18 承接，业务校验和应用行为归各 owner。
 
-Agent 的文档参考配置为 `~/.nt/agent.yaml`，缺失时生成默认配置，指定路径优先；默认 endpoint `http://localhost:8080`、TLS 跳过校验 false、名称使用主机名、采集 5 秒、心跳 30 秒、自动更新 true/10m。HTTP/HTTPS 分别形成 WS/WSS；endpoint 不含 API 子路径。HTTP/SOCKS5/SOCKS5H 代理要求显式有效端口，SOCKS5H 在官方描述中按 SOCKS5 处理，不能自行承诺不同 DNS 解析语义。[官方配置说明](https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html)
+Agent 的文档参考配置为 `~/.nt/agent.yaml`，缺失时生成默认配置，指定路径优先；默认 endpoint `http://localhost:8080`、TLS 跳过校验 false、名称使用主机名、采集 5 秒、心跳 30 秒、自动更新 true/10m。HTTP/HTTPS 分别形成 WS/WSS；endpoint 不含 API 子路径。HTTP/SOCKS5/SOCKS5H 代理要求显式有效端口，SOCKS5H 在官方描述中按 SOCKS5 处理，不能自行承诺不同 DNS 解析语义。[官方配置说明](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)
 
 网卡 include 非空优先于 exclude；默认排除回环及常见虚拟接口；无效正则的官方行为退回最低限度回环排除。磁盘按挂载点精确匹配，默认 Unix `/`、Windows `C:`；非正采集/心跳间隔回默认，无法解析的更新间隔回 10m。本方案在管理配置时额外显示校验告警，不能静默扩大采集范围。采集指标由 M15 消费，注册/版本/通道仍由 M05 管理。
 

@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"io"
 	"net"
-	"next-terminal/backend/internal/platform/guac"
+	"puppeteer/backend/internal/platform/guac"
 	"strconv"
 	"strings"
 	"testing"

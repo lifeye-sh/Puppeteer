@@ -1,5 +1,7 @@
 # Puppeteer Go 后端
 
+当前源码候选 r17-rc12：schema 110、能力版本 90。历史轮次记录保留；当前交付及验证边界见[发布说明](../deploy/production/r17-rc12.md)。网页内 RDP 依赖 guacd，不依赖原生 Worker。
+
 当前状态见 [轮次记录](../docs/backend/migration-rounds.md)。下列各批次说明为历史交付记录；生产部署按 R17 全新安装规划进行。
 
 R17 已提供核心、图形/MP4及协议入口的独立部署预览和生产启动保护，见[部署步骤](../deploy/production/README.md)。本页历史记录中的 development-only 限制不再代表当前代码；R17 的真实证书、容量、恢复演练和最终上线签收仍未完成。

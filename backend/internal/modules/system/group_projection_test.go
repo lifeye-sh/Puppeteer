@@ -1,7 +1,7 @@
 package system
 
 import (
-	"next-terminal/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/resource"
 	"testing"
 )
 

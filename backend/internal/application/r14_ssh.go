@@ -11,11 +11,11 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/modules/connectivity"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/session"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/session"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 	"strings"
 	"time"
 )
@@ -145,7 +145,7 @@ func (a *App) nativeBridge(w http.ResponseWriter, r *http.Request) error {
 	}()
 	defer func() { cancel(); <-done }()
 	_ = transport.SetDeadline(time.Now().Add(10 * time.Second))
-	cfg := &ssh.ServerConfig{ServerVersion: "SSH-2.0-NextTerminal", PublicKeyCallback: func(meta ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+	cfg := &ssh.ServerConfig{ServerVersion: "SSH-2.0-Puppeteer", PublicKeyCallback: func(meta ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 		if meta.User() != "nt" || strings.TrimSpace(string(ssh.MarshalAuthorizedKey(key))) != clientKey {
 			return nil, fault.Denied
 		}

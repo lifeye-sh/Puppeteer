@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/postgres"
 )
 
 type configurationProcessReply struct {

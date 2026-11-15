@@ -7,7 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 	"strconv"
 	"sync"
 	"testing"

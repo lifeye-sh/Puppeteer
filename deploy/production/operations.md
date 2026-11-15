@@ -47,7 +47,7 @@ sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
 
 1. 在离线机器用 `nt backup keygen --output recovery.key` 生成恢复私钥，输出的是可传入备份命令的 age 公钥。私钥独立保管，不挂载到长期运行的API/图形/网页服务。
 2. 维护窗口停止API和图形写入者（server与guacd）。离线备份使用数据库排他锁及连接检查，仍有写入进程时拒绝执行；这不是在线备份命令。
-3. 使用与运行版本匹配的镜像、相同Compose环境和叠加文件，执行一次性服务：`docker compose ... run --rm --no-deps --entrypoint /app/nt server backup create --output /var/lib/next-terminal/backups/NEW_NAME.ntbackup.age --recipient AGE_PUBLIC_RECIPIENT --scope full`。
+3. 使用与运行版本匹配的镜像、相同Compose环境和叠加文件，执行一次性服务：`docker compose ... run --rm --no-deps --entrypoint /app/nt server backup create --output /var/lib/puppeteer/backups/NEW_NAME.ntbackup.age --recipient AGE_PUBLIC_RECIPIENT --scope full`。
 4. 无论备份成功与否都应恢复原服务、刷新web并检查健康。不要把“备份成功”当作“服务已恢复”。
 5. 将加密归档另存并核对SHA-256。full包含数据库内录屏/共享存储对象和恢复密钥；不包含远端资产主机文件、旧备份、外部WAL仓库和可重建的MP4缓存。不能把此归档当作整个宿主机镜像。
 

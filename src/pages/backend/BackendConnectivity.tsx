@@ -1,3 +1,4 @@
+import BackendDependencyCheck from './BackendDependencyCheck';
 import Modal from './BackendFormModal';
 import BackendMonitorRules from './BackendMonitorRules';
 import BackendNetworkDiagnostics from './BackendNetworkDiagnostics';
@@ -21,7 +22,7 @@ export default function BackendConnectivity({kind}:{kind:'group'|'proxy'}){
  <Alert type="info" showIcon title={kind==='group'?'网关组 · 按成员顺序尝试':'网络代理 · HTTP CONNECT / SOCKS5'} description={kind==='group'?'创建组后在资产连接路径中选择。仅新建连接时按顺序尝试成员，不重放已建立会话；停用或修改组会关闭其会话。成员按选择顺序保存，可移除后重新选择调整顺序。':'凭据从加密凭据库引用，使用密码类型。SOCKS5 在后端解析目标，SOCKS5H 和 HTTP CONNECT 在代理解析目标。停用代理或更新凭据会断开其会话。'}/>
  {(error||list.error||agents.error||jumps.error||creds.error)&&<Alert type="error" title={error||list.error?.message||agents.error?.message||jumps.error?.message||creds.error?.message}/>}
  <Space><Button type="primary" onClick={()=>edit(null)}>新建{kind==='group'?'网关组':'网络代理'}</Button><Button onClick={()=>void list.refetch()}>刷新</Button></Space>
- <Table<Item> rowKey="id" loading={list.isFetching} dataSource={list.data} columns={[{title:'名称',dataIndex:'name'},{title:kind==='group'?'成员顺序':'代理地址',render:(_,v)=>kind==='group'?v.members?.map(m=>options.find(o=>o.value===m.kind+':'+m.id)?.label??m.id).join(' → '):`${v.scheme}://${v.host}:${v.port}`},{title:'状态',render:(_,v)=><Tag>{v.enabled?'启用':'停用'}</Tag>},{title:'操作',render:(_,v)=><Button onClick={()=>edit(v)}>编辑</Button>}]}/>
+ <Table<Item> rowKey="id" expandable={{expandedRowRender:v=><BackendDependencyCheck feature={`${kind==='group'?'gateway-group':'network-proxy'}:${v.id}`}/>}} loading={list.isFetching} dataSource={list.data} columns={[{title:'名称',dataIndex:'name'},{title:kind==='group'?'成员顺序':'代理地址',render:(_,v)=>kind==='group'?v.members?.map(m=>options.find(o=>o.value===m.kind+':'+m.id)?.label??m.id).join(' → '):`${v.scheme}://${v.host}:${v.port}`},{title:'状态',render:(_,v)=><Tag>{v.enabled?'启用':'停用'}</Tag>},{title:'操作',render:(_,v)=><Button onClick={()=>edit(v)}>编辑</Button>}]}/>
  <Modal open={editing!==undefined} title={kind==='group'?'网关组配置':'网络代理配置'} confirmLoading={busy} onCancel={()=>setEditing(undefined)} onOk={()=>form.submit()} forceRender>{error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical" onFinish={v=>void save(v)}>
  <Form.Item name="name" label="名称" rules={[{required:true,max:100}]}><Input/></Form.Item>
  {kind==='group'?<Form.Item name="memberKeys" label="网关成员（最多 32 个）" rules={[{required:true}]}><Select mode="multiple" options={options}/></Form.Item>:<>

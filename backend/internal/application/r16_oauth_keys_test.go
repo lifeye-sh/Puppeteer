@@ -10,9 +10,9 @@ import (
 	"encoding/pem"
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"testing"
 )

@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/http"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 	"strings"
 )

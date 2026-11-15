@@ -80,35 +80,35 @@
 - 阶段：W1；协作：M01、M02、M08、M15。
 - 功能要求：初始化管理员、登录、创建并测试资产、用户授权、普通用户接入与审计核验组成一条交付用例。
 - 验收条件：并发初始化只有一个成功；普通用户看不到未授权资源；一次连接能关联访问、会话和操作记录。
-- 来源：[快速开始](https://www.next-terminal.com/zh/docs/usage/readme.html)。
+- 来源：[快速开始](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U20 两套真实 IP 配置与信任边界
 
 - 阶段：W1/W3；协作：M01、M02、M09、M15。
 - 功能要求：管理 API 与 Web 反代分别配置 direct/XFF/X-Real-IP 和可信代理；前者动态生效，反代 YAML 按文档需重启。
 - 验收条件：直连伪造 XFF 不生效；多跳由右向左剥离可信代理；SelfProxy 联动测试；默认自动信任私网的官方行为与本方案显式信任差异必须公开。
-- 来源：[获取真实客户端 IP](https://www.next-terminal.com/zh/docs/install/real-ip.html)、[Web 资产](https://www.next-terminal.com/zh/docs/usage/website.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[获取真实客户端 IP](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[Web 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U30 运维 CLI 作为统一应用入口
 
 - 阶段：W1/W3；协作：M01、M02、M13、M15、M08。
 - 功能要求：新增 cmd/nt，覆盖 user list/passwd/otpclr/passkeyclr、sec list/delete、cert generate/revoke、config list/get/set、geodata download/-f、status/version/help/completion。
 - 验收条件：CLI 复用模块用例与配置校验；应急离线模式限制 OS 身份并留审计，不能由 CLI 直接随意改表；密码使用交互或安全输入通道。
-- 来源：[命令行工具参考](https://www.next-terminal.com/zh/docs/usage/cli.html)。
+- 来源：[命令行工具参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U31 系统属性兼容注册表
 
 - 阶段：W0/W4；协作：M01、M02、M06、M07、M08、M10、M14、M17。
 - 功能要求：逐键登记官方 property 键、领域所有者、解析类型/单位、秘密标记、验证和生效方式；property string 兼容外观不改变内部类型化设置。 本项目设计默认值与官方未知默认值分字段保留；103键均定义类型/范围/effect；M18按 D06 实现revision/ACK及安全收紧。
 - 验收条件：未知键拒绝写入；秘密默认掩码；UI/API/CLI 同规则；官方默认值未知须注明；本项目默认值与单位依据显式登记；废弃分组树键由资源模块迁移，避免两份权威数据。
-- 来源：[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U32 许可生命周期与能力分层
 
 - 阶段：W0/W3；协作：M02、M07。
 - 功能要求：设备标识、导入/绑定/更新状态、资产/用户/并发额度及到期展示；文件编辑、目录上传、批量下载、GeoIP 和高级策略独立能力项。 按 D05 提供 local 或本项目 Ed25519/JWS provider；不向官方服务伪造授权。
 - 验收条件：实际实现能力、产品许可和用户授权取交集；外部许可校验协议未知则显示未接入；不得伪造官方许可证，也不把官方授权门户订单业务纳入本后端。
-- 来源：[绑定授权许可](https://www.next-terminal.com/zh/docs/usage/license.html)、[资源授权与访问策略](https://www.next-terminal.com/zh/docs/usage/authorization.html)、[文件管理](https://www.next-terminal.com/zh/docs/usage/file-management.html)、[命令行工具参考](https://www.next-terminal.com/zh/docs/usage/cli.html)。
+- 来源：[绑定授权许可](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[资源授权与访问策略](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[文件管理](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[命令行工具参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U08（主责 M05）、U14（主责 M07）、U16（主责 M08）、U17（主责 M09）、U19（主责 M09）、U25（主责 M01）、U26（主责 M01）、U29（主责 M16）、U35（主责 M17）、U36（主责 M14）。
 

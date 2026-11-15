@@ -2,7 +2,7 @@ package audit
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Caller owns the ended session lock and the retention configuration lock.

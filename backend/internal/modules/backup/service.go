@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"filippo.io/age"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/postgres"
 )
 
 type Service struct{ db *postgres.DB }

@@ -100,28 +100,28 @@
 - 阶段：W4；协作：M04、M10。
 - 功能要求：个人中心签发数据库用途凭据，与 API Token、平台密码和目标数据库密码分开；代理身份必须匹配凭据所属账号。 按D07采用TLS完整认证及Argon2id专用verifier；PG另存SCRAM材料。
 - 验收条件：A 用户凭据不能给 B 用户认证；撤销后新连接拒绝；MySQL challenge-response 使用专用 verifier，不能拿随机 token 的普通摘要直接实现协议认证。
-- 来源：[数据库审计](https://www.next-terminal.com/zh/docs/usage/database.html)。
+- 来源：[数据库审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U24 TOTP 与恢复码
 
 - 阶段：W1；协作：M04、M08。
 - 功能要求：6 位/30 秒 TOTP，绑定前验证；同一时间步防重放；一次性恢复码和管理员恢复入口，恢复后要求重新绑定。
 - 验收条件：并发 TOTP/恢复码只有一次消费成功；恢复码独立哈希且仅签发时展示；CLI 清理 MFA 留下操作者、原因和会话撤销审计；前端恢复码流程缺口单列联调任务。
-- 来源：[OTP 一次性密码](https://www.next-terminal.com/zh/docs/usage/otp.html)、[命令行工具参考](https://www.next-terminal.com/zh/docs/usage/cli.html)。
+- 来源：[OTP 一次性密码](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[命令行工具参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U25 Passkey 域与来源配置
 
 - 阶段：W3；协作：M18。
 - 功能要求：HTTPS、无协议和端口的 RP ID、明确 Origin 白名单；注册、登录、删除及 CLI 全部清理。
 - 验收条件：跨 Origin/RP 的挑战拒绝，挑战一次性；清理用户全部 Passkey 后旧凭据不可用，不把浏览器删除成功当服务端已撤销。
-- 来源：[通行密钥](https://www.next-terminal.com/zh/docs/usage/passkey.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)、[命令行工具参考](https://www.next-terminal.com/zh/docs/usage/cli.html)。
+- 来源：[通行密钥](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[命令行工具参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U26 OIDC 身份提供方完整闭环
 
 - 阶段：W4；协作：M02、M04、M08、M18。
 - 功能要求：Discovery/JWKS、授权同意、授权码/刷新/客户端凭据、scope 与用户部门范围、客户端密钥仅生成时展示、用户撤销同意与声明映射。
 - 验收条件：issuer 固定且 discovery 端点自洽；redirect_uri 精确匹配；禁用客户端和撤销同意后刷新拒绝；正文 oauth2 路径与前端 oidc/server 差异须按兼容台账处理。
-- 来源：[OIDC 单点登录完整配置 — 用 Next Terminal 作 IdP 对接 Proxmox VE](https://www.next-terminal.com/zh/docs/usage/oidc_server.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[OIDC 单点登录完整配置 — 用 Puppeteer 作 IdP 对接 Proxmox VE](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U01（主责 M18）、U05（主责 M02）、U06（主责 M04）、U10（主责 M06）、U11（主责 M06）、U13（主责 M06）、U17（主责 M09）、U20（主责 M18）、U22（主责 M10）、U27（主责 M13）、U30（主责 M18）、U31（主责 M18）。
 

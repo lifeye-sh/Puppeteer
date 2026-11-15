@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/postgres"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/secretbox"
 	"slices"
 	"time"
 )

@@ -43,7 +43,7 @@ async function main() {
     if (!['build','verify'].includes(action)) throw new Error('Usage: frontend-release.mjs build|verify');
     if (action === 'build') {
         for (const [script,args] of [
-            ['node_modules/typescript/bin/tsc',['--noEmit']],
+            ['node_modules/typescript/bin/tsc',['--build']],
             ['node_modules/vite/bin/vite.js',['build','--mode','production','--outDir','dist/production']],
         ]) {
             const child = spawnSync(process.execPath, [resolve(root,script), ...args], {cwd:root, stdio:'inherit'});

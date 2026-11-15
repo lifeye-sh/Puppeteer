@@ -11,7 +11,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/server"
 	"net"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/database"
+	"puppeteer/backend/internal/modules/database"
 	"os"
 	"path/filepath"
 	"strings"

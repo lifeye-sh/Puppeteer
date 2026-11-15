@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 	"testing"
 	"time"
 )

@@ -2,7 +2,7 @@ package application
 
 import (
 	"net/http"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 	"time"
 )

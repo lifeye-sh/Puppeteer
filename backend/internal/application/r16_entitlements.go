@@ -5,9 +5,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/http"
-	"next-terminal/backend/internal/modules/entitlements"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/entitlements"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 )
 

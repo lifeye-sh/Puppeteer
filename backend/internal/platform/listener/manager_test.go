@@ -3,6 +3,7 @@ package listener
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"testing"
@@ -97,7 +98,10 @@ func TestPrepareSwitchPreservesConnectionsAndRotatesIdentity(t *testing.T) {
 	if len(m.States()) != 0 {
 		t.Fatal("disable did not close listener")
 	}
-	check(old, "key-one")
+	old.SetReadDeadline(time.Now().Add(time.Second))
+	if _, err := old.Read(make([]byte, 1)); err != io.EOF {
+		t.Fatalf("disable left old generation open: %v", err)
+	}
 	m.Close()
 	old.SetReadDeadline(time.Now().Add(time.Second))
 	if _, e = old.Read(make([]byte, 1)); e == nil {
@@ -142,5 +146,62 @@ func TestPreparedRollbackStaleAndCancelled(t *testing.T) {
 	if p, e = m.Prepare(ctx, []Spec{echoSpec("127.0.0.1:0", "c")}); e == nil {
 		p.Abort()
 		t.Fatal("cancelled prepare accepted")
+	}
+}
+
+func TestDisableRevokesOnlySelectedListener(t *testing.T) {
+	for _, omitted := range []bool{false, true} {
+		t.Run(fmt.Sprint(omitted), func(t *testing.T) {
+			m := New(context.Background(), 8)
+			defer func() { m.Close(); m.Wait() }()
+			cancelled := make(chan struct{})
+			disabled := Spec{Name: "mysql", Address: "127.0.0.1:0", Handle: func(ctx context.Context, c net.Conn) {
+				io.WriteString(c, "ready\n")
+				<-ctx.Done()
+				close(cancelled)
+			}}
+			survivor := echoSpec("127.0.0.1:0", "pg")
+			apply := func(specs []Spec) {
+				t.Helper()
+				p, err := m.Prepare(context.Background(), specs)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err = p.Commit(); err != nil {
+					t.Fatal(err)
+				}
+			}
+			apply([]Spec{disabled, survivor})
+			connections := map[string]net.Conn{}
+			for _, state := range m.States() {
+				c, err := net.DialTimeout("tcp", state.Address, time.Second)
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer c.Close()
+				c.SetDeadline(time.Now().Add(3 * time.Second))
+				connections[state.Name] = c
+			}
+			if _, err := bufio.NewReader(connections["mysql"]).ReadString('\n'); err != nil {
+				t.Fatal(err)
+			}
+			specs := []Spec{survivor}
+			if !omitted {
+				specs = append(specs, Spec{Name: "mysql"})
+			}
+			apply(specs)
+			select {
+			case <-cancelled:
+			case <-time.After(time.Second):
+				t.Fatal("handler context not cancelled")
+			}
+			if _, err := connections["mysql"].Read(make([]byte, 1)); err != io.EOF {
+				t.Fatalf("disabled stream: %v", err)
+			}
+			io.WriteString(connections["test"], "probe\n")
+			if line, err := bufio.NewReader(connections["test"]).ReadString('\n'); err != nil || line != "pg:probe\n" {
+				t.Fatalf("other listener interrupted: %q %v", line, err)
+			}
+		})
 	}
 }

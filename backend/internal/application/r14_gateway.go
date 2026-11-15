@@ -12,11 +12,11 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/session"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 	"strconv"
 	"strings"
 	"sync"
@@ -216,7 +216,7 @@ func (a *App) nativeGatewayConnection(parent context.Context, raw net.Conn, sign
 		}
 		return a.identity.NativeSSHKey(ctx, username, key)
 	}
-	cfg := &ssh.ServerConfig{ServerVersion: "SSH-2.0-NextTerminal", MaxAuthTries: 3, PublicKeyAuthAlgorithms: []string{ssh.KeyAlgoED25519, ssh.KeyAlgoECDSA256, ssh.KeyAlgoECDSA384, ssh.KeyAlgoECDSA521, ssh.KeyAlgoRSASHA256, ssh.KeyAlgoRSASHA512}}
+	cfg := &ssh.ServerConfig{ServerVersion: "SSH-2.0-Puppeteer", MaxAuthTries: 3, PublicKeyAuthAlgorithms: []string{ssh.KeyAlgoED25519, ssh.KeyAlgoECDSA256, ssh.KeyAlgoECDSA384, ssh.KeyAlgoECDSA521, ssh.KeyAlgoRSASHA256, ssh.KeyAlgoRSASHA512}}
 	cfg.AddHostKey(signer)
 	// Authentication mode is bound to the primary proof and cannot be changed
 	// during the TOTP partial-success exchange.

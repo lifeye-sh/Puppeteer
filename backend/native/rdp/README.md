@@ -115,3 +115,5 @@ segments are staged in private files and committed to the audit catalog before
 their temporary video files are removed. The browser requests each video with
 the session playback permission. Windows acceptance and production admission
 are pending.
+
+The worker also accepts `--capabilities`, returning version 1 and `recordedView: true` without opening a session, creating a private home or using inherited control descriptors. The configuration capability check uses this endpoint and FFmpeg encoder enumeration; it does not replace the protocol/recording acceptance above. See [native RDP capability checks](../../../docs/NATIVE-RDP-CAPABILITY.md).

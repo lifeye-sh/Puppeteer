@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"sync"
 	"sync/atomic"
 	"testing"

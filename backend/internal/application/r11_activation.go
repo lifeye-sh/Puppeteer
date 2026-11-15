@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"encoding/hex"
-	"next-terminal/backend/internal/platform/runtimeprofile"
+	"puppeteer/backend/internal/platform/runtimeprofile"
 	"os"
 	"time"
 )

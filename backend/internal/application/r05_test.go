@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"next-terminal/backend/internal/modules/files"
+	"puppeteer/backend/internal/modules/files"
 	"os"
 	"path/filepath"
 	"strings"

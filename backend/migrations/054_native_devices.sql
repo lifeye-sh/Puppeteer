@@ -2,7 +2,7 @@
 CREATE INDEX oauth_family_owner ON oauth_token_families(user_id,client_id,id);
 CREATE TABLE native_client_devices (
  family_id uuid PRIMARY KEY REFERENCES oauth_token_families(id) ON DELETE CASCADE,
- name text NOT NULL DEFAULT 'Next Terminal 客户端' CHECK(char_length(name) BETWEEN 1 AND 80),
+ name text NOT NULL DEFAULT 'Puppeteer 客户端' CHECK(char_length(name) BETWEEN 1 AND 80),
  os text NOT NULL DEFAULT 'unknown',
  arch text NOT NULL DEFAULT 'unknown',
  client_version text NOT NULL DEFAULT 'unknown',

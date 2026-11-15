@@ -3,8 +3,8 @@ package system
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/passkeyconfig"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/passkeyconfig"
 )
 
 type passkeyConfigurationProofKey struct{}

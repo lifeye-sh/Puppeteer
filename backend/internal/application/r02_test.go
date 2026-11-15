@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"os"
 	"sync"
 	"testing"

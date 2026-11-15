@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"net/http"
-	"next-terminal/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/session"
 	"strings"
 	"testing"
 )

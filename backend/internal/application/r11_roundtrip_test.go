@@ -14,9 +14,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"next-terminal/backend/internal/modules/storage"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/runtimeprofile"
+	"puppeteer/backend/internal/modules/storage"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/runtimeprofile"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,9 +29,9 @@ import (
 	"filippo.io/age"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"next-terminal/backend/internal/modules/backup"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/migrations"
+	"puppeteer/backend/internal/modules/backup"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/migrations"
 )
 
 func r11RecoveryEvidence(t *testing.T, app *App, srv *httptest.Server, admin *http.Cookie, user string) {
@@ -152,6 +152,14 @@ func r11SnapshotRoundtrip(t *testing.T, scope string) {
 		t.Fatal(e)
 	}
 	work := t.TempDir()
+	// A recovered instance must retain history without reusing source readiness
+	// or attempting to delete a source instance's remote verification objects.
+	if _, e = src.Exec(ctx, `INSERT INTO configuration_checks(id,feature,node_id,revision,actor_id,state,deadline,payload)
+VALUES('roundtrip-dependency','backup-destination:00000000-0000-4000-8000-000000000001','source-node',1,'source-actor','succeeded',now(),'{"state":"succeeded"}');
+INSERT INTO dependency_probe_artifacts(task_id,resource_id,sealed,remote_key)
+VALUES('roundtrip-dependency','00000000-0000-4000-8000-000000000001','fixture-ciphertext','source-owned-probe.age')`); e != nil {
+		t.Fatal(e)
+	}
 	bundle := backup.RecoveryBundle{Version: 1, MFAKey: hex.EncodeToString(mfa), VaultKey: hex.EncodeToString(vault)}
 	recovery, _ := age.GenerateX25519Identity()
 	a.config.BackupDirectory = work
@@ -241,6 +249,17 @@ func r11SnapshotRoundtrip(t *testing.T, scope string) {
 	restored := New(dst, cfg)
 	if e = restored.QuarantineRestoredState(ctx, log.ID, scope); e != nil {
 		t.Fatal(e)
+	}
+	var probes int
+	var checkState string
+	if e = dst.QueryRow(ctx, `SELECT count(*) FROM dependency_probe_artifacts`).Scan(&probes); e != nil || probes != 0 {
+		t.Fatal("source cleanup replay survived restore", e)
+	}
+	if e = dst.QueryRow(ctx, `SELECT state FROM configuration_checks WHERE id='roundtrip-dependency'`).Scan(&checkState); e != nil || checkState != "stale" {
+		t.Fatal("source readiness survived restore", e)
+	}
+	if e = src.QueryRow(ctx, `SELECT count(*) FROM dependency_probe_artifacts`).Scan(&probes); e != nil || probes != 1 {
+		t.Fatal("restore altered source cleanup records", e)
 	}
 	restoredConfiguration, e := restored.system.ConfigurationView(ctx, 0)
 	if e != nil || system.ValidateConfiguration(restoredConfiguration.Values) != nil || restoredConfiguration.Values.String("watermark-content") != "restore-check {user}" || restoredConfiguration.Values.Int("user-client-cert-valid-days") != 7 {

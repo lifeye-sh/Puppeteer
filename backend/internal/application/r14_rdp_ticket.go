@@ -5,9 +5,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/session"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/session"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 )

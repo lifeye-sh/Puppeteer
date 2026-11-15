@@ -72,7 +72,7 @@
 - 阶段：W2/W3；协作：M05、M06、M08。
 - 功能要求：保留 Guacamole 数字错误码，诊断区分用户入口、代理、网关、目标认证、协议协商与存储；SSH 主机指标和 Agent 所在机器指标不得混用。
 - 验收条件：514/522/776 等超时能定位不同层；769 不误判为平台已退出登录；命令不可用时指标 unknown；排障不会自动修改目标安全策略。
-- 来源：[RDP/VNC 错误码说明](https://www.next-terminal.com/zh/docs/usage/error-codes.html)、[RDP 连不上/黑屏/凭证失效？Windows 远程桌面 5 步排查](https://www.next-terminal.com/zh/docs/blog/rdp-black-screen-failed.html)、[SSH 资产](https://www.next-terminal.com/zh/docs/usage/ssh.html)、[安全网关配置文件](https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html)、[快速开始](https://www.next-terminal.com/zh/docs/usage/readme.html)。
+- 来源：[RDP/VNC 错误码说明](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[RDP 连不上/黑屏/凭证失效？Windows 远程桌面 5 步排查](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[SSH 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[安全网关配置文件](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[快速开始](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U01（主责 M18）、U07（主责 M05）、U08（主责 M05）、U15（主责 M08）、U20（主责 M18）、U30（主责 M18）。
 

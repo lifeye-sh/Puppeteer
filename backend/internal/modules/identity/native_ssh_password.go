@@ -2,8 +2,8 @@ package identity
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // NativeSSHPasswordProof revalidates a previously verified local password's

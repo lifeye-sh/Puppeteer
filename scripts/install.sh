@@ -24,7 +24,7 @@ Usage: sudo bash install.sh --host DOMAIN_OR_IPV4 [options]
   --core             Omit graphics/shared-drive/MP4 services
   --database-proxy-bind IPV4  Database proxy bind address (default 127.0.0.1)
   --no-database-proxy         Do not configure database proxy listeners/ports
-Requires Linux amd64, Docker with Compose v2, bash, curl and openssl.
+Requires Linux amd64 with systemd, Docker with Compose v2, bash, curl, openssl, python3 and flock.
 HELP
 }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -46,7 +46,7 @@ while (($#)); do
 done
 [[ $(uname -s) == Linux && $(uname -m) == x86_64 ]] || die 'Linux amd64 is required'
 [[ $EUID == 0 ]] || die 'Run with sudo or as root'
-for cmd in docker curl openssl install df awk; do command -v "$cmd" >/dev/null || die "Missing command: $cmd"; done
+for cmd in docker curl openssl install df awk python3 systemctl flock sha256sum cmp grep; do command -v "$cmd" >/dev/null || die "Missing command: $cmd"; done
 docker_bin=$(command -v docker)
 docker_resolved=$(readlink -f "$docker_bin" 2>/dev/null || printf '%s' "$docker_bin")
 case "$docker_bin:$docker_resolved" in
@@ -87,7 +87,12 @@ docker_root=$(docker info --format '{{.DockerRootDir}}')
 [[ -z $(docker volume ls -q --filter "label=com.docker.compose.project=$project") ]] || die 'Compose project already has data volumes'
 available=$(df -Pk "$(dirname "$install_dir")" | awk 'END {print $4}')
 ((available >= 5242880)) || die 'At least 5 GiB free space required on configuration filesystem; also check Docker disk capacity'
+graphics_apparmor=0
 if (( ! core )); then
+  if docker info --format '{{json .SecurityOptions}}' | grep -q apparmor; then
+    command -v apparmor_parser >/dev/null || die 'AppArmor requires apparmor_parser before shared-drive installation'
+    graphics_apparmor=1
+  fi
   if [[ ! -c /dev/fuse ]] && command -v modprobe >/dev/null; then modprobe fuse || true; fi
   [[ -c /dev/fuse ]] || die 'FUSE is unavailable; enable /dev/fuse or use --core'
 fi
@@ -104,6 +109,73 @@ chmod 644 "$install_dir/compose.yaml" "$install_dir/services.yaml" "$install_dir
 config="$install_dir/config"
 mkdir -m 700 "$config" "$config/secrets" "$config/tls"
 chown 101:101 "$config/tls"
+if ((graphics_apparmor)); then
+  # Bundle the profile: the pinned public-image revision predates this file.
+  cat > "$config/drive-profile.template" <<'PUPPETEER_DRIVE_PROFILE'
+# Based on Moby's Apache-2.0 default container profile.
+# https://github.com/moby/profiles/blob/main/apparmor/template.go
+# Only the mount rule is relaxed, for the platform's FUSE shared drive.
+abi <abi/3.0>,
+#include <tunables/global>
+profile puppeteer-rdp-storage flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  network,
+  deny network ax25,
+  deny network ipx,
+  deny network appletalk,
+  deny network netrom,
+  deny network rose,
+  deny network econet,
+  deny network atmsvc,
+  deny network irda,
+  deny network wanpipe,
+  deny network isdn,
+  deny network caif,
+  deny network alg,
+  deny network vsock,
+  capability,
+  file,
+  mount fstype=fuse.nt-storage options=(rw,nosuid,nodev,noexec) nt-user-storage -> /mnt/nt-rdp/,
+  umount /mnt/nt-rdp/,
+  signal (receive) peer=unconfined,
+  signal (receive) peer=runc,
+  signal (receive) peer=crun,
+  signal (send,receive) peer=puppeteer-rdp-storage,
+  deny @{PROC}/* w,
+  deny @{PROC}/{[^1-9/],[^1-9/][^0-9/],[^1-9s/][^0-9y/][^0-9s/],[^1-9/][^0-9/][^0-9/][^0-9/]*}/** w,
+  deny @{PROC}/sys/[^k]** w,
+  deny @{PROC}/sys/kernel/{?,??,[^s][^h][^m]**} w,
+  deny @{PROC}/sysrq-trigger rwklx,
+  deny @{PROC}/kcore rwklx,
+  deny /sys/[^f]*/** wklx,
+  deny /sys/f[^s]*/** wklx,
+  deny /sys/fs/[^c]*/** wklx,
+  deny /sys/fs/c[^g]*/** wklx,
+  deny /sys/fs/cg[^r]*/** wklx,
+  deny /sys/firmware/** rwklx,
+  deny /sys/devices/virtual/powercap/** rwklx,
+  deny /sys/kernel/security/** rwklx,
+  ptrace (trace,tracedby,read,readby) peer=puppeteer-rdp-storage,
+}
+PUPPETEER_DRIVE_PROFILE
+  printf '770a612f9a830d14236f9a8e9c158681d799665c39baf92894160e46becc8e16  %s\n' "$config/drive-profile.template" | sha256sum -c -
+  profile_name="puppeteer-rdp-storage-$project"
+  profile_file="/etc/apparmor.d/$profile_name"
+  python3 - "$config/drive-profile.template" "$config/drive-profile" "$profile_name" <<'PYDRIVE'
+from pathlib import Path
+import sys
+source,target,name=sys.argv[1:]
+Path(target).write_text(Path(source).read_text().replace('puppeteer-rdp-storage',name))
+PYDRIVE
+  apparmor_parser --skip-kernel-load --skip-cache "$config/drive-profile"
+  if [[ -e $profile_file || -L $profile_file ]]; then
+    [[ -f $profile_file && ! -L $profile_file ]] && cmp -s "$config/drive-profile" "$profile_file" || die 'Existing AppArmor profile differs; refusing overwrite'
+  else
+    install -m 644 "$config/drive-profile" "$profile_file"
+  fi
+  apparmor_parser -r "$profile_file"
+  printf 'services:\n  guacd:\n    security_opt: ["apparmor=%s"]\n' "$profile_name" > "$install_dir/graphics-apparmor.yaml"
+fi
 printf '[2/5] Generating private configuration and TLS\n'
 password=$(openssl rand -hex 32)
 printf '%s\n' "$password" > "$config/secrets/database_password"
@@ -136,6 +208,7 @@ PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:497fdacf02e3b7131cd7c
 ENV
 printf '#!/usr/bin/env bash\nset -euo pipefail\nexec docker compose --env-file %q -p %q -f %q ' "$config/production.env" "$project" "$install_dir/compose.yaml" > "$install_dir/puppeteerctl"
 if (( ! core )); then printf '%s %q ' '-f' "$install_dir/services.yaml" >> "$install_dir/puppeteerctl"; fi
+if ((graphics_apparmor)); then printf '%s %q ' '-f' "$install_dir/graphics-apparmor.yaml" >> "$install_dir/puppeteerctl"; fi
 if ((database_proxy)); then
   cat > "$install_dir/database-proxy.yaml" <<YAML
 services:
@@ -164,6 +237,15 @@ printf '[4/5] Starting services and waiting for health checks\n'
 printf '[5/5] Verifying application readiness\n'
 "$ctl" exec -T server /app/nt health
 "$ctl" ps
+# Feature-detect the matching release image; legacy images remain supported.
+if [[ ! -f $install_dir/config/deployd.json ]] && "$ctl" exec -T server test -x /app/puppeteer-deployd; then
+  for dependency in python3 systemctl flock; do command -v "$dependency" >/dev/null || die "Automatic deployment enrollment requires $dependency"; done
+  helper_dir="$install_dir/config/deployment-helpers"
+  mkdir -p -m 700 "$helper_dir"
+  executor_container=$("$ctl" ps -q server)
+  docker cp "$executor_container:/app/deployment/." "$helper_dir/"
+  bash "$helper_dir/enroll-deployd.sh" "$install_dir"
+fi
 printf '\nInstalled. Open %s/setup to create your administrator.\n' "$origin"
 printf 'Manage: sudo %s ps (also supports logs, stop, and up -d --no-build --wait).\n' "$ctl"
 if [[ -z $cert ]]; then printf 'TLS uses a generated self-signed certificate. Trust %s/tls/server.crt on your client or replace it with your CA-issued certificate.\n' "$config"; fi

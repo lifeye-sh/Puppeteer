@@ -3,7 +3,7 @@ package system
 import (
 	"github.com/google/uuid"
 	"net"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 	"strings"
 )

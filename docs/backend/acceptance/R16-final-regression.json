@@ -8,139 +8,139 @@
   "failures": [],
   "skips": [
     {
-      "package": "next-terminal/backend/internal/modules/backup",
+      "package": "puppeteer/backend/internal/modules/backup",
       "test": "TestR11WebDAVBrowserFixture"
     },
     {
-      "package": "next-terminal/backend/internal/modules/operations",
+      "package": "puppeteer/backend/internal/modules/operations",
       "test": "TestUnprivilegedPing"
     },
     {
-      "package": "next-terminal/backend/internal/nativeclient",
+      "package": "puppeteer/backend/internal/nativeclient",
       "test": "TestLinuxCredentialHelper"
     },
     {
-      "package": "next-terminal/backend/internal/nativeclient",
+      "package": "puppeteer/backend/internal/nativeclient",
       "test": "TestLinuxCredentialStore"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderSegmentsResizeAndDecode"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderUncleanEndKeepsOnlySealedPrefix"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFailures/quota"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFailures/encoder_missing"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFailures/encoder_exits"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFailures/no_end"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFailures/empty_end"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFailures/truncated"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderQuotaIncludesSealedSegments"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderStorageFailure"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderReadTimeoutAndCancellation/false"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderReadTimeoutAndCancellation/true"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderEncoderStallAndProcessGroup"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderRejectsReuseAndUnsafeRoot"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderFullHD"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderCancellationDuringEncoderDrain"
     },
     {
-      "package": "next-terminal/backend/internal/platform/rdprecording",
+      "package": "puppeteer/backend/internal/platform/rdprecording",
       "test": "TestRecorderParentDeath"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR09InternalACMEIssueRenewAndRetainOnFailure"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR10RotationLiveOpenSSH"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR10RotationLiveLostAcknowledgement"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR10RotationLivePartial"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR10RotationLiveScheduledPolicy"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR11DeploymentFixture"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR11PITRFixture"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR14FreeRDPAuthProbe"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR14RDPControlWorkerHelper"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR16IsolatedBrowserFixture"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR16DBeaverManualFixture"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestR16ConfigurationProcessHelper"
     },
     {
-      "package": "next-terminal/backend/internal/application",
+      "package": "puppeteer/backend/internal/application",
       "test": "TestMP4RealRendererAfterClientDisconnect"
     }
   ],

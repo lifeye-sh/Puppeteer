@@ -423,6 +423,7 @@ static int connect_control(const char *path){
  return fd;
 }
 int main(int argc,char **argv){
+ if(argc==2 && !strcmp(argv[1],"--capabilities")){puts("{\"version\":1,\"recordedView\":true}");return 0;}
  if(argc!=5)return 2;
  record_view=!strcmp(argv[1],"--record-view");
  if(!record_view && strcmp(argv[1],"--auth-probe"))return 2;

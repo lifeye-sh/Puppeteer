@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 go build -trimpath -o /out/server ./cmd/server && \
 FROM postgres:18-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/ /app/
-RUN mkdir -p /var/lib/next-terminal/mp4 /var/lib/next-terminal/backups /var/lib/next-terminal/restore /var/lib/next-terminal/storage /var/lib/next-terminal/runtime && chown -R 10001:10001 /var/lib/next-terminal
+RUN mkdir -p /var/lib/puppeteer/mp4 /var/lib/puppeteer/backups /var/lib/puppeteer/restore /var/lib/puppeteer/storage /var/lib/puppeteer/runtime && chown -R 10001:10001 /var/lib/puppeteer
 USER 10001:10001
 EXPOSE 8089
 ENTRYPOINT ["/app/server"]

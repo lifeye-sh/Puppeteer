@@ -5,9 +5,9 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 )

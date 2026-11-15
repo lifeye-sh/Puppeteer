@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/notification"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/notification"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 func TestR16ManagedMailSecretLifecycleAndDelivery(t *testing.T) {

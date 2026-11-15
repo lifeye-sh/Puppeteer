@@ -1,3 +1,4 @@
+import BackendDependencyCheck from './BackendDependencyCheck';
 import {Alert,Button,Form,Input,Select,Switch,Table,Tag} from 'antd';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useState} from 'react';
@@ -10,13 +11,13 @@ export default function BackendBackupDestinations(){
  const {account}=useBackendRuntime();const canEdit=account.actions?.includes('backup.export');const cache=useQueryClient();const [editing,setEditing]=useState<Destination|null>();const [form]=Form.useForm();const kind=Form.useWatch('kind',form);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [success,setSuccess]=useState('');
  const destinations=useQuery({queryKey:['r11-backup-destinations'],queryFn:()=>requests.get<Destination[]>('/admin/backup/destinations',{errorMode:'local'})});
  const copies=useQuery({queryKey:['r11-backup-copies'],queryFn:()=>requests.get<Copy[]>('/admin/backup/copies',{errorMode:'local'}),refetchInterval:5000});
- const edit=(d:Destination|null)=>{form.resetFields();form.setFieldsValue(d??{kind:'s3',enabled:false,prefix:'next-terminal',region:'us-east-1',allowHttp:false});setError('');setSuccess('');setEditing(d)};
+ const edit=(d:Destination|null)=>{form.resetFields();form.setFieldsValue(d??{kind:'s3',enabled:false,prefix:'puppeteer',region:'us-east-1',allowHttp:false});setError('');setSuccess('');setEditing(d)};
  const run=async(fn:()=>Promise<unknown>)=>{setBusy(true);setError('');setSuccess('');try{await fn();await cache.invalidateQueries({predicate:q=>String(q.queryKey[0]).startsWith('r11-backup')})}catch(e){setError((e as Error).message)}finally{setBusy(false)}};
  const save=async()=>{const v=await form.validateFields();await run(async()=>{await requests.post('/admin/backup/destinations',{...v,id:editing?.id??'',revision:editing?.revision??0},{errorMode:'local'});setEditing(undefined)})};
- return <><p>为每个启用的目标复制加密归档，重新读取并核对 SHA-256 后才计为成功。复制失败时保留本地备份。</p>
+ return <><p>为每个启用的目标复制加密归档，重新读取并核对 SHA-256 后才计为成功。复制失败时保留本地备份。展开目标可执行只读预检或显式读写、摘要与清理验证。</p>
  {(error||destinations.error||copies.error)&&<Alert type="error" title={error||destinations.error?.message||copies.error?.message}/>}{success&&<Alert type="success" title={success}/>}
  <Button disabled={!canEdit||busy} onClick={()=>edit(null)}>添加远端目标</Button>
- <Table<Destination> rowKey="id" size="small" dataSource={destinations.data} pagination={false} scroll={{x:700}} columns={[{title:'名称',dataIndex:'name'},{title:'协议',dataIndex:'kind',render:v=>String(v).toUpperCase()},{title:'地址',dataIndex:'endpoint',ellipsis:true},{title:'状态',render:(_,d)=><Tag>{d.enabled?'启用':'停用'}</Tag>},{title:'操作',render:(_,d)=><><Button type="link" disabled={!canEdit||busy} onClick={()=>edit(d)}>编辑</Button><Button type="link" disabled={busy} onClick={()=>run(async()=>{await requests.post(`/admin/backup/destinations/${d.id}/test`,{},{errorMode:'local'});setSuccess(`${d.name}：读写、SHA-256 和测试文件清理校验通过`)})}>测试连接</Button></>}]}/>
+ <Table<Destination> rowKey="id" expandable={{expandedRowRender:d=><BackendDependencyCheck feature={`backup-destination:${d.id}`}/>}} size="small" dataSource={destinations.data} pagination={false} scroll={{x:700}} columns={[{title:'名称',dataIndex:'name'},{title:'协议',dataIndex:'kind',render:v=>String(v).toUpperCase()},{title:'地址',dataIndex:'endpoint',ellipsis:true},{title:'状态',render:(_,d)=><Tag>{d.enabled?'启用':'停用'}</Tag>},{title:'操作',render:(_,d)=><><Button type="link" disabled={!canEdit||busy} onClick={()=>edit(d)}>编辑</Button></>}]}/>
  <p style={{marginTop:24,fontWeight:600}}>复制记录</p>
  <Table<Copy> rowKey={v=>`${v.taskId}:${v.destinationId}`} size="small" dataSource={copies.data} pagination={{pageSize:5}} scroll={{x:700}} columns={[{title:'备份编号',dataIndex:'taskId',ellipsis:true},{title:'目标',dataIndex:'name'},{title:'状态',render:(_,v)=><Tag color={v.state==='verified'?'success':v.state==='failed'?'error':undefined}>{({pending:'待复制',copying:'复制与校验中',verified:'已校验',failed:'失败，原文件保留',deleting:'保留期清理中',deleted:'已到期清理'} as Record<string,string>)[v.state]??v.state}</Tag>},{title:'远端文件',dataIndex:'remoteKey',ellipsis:true}]}/>
  <Modal title={editing?'编辑远端目标':'添加远端目标'} open={editing!==undefined} onCancel={()=>setEditing(undefined)} confirmLoading={busy} onOk={save}>{error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical"><div className="nt-form-grid">

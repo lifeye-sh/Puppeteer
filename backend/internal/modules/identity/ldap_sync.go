@@ -7,7 +7,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	"github.com/google/uuid"
 	"net/mail"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"unicode"
 	"unicode/utf8"

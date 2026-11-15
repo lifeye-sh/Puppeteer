@@ -75,7 +75,7 @@
 - 阶段：W4；协作：M01、M02、M03、M05、M08。
 - 功能要求：兼容 username@asset_name 与个人数据库密码；启停、监听地址和阻止 DML/DDL 配置；查询和客户端元数据查询经过分类后放行。
 - 验收条件：真实 MySQL 客户端可握手、选择数据库、查询元数据和使用 prepared statement；变更受阻并产生审计；PG 是独立扩展适配器，不称官方使用文档已确认。
-- 来源：[数据库审计](https://www.next-terminal.com/zh/docs/usage/database.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[数据库审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U15（主责 M08）、U21（主责 M01）、U23（主责 M11）、U31（主责 M18）。
 

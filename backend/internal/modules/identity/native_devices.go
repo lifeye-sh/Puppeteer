@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/netip"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"regexp"
 	"strings"
 	"time"

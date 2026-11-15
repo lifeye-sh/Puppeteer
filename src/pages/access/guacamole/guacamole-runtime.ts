@@ -1,5 +1,5 @@
 import {duplicateKeys} from '@/pages/access/guacamole/keys';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 
 export interface GuacamoleRuntimeStatusHandlers {
     onStateChange?: (state: number) => void;

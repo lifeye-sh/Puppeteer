@@ -2,7 +2,7 @@ package system
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Domain consumers read the current revision for each new object. They never

@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"embed"
@@ -70,12 +71,17 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) error {
 		if err != nil {
 			return err
 		}
-		sum := fmt.Sprintf("%x", sha256.Sum256(sql))
+		// Historical releases used both Windows and Unix checkouts. Normalize
+		// only line endings; retain strict checks for every SQL content change.
+		canonical := bytes.ReplaceAll(sql, []byte("\r\n"), []byte("\n"))
+		rawSum := fmt.Sprintf("%x", sha256.Sum256(sql))
+		sum := fmt.Sprintf("%x", sha256.Sum256(canonical))
+		windowsSum := fmt.Sprintf("%x", sha256.Sum256(bytes.ReplaceAll(canonical, []byte("\n"), []byte("\r\n"))))
 		var existing string
 		if err = tx.QueryRow(ctx, `SELECT COALESCE((SELECT checksum FROM migration_history WHERE version=$1),'')`, version).Scan(&existing); err != nil {
 			return err
 		}
-		if existing != "" && existing != sum {
+		if existing != "" && existing != sum && existing != rawSum && existing != windowsSum && !knownBrandingRevision(version, existing, sum) {
 			return fmt.Errorf("migration %d checksum mismatch; do not edit applied migrations", version)
 		}
 		if existing == "" {

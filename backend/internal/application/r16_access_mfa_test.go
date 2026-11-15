@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/session"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/nativeclient"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/nativeclient"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func TestR16RemoteAccessMFA(t *testing.T) {

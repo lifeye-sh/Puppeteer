@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"sync"
 	"testing"
 )

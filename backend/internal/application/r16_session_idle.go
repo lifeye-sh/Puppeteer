@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/session"
 	"time"
 )
 

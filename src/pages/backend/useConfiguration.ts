@@ -5,5 +5,5 @@ export function useConfiguration(enabled=true){
  return useQuery({queryKey:['configuration-current'],enabled,queryFn:()=>requests.get<Configuration>('/settings',{errorMode:'local'}),refetchInterval:5000});
 }
 export function useConfigurationSchema(enabled=true){
- return useQuery({queryKey:['configuration-schema'],enabled,queryFn:()=>requests.get<{properties:Definition[];readOnlyProperties?:Definition[]}>('/settings/schema',{errorMode:'local'}),staleTime:60000});
+ return useQuery({queryKey:['configuration-schema'],enabled,queryFn:()=>requests.get<{properties:Definition[];readOnlyProperties?:Definition[];deploymentManagedKeys?:string[]}>('/settings/schema',{errorMode:'local'}),staleTime:60000});
 }

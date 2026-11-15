@@ -2,7 +2,7 @@ package vault
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // LockReconcile excludes a running worker and concurrent activation requests.

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"net"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/listener"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/listener"
 )
 
 // The management listener outlives maintenance workers: backups and isolated
@@ -37,6 +37,9 @@ func (a *App) StartPublicListeners(ctx context.Context, address, websiteAddress 
 
 func (a *App) publicListenerSpecs(v system.ConfigurationValues) []listener.Spec {
 	address := v.String("http-server-addr")
+	if a.config.ManagedHTTPAddr != "" {
+		address = a.config.ManagedHTTPAddr
+	}
 	if address == "" {
 		address = a.publicHTTPAddress
 	}
@@ -45,7 +48,12 @@ func (a *App) publicListenerSpecs(v system.ConfigurationValues) []listener.Spec 
 	if website == "" {
 		website = a.publicWebsiteAddress
 	}
-	if v.Bool("website-server-enabled") && website != "" {
+	enabled := v.Bool("website-server-enabled") && !a.config.DisabledDeploymentProtocols["website"]
+	if managed, ok := a.config.ManagedDeploymentProtocols["website"]; ok {
+		enabled = managed
+		website = ":18443"
+	}
+	if enabled && website != "" {
 		serve := listener.HTTP(a.publicWebsiteHandler, a.WebsiteTLSConfig(), false)
 		specs = append(specs, listener.Spec{Name: "website", Address: website, Identity: "website-sni", Handle: func(ctx context.Context, raw net.Conn) {
 			if _, e := a.appliedConfiguration(ctx); e != nil {

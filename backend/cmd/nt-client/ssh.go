@@ -4,7 +4,7 @@ import (
 	"context"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
-	"next-terminal/backend/internal/nativeclient"
+	"puppeteer/backend/internal/nativeclient"
 	"os"
 	"time"
 )

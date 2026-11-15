@@ -2,9 +2,9 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/oauthkeys"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/oauthkeys"
+	"puppeteer/backend/internal/platform/secretbox"
 	"slices"
 )
 

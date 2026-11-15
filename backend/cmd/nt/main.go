@@ -8,14 +8,57 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"next-terminal/backend/internal/application"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/application"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/postgres"
 	"os"
 	"time"
 )
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "deployment-wal-guard" {
+		if err := deploymentWALGuard(); err != nil {
+			fmt.Fprintln(os.Stderr, "WAL runtime guard failed")
+			os.Exit(1)
+		}
+		return
+	}
+	if len(os.Args) == 4 && os.Args[1] == "deployment-live-check" {
+		if err := deploymentLive(os.Args[2], os.Args[3]); err != nil {
+			fmt.Fprintln(os.Stderr, "live deployment check failed")
+			os.Exit(1)
+		}
+		return
+	}
+	if len(os.Args) == 2 && (os.Args[1] == "deployment-mp4-queue" || os.Args[1] == "deployment-mp4-sample") {
+		if err := deploymentMP4(os.Args[1]); err != nil {
+			fmt.Fprintln(os.Stderr, "MP4 deployment operation failed")
+			os.Exit(1)
+		}
+		return
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "deployment-site-apply" {
+		if err := deploymentExecute(os.Args[2:], false, true); err != nil {
+			fmt.Fprintln(os.Stderr, "website deployment unavailable")
+			os.Exit(1)
+		}
+		return
+	}
+	if len(os.Args) > 1 && os.Args[1] == "deployment-verify" {
+		if err := deploymentProbe(os.Args[2:], true); err != nil {
+			fmt.Fprintln(os.Stderr, "deployment verification unavailable")
+			os.Exit(1)
+		}
+		return
+	}
+	if len(os.Args) > 1 && os.Args[1] == "deployment-check" {
+		if err := deploymentCheck(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, "deployment check unavailable")
+			os.Exit(1)
+		}
+		return
+	}
 	if len(os.Args) > 1 && os.Args[1] == "routes" {
 		if len(os.Args) != 2 {
 			fmt.Fprintln(os.Stderr, "usage: nt routes")
@@ -157,7 +200,11 @@ func main() {
 	}
 	if len(os.Args) == 2 && os.Args[1] == "health" {
 		client := &http.Client{Timeout: 2 * time.Second}
-		res, err := client.Get("http://127.0.0.1:8089/readyz")
+		endpoint, err := managementHealthURL(os.Getenv("NT_ADDR"))
+		if err != nil {
+			os.Exit(1)
+		}
+		res, err := client.Get(endpoint)
 		if err != nil {
 			os.Exit(1)
 		}

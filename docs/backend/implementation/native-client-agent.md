@@ -39,7 +39,7 @@
 Windows PowerShell 使用示例（先在 OIDC 应用客户端的服务端设置中启用原生登录开关，保持 TLS 信任校验；自签 CA 可用 `--ca` 提供 PEM）：
 
 ```powershell
-$client = 'E:\AIAgents\codex\Next-Terminal\backend\.local\nt-client-remember-windows-amd64.exe'
+$client = 'E:\AIAgents\codex\Puppeteer\backend\.local\nt-client-remember-windows-amd64.exe'
 & $client --version
 & $client login --server https://backend.localhost:5174 --remember --allow-connect --device-name '我的工作电脑'
 & $client assets --server https://backend.localhost:5174 --use-login
@@ -54,7 +54,7 @@ $client = 'E:\AIAgents\codex\Next-Terminal\backend\.local\nt-client-remember-win
 - 直接使用 `github.com/godbus/dbus/v5 v5.2.4` 调用 Secret Service，不执行 shell 或 `secret-tool`，令牌不进入 argv。只接受显式的本机 Unix session bus 地址，核对 socket 对端 UID，拒绝 TCP、自动启动地址、地址回退链及 setuid 运行。固定服务的 unique owner，连接和认证最多5秒，方法调用最多5秒。
 - 要求桌面已有默认 collection 且已解锁；缺少服务、collection、锁定或交互 prompt 均失败，不自动创建或解锁密钥库。默认 collection 搜索本应用/profile/平台摘要属性，只允许一个匹配项，重复项拒绝。JSON 秘密最多2560字节；GNOME Keyring 返回的 `text/plain` 与 `application/octet-stream` 均可接受，内容仍须通过凭据记录校验。
 - 使用规范的 `plain` session 算法，经本机、同用户的 Unix D-Bus 通道传输；这不是应用层加密。持久存储保护由 Secret Service 提供，不能防御同一系统用户下的恶意进程。参考 [Secret Service API](https://specifications.freedesktop.org/secret-service/latest/) 与 [plain 算法](https://specifications.freedesktop.org/secret-service/latest/ch07s02.html)。
-- `/run/user/<uid>` 必须归当前用户且为0700；其中 `next-terminal-native` 目录同样要求0700。每个平台摘要使用0600的空 lock 文件，拒绝符号链接、非普通文件、其他所有者及硬链接；`flock` 串行化整个刷新事务，等待最多15秒。文件只含锁、不含令牌；使用期间不删除 lock 文件，以免不同进程锁住不同 inode。非 systemd 桌面如果没有此受保护运行目录，当前版本会拒绝记住登录。
+- `/run/user/<uid>` 必须归当前用户且为0700；其中 `puppeteer-native` 目录同样要求0700。每个平台摘要使用0600的空 lock 文件，拒绝符号链接、非普通文件、其他所有者及硬链接；`flock` 串行化整个刷新事务，等待最多15秒。文件只含锁、不含令牌；使用期间不删除 lock 文件，以免不同进程锁住不同 inode。非 systemd 桌面如果没有此受保护运行目录，当前版本会拒绝记住登录。
 - 复用 Windows 同一套明确授权、pending 恢复、单次刷新、远端撤权和注销语义。真实 GNOME Keyring 50 的隔离容器已测；KWallet、桌面交互解锁及不同桌面登录会话尚未实机验收。仅在同机浏览器完成 loopback 登录，不能把回调地址直接搬到另一台电脑。
 
 ```sh

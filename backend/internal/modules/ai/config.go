@@ -3,7 +3,7 @@ package ai
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"unicode/utf8"
 )
 

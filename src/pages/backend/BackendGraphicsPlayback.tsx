@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Button,Slider,Space,Alert} from 'antd';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 
 export default function BackendGraphicsPlayback({events}:{events:{payload:Uint8Array}[]}){
  const container=useRef<HTMLDivElement>(null),player=useRef<Guacamole.SessionRecording|null>(null);

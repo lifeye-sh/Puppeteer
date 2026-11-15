@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/modules/automation"
-	"next-terminal/backend/internal/modules/pki"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/automation"
+	"puppeteer/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/system"
 	"sync"
 	"testing"
 )

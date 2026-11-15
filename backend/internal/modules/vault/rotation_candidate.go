@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 // RotationCandidate is an internal encrypted candidate. HTTP DTOs must only

@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/automation"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/automation"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 )
 

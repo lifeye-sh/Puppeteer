@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"next-terminal/backend/internal/modules/audit"
+	"puppeteer/backend/internal/modules/audit"
 	"strconv"
 	"testing"
 )

@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/ldapconfig"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/ldapconfig"
 )
 
 const DefaultLDAPMapping = `{"username":"uid","nickname":"cn","mail":"mail"}`

@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/authorization"
-	"next-terminal/backend/internal/modules/storage"
+	"puppeteer/backend/internal/modules/authorization"
+	"puppeteer/backend/internal/modules/storage"
 	"syscall"
 	"testing"
 )

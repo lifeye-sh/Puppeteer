@@ -10,7 +10,7 @@ import (
 	"image/draw"
 	"image/png"
 	"math/big"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func randomInt(n int) int {

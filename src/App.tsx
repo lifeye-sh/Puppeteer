@@ -285,6 +285,10 @@ const backendRoutes = [
     {path: '/', element: <CapabilityGate feature="system.runtime"><BackendHomePage/></CapabilityGate>},
     ...['/info','/x-info'].map(path=>({path,element:<CapabilityGate feature="identity.self"><BackendHomePage accountOnly/></CapabilityGate>})),
     {path: '/system-status', element: <BackendWorkbench/>},
+    {path: '/deployment-settings', element: <BackendWorkbench category="deployment"/>},
+    {path: '/integration-settings', element: <PermissionGate action="settings.read"><BackendWorkbench category="dependencies"/></PermissionGate>},
+    {path: '/policy-settings', element: <PermissionGate action="settings.read"><BackendWorkbench category="policies"/></PermissionGate>},
+    {path: '/configuration-status', element: <BackendWorkbench category="status"/>},
     {path: '/filesystem-log', element: <CapabilityGate feature="files.sftp"><BackendFileLogs/></CapabilityGate>},
     {path: '*', element: <UnavailableBackendPage/>},
 ];

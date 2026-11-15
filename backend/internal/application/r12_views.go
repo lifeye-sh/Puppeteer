@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/modules/database"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/database"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 )
 
@@ -47,7 +47,7 @@ func (a *App) registerDatabaseViews(h func(string, func(http.ResponseWriter, *ht
 			return e
 		}
 		w.Header().Set("Content-Type", "application/x-pem-file")
-		w.Header().Set("Content-Disposition", `attachment; filename="next-terminal-mysql.pem"`)
+		w.Header().Set("Content-Disposition", `attachment; filename="puppeteer-mysql.pem"`)
 		w.Header().Set("Cache-Control", "no-store")
 		_, e = w.Write([]byte(v.PEM))
 		return e

@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"sync"
 	"testing"
 	"time"

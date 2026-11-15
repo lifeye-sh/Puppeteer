@@ -3,7 +3,7 @@ package identity
 import (
 	"context"
 	"crypto/tls"
-	"next-terminal/backend/internal/platform/ldapconfig"
+	"puppeteer/backend/internal/platform/ldapconfig"
 
 	"encoding/hex"
 

@@ -15,7 +15,7 @@ import SessionSharerModal from "@/pages/access/SessionSharerModal";
 import SessionWatermark from "@/pages/access/SessionWatermark";
 import MultiFactorAuthentication from "@/pages/account/MultiFactorAuthentication";
 import { requestFullScreen } from "@/utils/utils";
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 import { useMutation } from "@tanstack/react-query";
 import { App } from "antd";
 import copy from "copy-to-clipboard";

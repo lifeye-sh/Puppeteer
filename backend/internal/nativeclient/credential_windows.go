@@ -41,7 +41,7 @@ func (c *Client) SystemCredentialStore() (CredentialStore, error) {
 	// Global mutex covers multiple Windows logon sessions for the same SID.
 	// It contains no credential, is not an authorization boundary, and defaults
 	// to the creator's security descriptor. An inaccessible mutex fails closed.
-	return &windowsCredentialStore{target: "NextTerminal/native-v1/" + key, mutex: "Global\\NextTerminal-native-v1-" + u.User.Sid.String() + "-" + key}, nil
+	return &windowsCredentialStore{target: "Puppeteer/native-v1/" + key, mutex: "Global\\Puppeteer-native-v1-" + u.User.Sid.String() + "-" + key}, nil
 }
 
 func (s *windowsCredentialStore) WithLock(ctx context.Context, fn func(SecretSlot) error) error {

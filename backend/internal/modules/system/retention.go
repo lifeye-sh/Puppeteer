@@ -3,7 +3,7 @@ package system
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 type AccessRetention struct {

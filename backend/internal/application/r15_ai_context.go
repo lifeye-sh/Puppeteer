@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
-	"next-terminal/backend/internal/modules/ai"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/ai"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5/pgconn"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 )

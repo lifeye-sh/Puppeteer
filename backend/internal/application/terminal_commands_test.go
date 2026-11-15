@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"next-terminal/backend/internal/modules/audit"
+	"puppeteer/backend/internal/modules/audit"
 	"strings"
 	"testing"
 	"time"

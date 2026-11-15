@@ -2,7 +2,7 @@ package ai
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Progress is durable before the snapshot is sent to the browser.

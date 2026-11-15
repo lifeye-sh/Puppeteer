@@ -6,8 +6,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"github.com/google/uuid"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 // Independent 32-byte keys authenticate newly issued opaque OAuth capabilities.

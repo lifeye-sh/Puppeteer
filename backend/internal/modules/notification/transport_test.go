@@ -99,7 +99,7 @@ func TestSMTPRequiresSTARTTLSAndDeliversAfterUpgrade(t *testing.T) {
 				t.Fatal("plaintext downgrade accepted")
 			}
 			message := <-done
-			if offer && (!strings.Contains(message, "Message-ID: <stable-id@next-terminal.invalid>") || !strings.Contains(message, "test body")) {
+			if offer && (!strings.Contains(message, "Message-ID: <stable-id@puppeteer.invalid>") || !strings.Contains(message, "test body")) {
 				t.Fatal("message missing", message)
 			}
 			if !offer && message != "" {

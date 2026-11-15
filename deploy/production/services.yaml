@@ -7,7 +7,7 @@ services:
       NT_MP4_URL: http://mp4-renderer:8090
       NT_MP4_TOKEN_FILE: /run/secrets/mp4_token
     secrets: [mp4_token]
-    volumes: [storageconfig:/var/lib/next-terminal/storage]
+    volumes: [storageconfig:/var/lib/puppeteer/storage]
     networks: [graphics, render]
     depends_on:
       mp4-renderer: {condition: service_healthy}
@@ -20,9 +20,9 @@ services:
     devices: [/dev/fuse:/dev/fuse]
     environment:
       NT_DATABASE_URL_FILE: /run/secrets/database_url
-      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+      NT_STORAGE_PROFILE: /var/lib/puppeteer/storage/active.json
     secrets: [database_url]
-    volumes: [storageconfig:/var/lib/next-terminal/storage:ro]
+    volumes: [storageconfig:/var/lib/puppeteer/storage:ro]
     networks: [database, graphics]
     depends_on:
       server: {condition: service_healthy}

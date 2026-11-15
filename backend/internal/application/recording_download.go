@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"next-terminal/backend/internal/modules/audit"
+	"puppeteer/backend/internal/modules/audit"
 	"time"
 )
 

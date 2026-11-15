@@ -1,7 +1,7 @@
 package backup
 
 import (
-	"next-terminal/backend/migrations"
+	"puppeteer/backend/migrations"
 	"testing"
 )
 

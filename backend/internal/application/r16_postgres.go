@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"next-terminal/backend/internal/modules/database"
-	"next-terminal/backend/internal/modules/databaseauth"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/pgproxy"
+	"puppeteer/backend/internal/modules/database"
+	"puppeteer/backend/internal/modules/databaseauth"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/pgproxy"
 )
 
 func (a *App) postgresProtocol(tlsConfig *tls.Config) *pgproxy.Server {

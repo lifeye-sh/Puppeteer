@@ -86,21 +86,21 @@
 - 阶段：W3；协作：M04、M15。
 - 功能要求：Agent 从内网主动连接 WebSocket；服务端提供各 OS 安装指引、网关专属注册凭证、在线状态、撤销、重连及版本发布能力。 按 D02 实现一次性注册令牌、设备 Key 轮换、WSS/yamux 和epoch fencing。
 - 验收条件：仅开放 Web 入口即可连接内网目标；吊销后无法新建流；旧 nt-tunnel 二进制互通需专项验证，自有协议不得标成官方兼容。
-- 来源：[安全网关](https://www.next-terminal.com/zh/docs/usage/agent-gateway.html)、[安全网关配置文件](https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html)。
+- 来源：[安全网关](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[安全网关配置文件](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U08 Agent 配置和升级契约
 
 - 阶段：W3；协作：M15、M18。
 - 功能要求：根 endpoint、API Key、TLS 校验、自定义 Header、HTTP/SOCKS5/SOCKS5H 出站代理、网关名称、采集/心跳间隔、网卡正则、磁盘白名单和自动更新配置均纳入版本化 schema。 自有 Agent 按 D02 采用 TUF；官方自动更新 true 仅为来源值，本项目自动安装默认 false 并明确展示差异。
 - 验收条件：保留文档默认值及优先级清单；校验代理 host/port；采集 5 秒、心跳 30 秒；白名单覆盖黑名单，挂载点精确匹配；升级包校验、失败回滚和暂停升级属于本方案增强。
-- 来源：[安全网关配置文件](https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html)。
+- 来源：[安全网关配置文件](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U09 入口 SSH 与出站 SSH 跳板分离
 
 - 阶段：W2；协作：M04、M06。
 - 功能要求：SSH 网关通过跳板的端口转发访问目标，安全网关通过主动隧道访问目标，资产地址从最后一跳解释。
 - 验收条件：跳板禁用 AllowTcpForwarding 时返回具体失败阶段；M05 不拥有平台 SSH 登录会话，M06 不复制网关配置。
-- 来源：[SSH 网关](https://www.next-terminal.com/zh/docs/usage/ssh-gateway.html)、[安全网关](https://www.next-terminal.com/zh/docs/usage/agent-gateway.html)、[资产管理总览](https://www.next-terminal.com/zh/docs/usage/asset.html)。
+- 来源：[SSH 网关](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[安全网关](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[资产管理总览](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U03（主责 M03）、U06（主责 M04）、U10（主责 M06）、U11（主责 M06）、U13（主责 M06）、U17（主责 M09）、U22（主责 M10）、U33（主责 M15）。
 

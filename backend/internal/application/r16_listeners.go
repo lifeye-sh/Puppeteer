@@ -7,13 +7,29 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"net"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/listener"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/listener"
 	"strings"
 )
 
 func (a *App) requestedListenerAddress(v system.ConfigurationValues, name string) string {
+	if enabled, managed := a.config.ManagedDeploymentProtocols[name]; managed {
+		if !enabled {
+			return ""
+		}
+		switch name {
+		case "mysql":
+			return ":13306"
+		case "postgres":
+			return ":15432"
+		case "ssh":
+			return ":2022"
+		}
+	}
+	if a.config.DisabledDeploymentProtocols[name] {
+		return ""
+	}
 	prefix, inherited := "ssh-server", a.config.NativeSSHAddr
 	if name == "mysql" {
 		prefix, inherited = "db-proxy", a.config.DatabaseProxyAddr

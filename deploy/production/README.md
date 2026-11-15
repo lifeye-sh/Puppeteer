@@ -1,6 +1,8 @@
 # Puppeteer R17 全新部署
 
-首次安装优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)；手动部署可选择[预构建镜像](dockerhub.md)或[源码构建](../../docs/FRESH-INSTALL.md)。一键安装创建的已有部署使用[升级脚本](../../docs/UPGRADE.md)。当前后端/Web版本为 `r17-rc11`（schema107），详见[发布说明](r17-rc11.md)；本文提供部署配置细节。
+版本边界：当前源码候选为 [r17-rc12](r17-rc12.md)，schema 110、能力版本 90；公共镜像仍为 rc11。使用公共 rc11 镜像必须检出 rc11 的 Compose，不能混用当前源码的目录和配置。网页内 RDP 使用 guacd，无需原生 Worker，见[连接指南](../../docs/BROWSER-RDP.md)。
+
+首次安装优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)；手动部署可选择[预构建镜像](dockerhub.md)或[源码构建](../../docs/FRESH-INSTALL.md)。一键安装创建的已有部署使用[升级脚本](../../docs/UPGRADE.md)。当前已发布后端/Web镜像为 `r17-rc11`（schema107），详见[发布说明](r17-rc11.md)；本文提供部署配置细节。
 
 可独立运行管理前端、新后端和空 PostgreSQL 数据库，并提供图形网关、MP4 和 SSH/数据库/网站协议入口的可选叠加配置。Agent签名发布与根轮换、双节点升级排空、备份/WAL/PITR、容量与恢复切换均有Docker模拟验收流程，见[运维步骤](operations.md)、[容量基线](capacity.md)和[恢复切换](cutover.md)。最终回归状态以[R17验收记录](../../docs/backend/acceptance/R17.md)为准。用户明确接受Docker模拟环境；正式部署不复制测试账号、证书、凭据或数据，原生RDP及RemoteApp保持既定暂缓范围。
 

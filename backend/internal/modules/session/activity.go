@@ -3,8 +3,8 @@ package session
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 var ErrIdle = errors.New("session idle timeout")

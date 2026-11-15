@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/secretbox"
 	"testing"
 )
 

@@ -86,28 +86,28 @@
 - 阶段：W3；协作：M01、M02、M03、M04、M05、M08。
 - 功能要求：交互选资产、直连、用户公钥、可禁用密码认证；服务端 Host Key 独立于用户密钥；SSH 转发开关和 host:port 白名单单独控制。
 - 验收条件：关闭转发仍能登录；绕过白名单的 forwarding 请求拒绝且审计；主机密钥持久化和轮换有指纹变更记录；普通 SSH 隧道不得冒充 SQL 协议审计。
-- 来源：[SSH 代理服务器](https://www.next-terminal.com/zh/docs/usage/ssh-server.html)、[SSH 里的“认证私钥”到底是什么，它认证的是谁？](https://www.next-terminal.com/zh/docs/blog/ssh-authentication.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[SSH 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[SSH 里的“认证私钥”到底是什么，它认证的是谁？](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U11 原生 RDP 一次性票据入口
 
 - 阶段：W3-基础链路/W4-能力验收；协作：M01、M02、M03、M05、M08、M13。
 - 功能要求：输出 .rdp 与 `NTICKET:<ticketId>:<secret>`；默认 TTL 300 秒、允许 60–3600 秒；默认监听 3390；独立对外地址；解析成功即消费；两段 NLA 行为分开处理。 按 D03.1 实现 FreeRDP 侧车、票据 hook、目标 TLS/NLA 和每会话隔离。
 - 验收条件：并发消费只有一次成功；过期/已用/撤权/非 RDP 资产拒绝；失败重连重新签发；文件不含目标 Windows 密码；创建并结束审计会话。
-- 来源：[RDP 代理服务器](https://www.next-terminal.com/zh/docs/usage/rdp-server.html)。
+- 来源：[RDP 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U12 按入口发布会话能力矩阵
 
 - 阶段：W3/W4；协作：M02、M07、M08。
 - 功能要求：区分浏览器 SSH/RDP/VNC/Telnet、原生 SSH/RDP 和 Termark；共享、文件、剪贴板、监控、终止和录像分别声明能力。 本项目可新增原生 RDP 主动断连，只有 D03.2 验证通过才声明能力；未实现仍返回 unsupported。
 - 验收条件：官方当前不支持的监控/主动断开不得冒充兼容；本项目终止扩展须D03.2实测后才返回成功；原生磁盘重定向不等同浏览器存储；无法执行必需策略时拒绝该入口。
-- 来源：[浏览器访问工作区](https://www.next-terminal.com/zh/docs/usage/access.html)、[Windows / RDP 资产](https://www.next-terminal.com/zh/docs/usage/rdp.html)、[RDP 代理服务器](https://www.next-terminal.com/zh/docs/usage/rdp-server.html)、[VNC 与 Telnet 资产](https://www.next-terminal.com/zh/docs/usage/vnc-telnet.html)。
+- 来源：[浏览器访问工作区](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[Windows / RDP 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[RDP 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[VNC 与 Telnet 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U13 Termark 授权与两类传输
 
 - 阶段：W3-基础链路/W4-能力验收；协作：M01、M02、M03、M05、M13。
 - 功能要求：本地客户端授权、已授权 SSH/RDP 目录同步、直连代理或 WebSocket 隧道；截图还包含前置 Basic、自定义 Header、上游代理与 mTLS 选项。 按 D01 先提供公开 Termark URI 与自有 nt-client PKCE/HTTPS 接入；官方专有同步和帧协议单列 external_contract_required，原需求保留，不标兼容完成。
 - 验收条件：仅开放 HTTPS 的网络中完成 SSH 与 RDP 接入；用户撤权立即影响同步和新接入；设备授权/帧格式未公开，保留独立真实客户端兼容验收，自有路径按D01先交付，客户端本地偏好不写入服务端业务表。
-- 来源：[使用 Termark 接入 NextTerminal 资产](https://www.next-terminal.com/zh/docs/usage/termark.html)、[RDP 代理服务器](https://www.next-terminal.com/zh/docs/usage/rdp-server.html)。
+- 来源：[使用 Termark 接入 Puppeteer 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[RDP 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U02（主责 M03）、U03（主责 M03）、U04（主责 M03）、U05（主责 M02）、U09（主责 M05）、U14（主责 M07）、U15（主责 M08）、U31（主责 M18）、U33（主责 M15）、U34（主责 M12）、U35（主责 M17）。
 

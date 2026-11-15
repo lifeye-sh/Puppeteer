@@ -2,8 +2,8 @@ package vault
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/databaseauth"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/databaseauth"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 // StoreDatabaseVerifier never accepts or persists the plaintext database password.

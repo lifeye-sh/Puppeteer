@@ -76,7 +76,7 @@
 - 阶段：W1；协作：M01、M03、M05。
 - 功能要求：密码或加密私钥含 Passphrase；生成密钥、提取公钥、MFA 明文查看、共享凭证更新影响检查和删除引用检查。
 - 验收条件：资产与 SSH 网关任何一方仍有引用时禁止删除；复制公钥不返回私钥；生成密钥不会被描述为已安装到目标 authorized_keys。
-- 来源：[授权凭证](https://www.next-terminal.com/zh/docs/usage/credential.html)。
+- 来源：[授权凭证](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U07（主责 M05）、U09（主责 M05）、U10（主责 M06）、U21（主责 M01）、U24（主责 M01）、U26（主责 M01）、U27（主责 M13）、U28（主责 M16）。
 

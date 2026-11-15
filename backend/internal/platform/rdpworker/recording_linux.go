@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"next-terminal/backend/internal/platform/rdprecording"
+	"puppeteer/backend/internal/platform/rdprecording"
 )
 
 // RecordingReceiver accepts the authenticated worker's separate bulk stream.

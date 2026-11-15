@@ -6,7 +6,7 @@ import RenderState from '@/pages/access/guacamole/RenderState';
 import useWindowFocus from '@/pages/access/hooks/use-window-focus';
 import {maybe} from '@/utils/maybe';
 import strings from '@/utils/strings';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 import qs from 'qs';
 import {useEffect, useRef, useState} from 'react';
 import {useSearchParams} from 'react-router-dom';

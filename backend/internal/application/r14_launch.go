@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/ssh"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 var nativeLaunchAlias = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,64}$`)
@@ -87,14 +87,14 @@ func (a *App) nativeSSHLaunch(w http.ResponseWriter, r *http.Request) error {
 		public = strings.TrimSpace(string(ssh.MarshalAuthorizedKey(key)))
 		user := u.Username + ":" + asset.Alias
 		name := "nt-" + id
-		filename := "next-terminal-" + id + ".ssh_config"
+		filename := "puppeteer-" + id + ".ssh_config"
 		knownHost := host
 		if port != 22 {
 			knownHost = fmt.Sprintf("[%s]:%d", host, port)
 		}
-		config := fmt.Sprintf("Host %s\n    HostName %s\n    Port %d\n    User %s\n    StrictHostKeyChecking yes\n    UserKnownHostsFile ./next-terminal-known_hosts\n    GlobalKnownHostsFile none\n    PasswordAuthentication no\n    PreferredAuthentications publickey,keyboard-interactive\n    ForwardAgent no\n    ForwardX11 no\n    ClearAllForwardings yes\n", name, host, port, user)
+		config := fmt.Sprintf("Host %s\n    HostName %s\n    Port %d\n    User %s\n    StrictHostKeyChecking yes\n    UserKnownHostsFile ./puppeteer-known_hosts\n    GlobalKnownHostsFile none\n    PasswordAuthentication no\n    PreferredAuthentications publickey,keyboard-interactive\n    ForwardAgent no\n    ForwardX11 no\n    ClearAllForwardings yes\n", name, host, port, user)
 		uri := "termark://connect?" + url.Values{"host": {host}, "port": {strconv.Itoa(port)}, "username": {user}}.Encode()
-		out = map[string]any{"assetId": id, "assetName": asset.Name, "host": host, "port": port, "username": user, "fingerprint": ssh.FingerprintSHA256(key), "config": config, "configFilename": filename, "knownHosts": knownHost + " " + public + "\n", "knownHostsFilename": "next-terminal-known_hosts", "command": "ssh -F ./" + filename + " -i \"你的私钥路径\" " + name, "termarkUri": uri}
+		out = map[string]any{"assetId": id, "assetName": asset.Name, "host": host, "port": port, "username": user, "fingerprint": ssh.FingerprintSHA256(key), "config": config, "configFilename": filename, "knownHosts": knownHost + " " + public + "\n", "knownHostsFilename": "puppeteer-known_hosts", "command": "ssh -F ./" + filename + " -i \"你的私钥路径\" " + name, "termarkUri": uri}
 		configuration, e := a.system.SecurityConfiguration(ctx)
 		if e != nil {
 			return e

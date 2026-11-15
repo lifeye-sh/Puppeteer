@@ -8,9 +8,9 @@ import (
 	"encoding/pem"
 	"fmt"
 	"golang.org/x/crypto/ssh"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/postgres"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/secretbox"
 	"strings"
 	"unicode/utf8"
 )
@@ -75,7 +75,7 @@ func Validate(in *Write) error {
 		if e != nil {
 			return e
 		}
-		block, e := ssh.MarshalPrivateKey(key, "next-terminal")
+		block, e := ssh.MarshalPrivateKey(key, "puppeteer")
 		if e != nil {
 			return e
 		}

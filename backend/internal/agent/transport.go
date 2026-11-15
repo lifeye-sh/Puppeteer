@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"next-terminal/backend/internal/platform/netproxy"
+	"puppeteer/backend/internal/platform/netproxy"
 	"os"
 	"regexp"
 	"strings"

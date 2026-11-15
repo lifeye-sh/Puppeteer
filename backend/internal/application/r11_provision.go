@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"net/url"
-	"next-terminal/backend/internal/modules/backup"
-	"next-terminal/backend/internal/platform/runtimeprofile"
+	"puppeteer/backend/internal/modules/backup"
+	"puppeteer/backend/internal/platform/runtimeprofile"
 	"path/filepath"
 	"strings"
 )

@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/listener"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/listener"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -35,13 +36,14 @@ func configMatch(r *http.Request, required bool) (*int64, error) {
 }
 func (a *App) registerConfiguration(h func(string, func(http.ResponseWriter, *http.Request) error)) {
 	a.registerAccessMFA(h)
+	h("POST /api/settings/listeners/preflight", a.listenerPreflight)
 	h("GET /api/settings/revisions", a.configurationHistory)
 	h("GET /api/settings/revisions/{id}/diff", a.configurationDiff)
 	h("GET /api/settings/schema", func(w http.ResponseWriter, r *http.Request) error {
 		if _, e := a.require(r, "settings.read"); e != nil {
 			return e
 		}
-		writeJSON(w, 200, map[string]any{"scope": "login-password-mfa-listeners-mail-client-ip-postgres-branding-retention-resources-watermark-ai-policy", "properties": system.PropertySchema(), "readOnlyProperties": system.ReadonlyPropertySchema(), "description": "管理登录保护、密码强度与到期、全局 TOTP、登录会话、网关监听与数据库代理证书、加密邮件配置、客户端 IP 与可信代理、PostgreSQL 限制、品牌、资源默认值、会话水印、AI全局工具策略及审计保留；缩短保留期限需要当前版本的清理预览。其他配置使用对应业务入口。"})
+		writeJSON(w, 200, map[string]any{"scope": "login-password-mfa-listeners-mail-client-ip-postgres-branding-retention-resources-watermark-ai-policy", "properties": system.PropertySchema(), "deploymentManagedKeys": a.deploymentManagedKeys(), "readOnlyProperties": system.ReadonlyPropertySchema(), "description": "管理登录保护、密码强度与到期、全局 TOTP、登录会话、网关监听与数据库代理证书、加密邮件配置、客户端 IP 与可信代理、PostgreSQL 限制、品牌、资源默认值、会话水印、AI全局工具策略及审计保留；缩短保留期限需要当前版本的清理预览。其他配置使用对应业务入口。"})
 		return nil
 	})
 	view := func(w http.ResponseWriter, r *http.Request) error {
@@ -112,6 +114,45 @@ func (a *App) registerConfiguration(h func(string, func(http.ResponseWriter, *ht
 		}
 		if patch == nil {
 			patch = map[string]json.RawMessage{}
+		}
+		if len(a.config.ManagedDeploymentProtocols) > 0 || a.config.DeploySocket != "" {
+			current, err := a.system.Configuration(r.Context(), 0)
+			if err != nil {
+				return err
+			}
+			for _, protocol := range []string{"mysql", "postgres", "ssh", "website"} {
+				if _, managed := a.config.ManagedDeploymentProtocols[protocol]; !managed && a.config.DeploySocket == "" {
+					continue
+				}
+				prefix := map[string]string{"mysql": "db-proxy", "postgres": "postgres-proxy", "ssh": "ssh-server", "website": "website-server"}[protocol]
+				for _, suffix := range []string{"-enabled", "-addr"} {
+					key := prefix + suffix
+					if raw, exists := patch[key]; exists {
+						var submitted any
+						if json.Unmarshal(raw, &submitted) != nil {
+							return fault.Invalid
+						}
+						if !reflect.DeepEqual(submitted, current.Values[key]) {
+							return problem(409, "deployment_managed_listener", "该入口已由部署执行器管理，请在“代理部署”中修改服务及端口")
+						}
+					}
+				}
+			}
+		}
+		if a.config.ManagedHTTPAddr != "" || a.config.DeploySocket != "" {
+			if raw, exists := patch["http-server-addr"]; exists {
+				current, err := a.system.Configuration(r.Context(), 0)
+				if err != nil {
+					return err
+				}
+				var address string
+				if json.Unmarshal(raw, &address) != nil {
+					return fault.Invalid
+				}
+				if address != current.Values.String("http-server-addr") {
+					return problem(409, "deployment_managed_http", "管理监听已由部署执行器管理，请在“代理部署”中修改以同步 Nginx")
+				}
+			}
 		}
 		oauthServerChange := false
 		recordingChange := false
@@ -445,4 +486,18 @@ func (a *App) RunConfiguration(ctx context.Context) {
 		case <-ticker.C:
 		}
 	}
+}
+
+func (a *App) deploymentManagedKeys() []string {
+	keys := []string{}
+	for protocol, prefix := range map[string]string{"mysql": "db-proxy", "postgres": "postgres-proxy", "ssh": "ssh-server", "website": "website-server"} {
+		if _, managed := a.config.ManagedDeploymentProtocols[protocol]; managed || a.config.DeploySocket != "" {
+			keys = append(keys, prefix+"-enabled", prefix+"-addr")
+		}
+	}
+	if a.config.ManagedHTTPAddr != "" || a.config.DeploySocket != "" {
+		keys = append(keys, "http-server-addr")
+	}
+	slices.Sort(keys)
+	return keys
 }

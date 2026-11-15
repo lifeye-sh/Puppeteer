@@ -45,7 +45,7 @@ test('isolated profile accepts HTTP/2 authority and rejects a foreign host', () 
 });
 
 test('real Vite proxy keeps HTTP, binary, errors, cookies and WS on one target', {timeout: 30000}, async () => {
-    const fixtureRoot = await mkdtemp(path.join(tmpdir(), 'next-terminal-proxy-'));
+    const fixtureRoot = await mkdtemp(path.join(tmpdir(), 'puppeteer-proxy-'));
     const secretPath = path.join(fixtureRoot, 'backend/.local/acceptance-account.json');
     await mkdir(path.dirname(secretPath), {recursive:true});
     await writeFile(secretPath, '{"password":"fixture-must-not-be-served"}');
@@ -119,7 +119,7 @@ test('real Vite proxy keeps HTTP, binary, errors, cookies and WS on one target',
         await vite?.close();
         await new Promise(resolve => upstream.close(resolve));
         assert.equal(path.dirname(fixtureRoot), path.resolve(tmpdir()));
-        assert(path.basename(fixtureRoot).startsWith('next-terminal-proxy-'));
+        assert(path.basename(fixtureRoot).startsWith('puppeteer-proxy-'));
         await rm(fixtureRoot, {recursive: true, force: true});
     }
 });

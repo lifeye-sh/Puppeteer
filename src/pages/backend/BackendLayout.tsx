@@ -29,13 +29,13 @@ function ManagementShell({children}:{children:ReactNode}) {
     useEffect(()=>{const media=window.matchMedia('(max-width:800px)');const change=()=>{if(media.matches)setCollapsed(true)};media.addEventListener('change',change);return ()=>media.removeEventListener('change',change)},[]);
     const [dark,setDark]=useState(()=>localStorage.getItem('nt-management-theme')==='dark');
     const [error,setError]=useState('');const [leaving,setLeaving]=useState(false);
-    const groups=visibleNavigation(account.actions??[],capabilities.features);
+    const groups=visibleNavigation(account.actions??[],capabilities.features,account.type);
     const current=navigationLocation(pathname,groups);
-    const groupIcons:Record<string,ReactNode>={workspace:<Monitor size={16}/>,resources:<FolderClosed size={16}/>,connectivity:<SquareTerminal size={16}/>,access:<ShieldCheck size={16}/>,audit:<ScrollText size={16}/>,identity:<Users size={16}/>,operations:<Settings size={16}/>};
+    const groupIcons:Record<string,ReactNode>={workspace:<Monitor size={16}/>,resources:<FolderClosed size={16}/>,connectivity:<SquareTerminal size={16}/>,access:<ShieldCheck size={16}/>,audit:<ScrollText size={16}/>,identity:<Users size={16}/>,operations:<Settings size={16}/>,configuration:<Settings size={16}/>};
     const items=[{key:'/',label:<Link to="/">数据概览</Link>,icon:<CircleGauge size={16}/>},...groups.map(group=>({key:group.key,label:group.label,icon:groupIcons[group.key],children:group.pages.map(page=>({key:page.path,label:<Link to={page.path}>{page.label}</Link>}))}))];
     const currentGroup=current?.group.key;
-    const [openKeys,setOpenKeys]=useState<string[]>(currentGroup?[currentGroup]:[]);
-    useEffect(()=>{setOpenKeys(currentGroup?[currentGroup]:[])},[currentGroup,pathname]);
+    const [openKeys,setOpenKeys]=useState<string[]>(!collapsed&&currentGroup?[currentGroup]:[]);
+    useEffect(()=>{setOpenKeys(!collapsed&&currentGroup?[currentGroup]:[])},[collapsed,currentGroup,pathname]);
     const breadcrumbs=[{title:<Link to="/">首页</Link>},...(current?[{title:current.group.label}]:[]),{title:current?.page.label??titles[pathname]??'管理控制台'}];
     const logout=async()=>{setLeaving(true);setError('');try{await accountApi.logout();clearCurrentUser();client.clear();location.replace('/login')}catch(e){setError((e as Error).message);setLeaving(false)}};
     return <ConfigProvider locale={zhCN} theme={{algorithm:dark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:'#377dff',borderRadius:7,fontSize:13,fontFamily:'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif'},components:{Menu:{itemHeight:42,itemSelectedBg:dark?'#1d3554':'#e8f3ff',itemSelectedColor:'#377dff',itemMarginInline:4},Table:{headerBg:dark?'#232b38':'#f8f9fb',headerColor:dark?'#d6deeb':'#253044',cellPaddingBlock:14,cellPaddingInline:12}}}}>

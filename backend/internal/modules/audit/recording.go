@@ -2,7 +2,7 @@ package audit
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Payload is encoded as base64 by encoding/json, preserving split UTF-8 and ANSI bytes.

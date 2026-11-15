@@ -3,9 +3,9 @@ package system
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/buildmeta"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/buildmeta"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func ReadonlyPropertySchema() []Property {

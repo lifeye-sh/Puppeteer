@@ -1,5 +1,5 @@
 import {Terminal} from '@xterm/xterm';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 
 const palette=['#000000','#cd0000','#00cd00','#cdcd00','#0000ee','#cd00cd','#00cdcd','#e5e5e5','#7f7f7f','#ff0000','#00ff00','#ffff00','#5c5cff','#ff00ff','#00ffff','#ffffff'];
 function color(c,fg){const n=fg?c.getFgColor():c.getBgColor();if(fg?c.isFgDefault():c.isBgDefault())return fg?'#e5e7eb':'#1e1e1e';if(fg?c.isFgRGB():c.isBgRGB())return '#'+n.toString(16).padStart(6,'0');if(n<16)return palette[n];if(n>=232){const v=8+(n-232)*10;return `rgb(${v},${v},${v})`}const v=n-16,l=[0,95,135,175,215,255];return `rgb(${l[Math.floor(v/36)]},${l[Math.floor(v/6)%6]},${l[v%6]})`}

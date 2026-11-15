@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"next-terminal/backend/internal/modules/approval"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/notification"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/approval"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/notification"
+	"puppeteer/backend/internal/platform/fault"
 	"time"
 )
 

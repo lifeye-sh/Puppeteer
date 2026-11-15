@@ -1,5 +1,5 @@
 // Package listener coordinates prepared TCP listeners without cancelling the
-// established connections of an older configuration generation.
+// established connections during rotation. Disabling a listener revokes its connections.
 package listener
 
 import (
@@ -25,6 +25,10 @@ type generation struct {
 	listener net.Listener
 	spec     Spec // protected by Manager.mu; captured separately for each connection
 }
+type connection struct {
+	name   string
+	cancel context.CancelFunc
+}
 type Manager struct {
 	mu          sync.Mutex
 	ctx         context.Context
@@ -32,7 +36,7 @@ type Manager struct {
 	version     uint64
 	closed      bool
 	active      map[string]*generation
-	connections map[net.Conn]bool
+	connections map[net.Conn]connection
 	slots       chan struct{}
 	wg          sync.WaitGroup
 }
@@ -50,7 +54,7 @@ func New(ctx context.Context, maxConnections int) *Manager {
 		maxConnections = 64
 	}
 	life, cancel := context.WithCancel(ctx)
-	m := &Manager{ctx: life, cancel: cancel, active: map[string]*generation{}, connections: map[net.Conn]bool{}, slots: make(chan struct{}, maxConnections)}
+	m := &Manager{ctx: life, cancel: cancel, active: map[string]*generation{}, connections: map[net.Conn]connection{}, slots: make(chan struct{}, maxConnections)}
 	context.AfterFunc(life, m.Close)
 	return m
 }
@@ -113,7 +117,7 @@ func (p *Prepared) Abort() {
 	}
 }
 
-// Commit switches acceptance atomically, then closes only old listening sockets.
+// Commit switches acceptance atomically and revokes connections for disabled names.
 // Accepted connections retain their original handler and crypto configuration.
 func (p *Prepared) Commit() error {
 	m := p.manager
@@ -144,6 +148,12 @@ func (p *Prepared) Commit() error {
 			g.listener.Close()
 		}
 	}
+	for conn, state := range m.connections {
+		if p.next[state.name] == nil {
+			state.cancel()
+			conn.Close()
+		}
+	}
 	return nil
 }
 
@@ -168,13 +178,15 @@ func (m *Manager) accept(g *generation) {
 			continue
 		}
 		handler := g.spec.Handle
-		m.connections[conn] = true
+		ctx, cancel := context.WithCancel(m.ctx)
+		m.connections[conn] = connection{name: g.spec.Name, cancel: cancel}
 		m.wg.Add(1)
 		m.mu.Unlock()
 		go func() {
 			defer m.wg.Done()
+			defer cancel()
 			defer func() { conn.Close(); m.mu.Lock(); delete(m.connections, conn); m.mu.Unlock(); <-m.slots }()
-			handler(m.ctx, conn)
+			handler(ctx, conn)
 		}()
 	}
 }

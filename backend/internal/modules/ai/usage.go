@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 var ErrDailyBudget = errors.New("ai_daily_budget_exceeded")

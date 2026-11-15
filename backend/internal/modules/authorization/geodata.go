@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/netip"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 type GeoEntry struct {

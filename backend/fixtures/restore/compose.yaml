@@ -23,13 +23,13 @@ services:
       NT_VAULT_KEY: ${R11_DRILL_VAULT_KEY:?}
       NT_ADDR: :8089
       NT_ALLOWED_ORIGINS: http://backend.localhost:5174
-      NT_BACKUP_DIRECTORY: /var/lib/next-terminal/backups
-      NT_RESTORE_DIRECTORY: /var/lib/next-terminal/restore
-      NT_RUNTIME_PROFILE: /var/lib/next-terminal/runtime/active.json
-      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+      NT_BACKUP_DIRECTORY: /var/lib/puppeteer/backups
+      NT_RESTORE_DIRECTORY: /var/lib/puppeteer/restore
+      NT_RUNTIME_PROFILE: /var/lib/puppeteer/runtime/active.json
+      NT_STORAGE_PROFILE: /var/lib/puppeteer/storage/active.json
     volumes:
-      - backupdata:/var/lib/next-terminal
-      - storageconfig:/var/lib/next-terminal/storage
+      - backupdata:/var/lib/puppeteer
+      - storageconfig:/var/lib/puppeteer/storage
     ports: ['127.0.0.1:${R11_DRILL_PORT:-18091}:8089']
     healthcheck:
       test: [CMD, /app/nt, health]
@@ -42,8 +42,8 @@ services:
     devices: [/dev/fuse:/dev/fuse]
     environment:
       NT_DATABASE_URL: postgres://nt_drill:${R11_DRILL_DB_PASSWORD}@postgres:5432/nt_restore_pitr_fixture?sslmode=disable
-      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
-    volumes: [storageconfig:/var/lib/next-terminal/storage:ro]
+      NT_STORAGE_PROFILE: /var/lib/puppeteer/storage/active.json
+    volumes: [storageconfig:/var/lib/puppeteer/storage:ro]
     healthcheck:
       test: [CMD, /usr/local/bin/nt-rdp-storage, health]
       interval: 2s

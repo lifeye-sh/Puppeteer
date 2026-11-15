@@ -1,4 +1,4 @@
-module next-terminal/backend
+module puppeteer/backend
 
 go 1.27.0
 

@@ -13,7 +13,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/nativeclient"
+	"puppeteer/backend/internal/nativeclient"
 	"strings"
 	"testing"
 	"time"

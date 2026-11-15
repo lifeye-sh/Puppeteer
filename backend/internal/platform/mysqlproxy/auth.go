@@ -77,5 +77,5 @@ func (h *IdentityHandler) OnAuthFailure(c *server.Conn, e error) {
 func NewServer(config *tls.Config, verify func(context.Context, string, string) error) *server.Server {
 	safe := config.Clone()
 	safe.MinVersion = tls.VersionTLS12
-	return server.NewServerWithAuth("8.4.0-NextTerminal", mysql.DEFAULT_COLLATION_ID, mysql.AUTH_CACHING_SHA2_PASSWORD, nil, safe, &FullAuth{Verify: verify})
+	return server.NewServerWithAuth("8.4.0-Puppeteer", mysql.DEFAULT_COLLATION_ID, mysql.AUTH_CACHING_SHA2_PASSWORD, nil, safe, &FullAuth{Verify: verify})
 }

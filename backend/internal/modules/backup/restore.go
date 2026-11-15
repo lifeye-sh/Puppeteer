@@ -18,7 +18,7 @@ func RestoreStaged(ctx context.Context, dsn, dir string, m Manifest, log *Restor
 		return e
 	}
 	if m.SchemaVersion < 30 || m.SchemaVersion > SupportedSchema {
-		return errors.New("this release restores schema 30 and 31 archives only")
+		return errors.New("archive schema is outside this release's supported restore range")
 	}
 	cfg, e := pgx.ParseConfig(dsn)
 	if e != nil {

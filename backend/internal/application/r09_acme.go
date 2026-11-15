@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"next-terminal/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/pki"
 	"time"
 )
 

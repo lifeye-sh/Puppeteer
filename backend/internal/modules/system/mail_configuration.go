@@ -7,7 +7,7 @@ import (
 	"encoding/pem"
 	"net"
 	"net/mail"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 )
 

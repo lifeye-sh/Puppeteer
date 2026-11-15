@@ -6,12 +6,12 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/deployment"
-	"next-terminal/backend/internal/platform/postgres"
-	"next-terminal/backend/internal/platform/runtimeprofile"
-	"next-terminal/backend/migrations"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/deployment"
+	"puppeteer/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/runtimeprofile"
+	"puppeteer/backend/migrations"
 	"os"
 )
 

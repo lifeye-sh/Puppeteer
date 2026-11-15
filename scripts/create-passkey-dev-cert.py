@@ -12,7 +12,7 @@ key_path, cert_path = root / 'server.key', root / 'server.crt'
 if key_path.exists() or cert_path.exists():
     raise SystemExit('Certificate files already exist; refusing to overwrite.')
 key = rsa.generate_private_key(public_exponent=65537, key_size=3072)
-name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, 'Next Terminal backend.localhost development')])
+name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, 'Puppeteer backend.localhost development')])
 now = datetime.now(timezone.utc)
 cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name)
         .public_key(key.public_key()).serial_number(x509.random_serial_number())

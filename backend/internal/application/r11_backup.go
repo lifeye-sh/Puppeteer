@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/backup"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/backup"
+	"puppeteer/backend/internal/modules/identity"
 	"regexp"
 )
 

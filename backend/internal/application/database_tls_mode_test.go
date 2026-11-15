@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/database"
+	"puppeteer/backend/internal/modules/database"
 	"os"
 	"testing"
 )

@@ -78,21 +78,21 @@
 - 阶段：W3；协作：M01、M02、M05、M13、M18。
 - 功能要求：入口域名与上游地址分开；入口域名唯一且不能等于 SelfDomain；SelfProxyEnabled/SelfDomain/Root 决定登录入口；支持 HTTP 跳转 HTTPS、入口路径与网关。
 - 验收条件：相同域名不同路径也不允许注册第二站点；未授权不能到达上游；回跳仅允许已登记站点；证书 SAN 覆盖域名，不只检查 CN。
-- 来源：[Web 资产](https://www.next-terminal.com/zh/docs/usage/website.html)。
+- 来源：[Web 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U18 公开访问与临时 IP 白名单
 
 - 阶段：W3；协作：M02、M08。
 - 功能要求：匿名访问按 IP/CIDR/范围、国家省市、期限和口令判断；临时授权绑定站点与可信提取 IP，有 TTL 和 autoRenew 开关。
 - 验收条件：关闭 autoRenew 时不续期；开启时仅成功访问续期并受本方案绝对期限约束；过期/撤销即失效；NAT 同出口共享效应可见。
-- 来源：[Web 资产](https://www.next-terminal.com/zh/docs/usage/website.html)、[获取真实客户端 IP](https://www.next-terminal.com/zh/docs/install/real-ip.html)。
+- 来源：[Web 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[获取真实客户端 IP](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U19 请求头与响应改写规则
 
 - 阶段：W3；协作：M08、M18。
 - 功能要求：按请求路径/方法/响应状态匹配；设置、追加、删除响应头和替换正文；支持自定义上游请求头与站点访问日志开关。
 - 验收条件：压缩内容正确解压重算长度，限制可改 MIME/大小；WebSocket、流式和二进制内容不误改；不会把平台认证头泄漏给目标网站。
-- 来源：[Web 资产](https://www.next-terminal.com/zh/docs/usage/website.html)。
+- 来源：[Web 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U15（主责 M08）、U20（主责 M18）、U27（主责 M13）。
 

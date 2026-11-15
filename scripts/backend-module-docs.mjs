@@ -107,7 +107,7 @@ for(const module of modules) lines.push(`| ${moduleLink(module)} | ${module.wave
 lines.push('','## 数据归属索引','','下列每张逻辑表只有一个写入所有者。原数据模型按主题分组，不能代替本归属表。','','| 逻辑表 | 写入所有者 |','|---|---|');
 for(const [table,id] of [...owners].sort((a,b)=>a[0].localeCompare(b[0]))) lines.push(`| \`${table}\` | ${moduleLink(byId.get(id))} |`);
 await fs.writeFile(path.join(base,'module-backlog.md'),lines.join('\n')+'\n');
-const coverage = ['# 官方使用文档覆盖矩阵','','这是阅读与规划覆盖，不是功能实现状态。正文和图示已核对，嵌入视频缺口见[核对说明](usage-docs-review.md)。来源元数据见[JSON](usage-docs-sources.json)，每个页面至少对应一项有主责模块的开发需求。','','| 页面 | 范围 | 图示引用 | 对应需求及主责模块 |','|---|---|---|---|'];
+const coverage = ['# 项目需求覆盖矩阵','','这是 Puppeteer 项目需求的规划覆盖，不是功能实现状态。主题索引见 usage-docs-sources.json，实际交付以代码和验收记录为准。','','| 页面 | 范围 | 图示引用 | 对应需求及主责模块 |','|---|---|---|---|'];
 for (const source of sources.values()) {
   const matched = usage.requirements.filter(r => r.sources.includes(source.id));
   coverage.push(`| [${source.title}](${source.url}) | ${source.category === 'usage' ? '使用文档' : '关联资料'} | ${source.imagesReviewed} | ${matched.map(r => `${r.id} / ${r.owner}`).join('、')} |`);
@@ -117,7 +117,7 @@ for (const r of usage.requirements) coverage.push(`| ${r.id} ${r.title} | ${modu
 coverage.push('','由 `node scripts/backend-module-docs.mjs` 生成；修改来源 JSON 或需求 JSON 后重新生成。','');
 await fs.writeFile(path.join(base,'usage-coverage.md'),coverage.join('\n'));
 const cell = value => String(typeof value === 'object' ? JSON.stringify(value) : value).replaceAll('|','\\|').replaceAll('\n',' ');
-const properties = ['# 系统属性兼容目录','','以下103键来自[官方系统属性文档](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。官方 wireType 原样保留为 string；**本表默认值是本项目设计，不代表官方默认值**。运行实现尚未开始。默认空值表示未配置，生成型私钥由相应启用流程生成；版本取构建元数据。JSON中 officialDefault 保留来源缺口。跨字段规则及effect语义见[配置实施规范](implementation/settings-entitlements.md)。当前前端还有文档页未列出的扩展键，见该规范。','','## 类型与默认值','','| 键 | 内部类型 | 本项目默认 | 单位 | owner |','|---|---|---|---|---|'];
+const properties = ['# 系统属性兼容目录','','本表记录 Puppeteer 的配置设计。实际配置键、类型、默认值与校验以 backend/internal/modules/system/configuration.go 及配置实施规范为准；验收状态见 acceptance/R16.md。','','## 类型与默认值','','| 键 | 内部类型 | 本项目默认 | 单位 | owner |','|---|---|---|---|---|'];
 for (const p of propertyCatalog.properties) properties.push(`| \`${p.key}\` | ${p.internalType} | ${cell(p.proposedDefault)} | ${p.internalUnit ?? (p.unit === '未在本页明确' ? '不适用/见校验' : p.unit)} | ${moduleLink(byId.get(p.owner))} |`);
 properties.push('','## 校验与应用方式','','M18拥有写入入口，各owner校验；所有秘密普通读取掩码。只读投影不形成第二份业务权威数据。','','| 键 | 校验 | 生效方式 | 访问 | 秘密 |','|---|---|---|---|---|');
 for (const p of propertyCatalog.properties) properties.push(`| \`${p.key}\` | ${cell(p.validation)} | ${p.effect} | ${p.access} | ${p.secret ? '是' : '否'} |`);

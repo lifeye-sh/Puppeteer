@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"next-terminal/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/pki"
 	"os"
 	"path/filepath"
 )

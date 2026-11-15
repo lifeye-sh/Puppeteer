@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"next-terminal/backend/internal/modules/pki"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/listener"
+	"puppeteer/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/listener"
 )
 
 func TestR16ListenerPortFailureSwitchAndDrain(t *testing.T) {
@@ -37,7 +37,7 @@ func TestR16ListenerPortFailureSwitchAndDrain(t *testing.T) {
 	defer old.Close()
 	old.SetReadDeadline(time.Now().Add(3 * time.Second))
 	line, e := bufio.NewReader(old).ReadString('\n')
-	if e != nil || !strings.HasPrefix(line, "SSH-2.0-NextTerminal") {
+	if e != nil || !strings.HasPrefix(line, "SSH-2.0-Puppeteer") {
 		t.Fatal(line, e)
 	}
 	change := func(patch map[string]any) {
@@ -91,7 +91,7 @@ func TestR16ListenerPortFailureSwitchAndDrain(t *testing.T) {
 	defer fresh.Close()
 	fresh.SetReadDeadline(time.Now().Add(3 * time.Second))
 	line, e = bufio.NewReader(fresh).ReadString('\n')
-	if e != nil || !strings.HasPrefix(line, "SSH-2.0-NextTerminal") {
+	if e != nil || !strings.HasPrefix(line, "SSH-2.0-Puppeteer") {
 		t.Fatal(line, e)
 	}
 	// The earlier connection is waiting for its client handshake, rather than

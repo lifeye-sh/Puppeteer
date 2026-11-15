@@ -17,9 +17,9 @@ import (
 	"github.com/google/uuid"
 )
 
-const Product = "next-terminal-backend"
-const Issuer = "next-terminal-local-issuer"
-const Audience = "next-terminal-backend"
+const Product = "puppeteer-backend"
+const Issuer = "puppeteer-local-issuer"
+const Audience = "puppeteer-backend"
 const MaxLicenseBytes = 32768
 
 var ErrInvalid = errors.New("invalid entitlement document")

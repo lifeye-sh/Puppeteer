@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"log"
-	"next-terminal/backend/internal/agentupdate"
+	"puppeteer/backend/internal/agentupdate"
 	"time"
 )
 

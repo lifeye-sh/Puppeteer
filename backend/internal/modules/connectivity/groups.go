@@ -3,8 +3,8 @@ package connectivity
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 type GatewayMember struct {

@@ -3,8 +3,8 @@ package identity
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 	"time"
 )
 

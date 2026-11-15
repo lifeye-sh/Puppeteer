@@ -3,7 +3,7 @@
 package main
 
 import (
-	"next-terminal/backend/internal/application"
+	"puppeteer/backend/internal/application"
 	"os"
 )
 

@@ -43,7 +43,7 @@ func (a *App) startBackgroundLocked() {
 	a.backgroundCancel = cancel
 	a.backgroundDone = done
 	var wg sync.WaitGroup
-	for _, fn := range []func(context.Context){a.RunSessionMaintenance, a.RunStorageMaintenance, a.RunApprovalMaintenance, a.RunCertificateMaintenance, a.RunTaskMaintenance, a.RunAccessRetention, a.RunRecordingExports, a.RunConfiguration, a.RunMonitoring, a.RunDatabaseWorkOrders, a.RunAIJobs} {
+	for _, fn := range []func(context.Context){a.RunSessionMaintenance, a.RunStorageMaintenance, a.RunApprovalMaintenance, a.RunCertificateMaintenance, a.RunDependencyCleanup, a.RunTaskMaintenance, a.RunAccessRetention, a.RunRecordingExports, a.RunConfiguration, a.RunMonitoring, a.RunDatabaseWorkOrders, a.RunAIJobs} {
 		wg.Add(1)
 		go func(f func(context.Context)) { defer wg.Done(); f(c) }(fn)
 	}

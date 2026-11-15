@@ -4,9 +4,9 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func (a *App) routesR16BrandLogo(h func(string, func(http.ResponseWriter, *http.Request) error)) {

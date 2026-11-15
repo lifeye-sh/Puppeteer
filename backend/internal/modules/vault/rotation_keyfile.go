@@ -44,7 +44,7 @@ func PrepareKeyFileRotation(client *ssh.Client, oldKey, newKey string) (*KeyFile
 	if e != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 || info.Mode().Perm()&0022 != 0 {
 		return nil, ErrRotationPreflight
 	}
-	v := &KeyFileRotation{client: c, file: path.Join(dir, "authorized_keys"), lock: path.Join(dir, ".next-terminal-rotation.lock"), oldKey: oldKey, newKey: newKey}
+	v := &KeyFileRotation{client: c, file: path.Join(dir, "authorized_keys"), lock: path.Join(dir, ".puppeteer-rotation.lock"), oldKey: oldKey, newKey: newKey}
 	if e = c.Mkdir(v.lock); e != nil {
 		return nil, ErrRotationPreflight
 	}

@@ -30,14 +30,14 @@ services:
       NT_VAULT_KEY_FILE: /run/secrets/vault_key
       NT_ALLOWED_ORIGINS: ${PUPPETEER_ORIGIN:?Set the public HTTPS origin}
       NT_ALLOW_REQUEST_ORIGIN: ${PUPPETEER_ALLOW_REQUEST_ORIGIN:-true}
-      NT_BACKUP_DIRECTORY: /var/lib/next-terminal/backups
-      NT_RESTORE_DIRECTORY: /var/lib/next-terminal/restore
-      NT_MP4_DIRECTORY: /var/lib/next-terminal/mp4
-      NT_RUNTIME_PROFILE: /var/lib/next-terminal/runtime/active.json
-      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+      NT_BACKUP_DIRECTORY: /var/lib/puppeteer/backups
+      NT_RESTORE_DIRECTORY: /var/lib/puppeteer/restore
+      NT_MP4_DIRECTORY: /var/lib/puppeteer/mp4
+      NT_RUNTIME_PROFILE: /var/lib/puppeteer/runtime/active.json
+      NT_STORAGE_PROFILE: /var/lib/puppeteer/storage/active.json
       NT_MYSQL_SPOOL_DIR: /tmp/mysql-spool
     secrets: [database_url, mfa_key, vault_key]
-    volumes: [appdata:/var/lib/next-terminal]
+    volumes: [appdata:/var/lib/puppeteer]
     networks: [database, control, egress]
     depends_on:
       postgres: {condition: service_healthy}

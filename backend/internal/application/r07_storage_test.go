@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"next-terminal/backend/internal/modules/storage"
+	"puppeteer/backend/internal/modules/storage"
 	"sync"
 	"sync/atomic"
 	"syscall"

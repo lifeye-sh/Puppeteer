@@ -2,10 +2,10 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/authorization"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/vault"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/authorization"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/vault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // Opt-in dev fixture, separate from user-edited R03 examples. Private key remains encrypted in Vault.

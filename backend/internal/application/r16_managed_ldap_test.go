@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/system"
 	"strings"
 	"testing"
 )

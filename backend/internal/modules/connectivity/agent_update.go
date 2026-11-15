@@ -2,7 +2,7 @@ package connectivity
 
 import (
 	"context"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func (s *Service) RequestUpdate(ctx context.Context, id, action string) error {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 type Job struct {

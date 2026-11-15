@@ -1,7 +1,7 @@
 package main
 
 import (
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 	"strings"
 	"testing"
 )

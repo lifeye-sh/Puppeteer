@@ -86,14 +86,14 @@
 - 阶段：W2/W4；协作：M06、M07、M09、M10、M11、M15。
 - 功能要求：登录、后台变更、访问、命令、文件、SQL 和会话录像形成可关联的调查链；访问失败在会话尚未创建时也要留记录。
 - 验收条件：按用户/资源/时间/结果定位并关联 trace/session/workOrder；Windows 内部复制不能伪造为浏览器文件日志；没有录像显示原因而非空成功回放。
-- 来源：[日志审计](https://www.next-terminal.com/zh/docs/usage/audit.html)。
+- 来源：[日志审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U16 分类保留与录屏配置
 
 - 阶段：W3；协作：M18、M12。
 - 功能要求：分别配置会话、登录、任务、访问、SQL 日志的保留天数及录像开关，保留设置影响各自清理任务。
 - 验收条件：对象删除与索引清理可重入；受保留锁保护的证据不删除；网站禁用访问日志明确降级范围，不连带关闭登录和管理操作审计。
-- 来源：[日志审计](https://www.next-terminal.com/zh/docs/usage/audit.html)、[系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html)。
+- 来源：[日志审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U01（主责 M18）、U10（主责 M06）、U11（主责 M06）、U12（主责 M06）、U14（主责 M07）、U18（主责 M09）、U19（主责 M09）、U22（主责 M10）、U23（主责 M11）、U24（主责 M01）、U26（主责 M01）、U28（主责 M16）、U30（主责 M18）、U31（主责 M18）、U33（主责 M15）、U35（主责 M17）。
 

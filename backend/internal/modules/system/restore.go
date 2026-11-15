@@ -28,6 +28,14 @@ func (s *Service) QuarantineRestore(ctx context.Context) error {
 	if _, e = s.db.Exec(ctx, `UPDATE configuration_security SET revision=(SELECT revision FROM configuration_head WHERE singleton=1),required_nodes='{}' WHERE singleton=1`); e != nil {
 		return e
 	}
+	// Restored checks cannot authorize readiness in the recovery deployment.
+	// A recovered database must never delete test objects in the source service.
+	if _, e = s.db.Exec(ctx, `DELETE FROM dependency_probe_artifacts`); e != nil {
+		return e
+	}
+	if _, e = s.db.Exec(ctx, `UPDATE configuration_checks SET state='stale',payload=jsonb_set(payload,'{state}','"stale"')`); e != nil {
+		return e
+	}
 	// Restored heartbeats describe the source deployment, not a live node in
 	// the isolated target. Retain historical ACKs but require fresh liveness.
 	_, e = s.db.Exec(ctx, `UPDATE configuration_nodes SET last_seen=LEAST(last_seen,now()-interval '31 seconds')`)

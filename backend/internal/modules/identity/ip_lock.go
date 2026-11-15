@@ -3,8 +3,8 @@ package identity
 import (
 	"context"
 	"net/netip"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 func normalizedIP(address string) (string, error) {

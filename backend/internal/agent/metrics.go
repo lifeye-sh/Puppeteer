@@ -6,7 +6,7 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/mem"
 	psnet "github.com/shirou/gopsutil/v4/net"
-	"next-terminal/backend/internal/modules/connectivity/agentwire"
+	"puppeteer/backend/internal/modules/connectivity/agentwire"
 	"regexp"
 	"time"
 )

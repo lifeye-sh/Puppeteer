@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"sync"
 	"sync/atomic"
 	"testing"

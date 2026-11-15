@@ -14,7 +14,7 @@ CREATE TABLE settings (
   revision bigint NOT NULL DEFAULT 1
 );
 INSERT INTO settings(key,typed_value) VALUES
- ('system-name','"Next Terminal · 新后端"'),
+ ('system-name','"Puppeteer · 新后端"'),
  ('login-session-duration','480'),
  ('login-captcha-enabled','false');
 -- M01: identity and persistent, revocable opaque sessions.

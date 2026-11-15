@@ -25,7 +25,7 @@
 
 1. 在 DBeaver 新建 **PostgreSQL** 连接，名称填 `R16 isolated PostgreSQL`。主机 `localhost`，端口 `15433`，数据库 `inventory`，用户名 `pg-desktop@desktop`。
 2. 用本地编辑器打开 `backend/.local/r16-dbeaver/connection.json`，仅把其中临时 `password` 填到密码框；不要发到聊天或写入验收日志。
-3. 驱动属性设置 `sslmode=verify-full`、`sslrootcert=E:/AIAgents/codex/Next-Terminal/backend/.local/r16-dbeaver/proxy-ca.pem`、`requireAuth=scram-sha-256`、`readOnlyMode=always`。不要关闭证书校验。若驱动未安装，可在“编辑驱动设置 → 库”使用本地 `backend/.local/r16-jdbc/postgresql-42.7.14.jar`。
+3. 驱动属性设置 `sslmode=verify-full`、`sslrootcert=E:/AIAgents/codex/Puppeteer/backend/.local/r16-dbeaver/proxy-ca.pem`、`requireAuth=scram-sha-256`、`readOnlyMode=always`。不要关闭证书校验。若驱动未安装，可在“编辑驱动设置 → 库”使用本地 `backend/.local/r16-jdbc/postgresql-42.7.14.jar`。
 4. 开启连接的“只读”选项，测试连接并保存。展开 `inventory → Schemas → public → Tables → items`，检查列 `id`、`label`，然后打开数据页。
 5. 新建 SQL 编辑器执行 `SELECT id, label FROM items ORDER BY id;`。预期两行：`1 / R16 PostgreSQL fixture`、`2 / NULL`。
 6. 再执行连接文件中的 `acceptanceQuery`（每次启动有唯一标记，预期一行），确认对象树、数据页和 SQL 结果都正常后关闭连接，向验收人员反馈三个结果。验收人员再创建 `backend/.local/r16-dbeaver/complete` 文件；脚本要求找到本次标记的成功执行审计和一行结果，其他客户端的普通查询不会替代该证据。缺少标记时保留环境至原有效期，便于核对；成功后销毁临时 schema 并移除临时密码文件。

@@ -2,7 +2,7 @@ package identity
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 )
 
 type OAuthLifetimes struct{ Access, Refresh, IDToken, Code int }

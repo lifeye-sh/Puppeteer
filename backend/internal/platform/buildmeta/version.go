@@ -1,4 +1,4 @@
 package buildmeta
 
-const Release = "puppeteer-branding"
-const CapabilitiesRevision = 83
+const Release = "r17-rc12"
+const CapabilitiesRevision = 90

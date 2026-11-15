@@ -5,9 +5,9 @@ import (
 	"crypto/rsa"
 	"encoding/pem"
 	"golang.org/x/crypto/ssh"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/secretbox"
 	"strings"
 )
 

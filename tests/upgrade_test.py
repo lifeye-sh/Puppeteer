@@ -20,9 +20,18 @@ if name=='docker' and a and a[0]=='compose':
    name='puppeteerctl';a=a[i:];break
 if name=='curl':
  m={'product':'Puppeteer','version':'r17-rc11','platform':'linux/amd64','schemaVersion':107,'images':[{'component':c,'pinnedReference':'cloners/puppeteer-'+c+'@sha256:'+'a'*64} for c in ['server','web']]}
+ if mode=='identity': m['schemaVersion']=110
  if mode=='invalid': m['images'][0]['pinnedReference']='evil/image:latest'
  Path(a[a.index('-o')+1]).write_text(json.dumps(m))
 elif name=='docker':
+ if a[0]=='create': print('c'*64)
+ if a[0]=='cp':
+  if '/app/deployment/.' in a[1]:
+   target=Path(a[-1]);target.mkdir(exist_ok=True)
+   (target/'enroll-deployd.sh').write_text('#!/bin/bash\ntouch "$1/auto-enrolled"\n')
+  elif '/app/deployment/enroll-deployd.py' in a[1]:
+   Path(a[-1]).write_bytes(Path(os.environ['ENROLL_HELPER']).read_bytes())
+  else: Path(a[-1]).write_text('#!/bin/sh\nexit 0\n')
  if a[0]=='pull' and mode=='pull-failure': sys.exit(1)
  if a[0]=='inspect':
   print(('cloners/puppeteer-'+('server' if a[-1]=='a'*64 else 'web')+'@sha256:'+'a'*64) if '{{.Config.Image}}' in a else 'sha256:'+'b'*64)
@@ -30,17 +39,18 @@ elif name=='docker':
   with tarfile.open(fileobj=sys.stdout.buffer,mode='w|') as t:
    data=b'preserved'; entry=tarfile.TarInfo('storage/file'); entry.size=len(data); t.addfile(entry,io.BytesIO(data))
 elif name=='puppeteerctl':
+ if '/app/puppeteer-deployd' in a and 'test' in a: sys.exit(0 if mode=='auto-enroll' else 1)
  if a[:2]==['ps','--status']: print('postgres\nserver\nweb\nguacd')
  elif a[:2]==['ps','-q']: print(('a' if a[-1]=='server' else 'b')*64)
  elif a[:3]==['config','--format','json']:
-  env={};ports=[]
+  env={'NT_RUNTIME_PROFILE':'/var/lib/retired-product/runtime/active.json'};ports=[]
   if mode=='existing-proxy':
    ports=[{'target':13306,'published':'23306','host_ip':'127.0.0.1','protocol':'tcp'}]
   if mode=='custom-listener':env['NT_DATABASE_PROXY_ADDR']='127.0.0.1:13306'
   managed=Path(os.environ['DEPLOY'])/'database-proxy-managed.yaml'
   if managed.exists():
    content=json.loads(managed.read_text())['services']['server'];env.update(content.get('environment',{}));ports+=content.get('ports',[])
-  print(json.dumps({'services':{'server':{'environment':env,'ports':ports}}}))
+  print(json.dumps({'name':'puppeteer','services':{'server':{'environment':env,'ports':ports,'volumes':[{'type':'volume','source':'appdata','target':'/var/lib/retired-product'}]}}}))
  elif a[:2]==['config','--images']: print('old-server\nold-web')
  elif a[:3]==['exec','-T','postgres']:
   if any('SELECT schema_version' in v for v in a): print('108' if mode=='downgrade' else '106')
@@ -53,7 +63,21 @@ elif name=='puppeteerctl':
 
 @unittest.skipUnless(os.name=='posix' and os.geteuid()==0, 'isolated Linux root container required')
 class Upgrade(unittest.TestCase):
- def run_case(self, case='', check=False, proxy=False, repeat=False):
+ def test_product_identity_path_upgrade(self):
+  self.run_case(case='identity')
+ def test_automatic_adoption(self):
+  self.run_case(case="auto-enroll")
+
+ def test_managed_deployment_upgrade(self):
+  self.run_case(managed=True)
+
+ def test_upgrade_adopts_graphics(self):
+  self.run_case(managed=True,graphics='enabled')
+
+ def test_upgrade_preserves_disabled_graphics(self):
+  self.run_case(managed=True,graphics='disabled')
+
+ def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); deploy=root/'deploy'; config=deploy/'config'; config.mkdir(parents=True)
    original='PUPPETEER_SERVER_IMAGE=old-server\nPUPPETEER_WEB_IMAGE=old-web\nPUPPETEER_ORIGIN=https://custom.example\nPUPPETEER_GRAPHICS_IMAGE=custom-graphics\n'
@@ -61,13 +85,27 @@ class Upgrade(unittest.TestCase):
    (config/'private-key').write_text('must-not-change')
    (deploy/'compose.yaml').write_text('custom compose must remain')
    binaries=root/'bin'; binaries.mkdir()
-   for target in [binaries/'docker',binaries/'curl']:
+   for target in [binaries/'docker',binaries/'curl',binaries/'systemctl']:
     target.write_text(SHIM);target.chmod(0o700)
    (deploy/'puppeteerctl').write_text('#!/usr/bin/env bash\nset -euo pipefail\nexec docker compose --env-file '+str(config/'production.env')+' -p puppeteer -f '+str(deploy/'compose.yaml')+' -f '+str(deploy/'custom.yaml')+' "$@"\n')
    (deploy/'puppeteerctl').chmod(0o700)
+   if managed:
+    (config/'deployd.json').write_text(json.dumps({'executor':{'Project':'puppeteer'}}))
+    (deploy/'compose-managed.json').write_text(json.dumps({'services':{'server':{'image':'old-server','environment':{'KEEP':'secret'}},'web':{'image':'old-web'}}}))
+   if graphics:
+    model=json.loads((deploy/'compose-managed.json').read_text())
+    model['networks']={'graphics':{'internal':True}}
+    model['services']['server']['networks']={'graphics':None}
+    model['services']['server']['environment'].update({'NT_GUACD_ADDR':'guacd:4822','NT_GUACD_RELAY_HOST':'server','NT_RDP_DRIVE_ENABLED':'true'})
+    model['services']['guacd']={'image':'custom-graphics:1','networks':{'graphics':None},'healthcheck':{'test':['CMD','health']},'volumes':['preserved:/storage']}
+    if graphics=='disabled':
+     model['x-puppeteer-graphics']={'version':1,'driveEnabled':'true'}
+     model['services']['guacd'].update({'profiles':['puppeteer-graphics-disabled'],'labels':{'io.puppeteer.managed.graphics':'v1'}})
+     model['services']['server']['environment'].update({'NT_GUACD_ADDR':'','NT_GUACD_RELAY_HOST':'','NT_RDP_DRIVE_ENABLED':'false'})
+    (deploy/'compose-managed.json').write_text(json.dumps(model))
    before_ctl=(deploy/'puppeteerctl').read_text()
    calls=root/'calls';calls.write_text('')
-   env=dict(os.environ,PATH=str(binaries)+':'+os.environ['PATH'],CASE=case,CALLS=str(calls),DEPLOY=str(deploy))
+   env=dict(os.environ,PATH=str(binaries)+':'+os.environ['PATH'],CASE=case,CALLS=str(calls),DEPLOY=str(deploy),ENROLL_HELPER=str(SCRIPT.parent.parent/'backend/deploy/enroll-deployd.py'))
    cmd=['bash',str(SCRIPT),'--dir',str(deploy)]+(['--check'] if check else [])+(['--enable-database-proxy','--database-proxy-bind','0.0.0.0'] if proxy else [])
    result=subprocess.run(cmd,env=env,capture_output=True,text=True)
    if repeat and result.returncode==0:
@@ -75,13 +113,37 @@ class Upgrade(unittest.TestCase):
    log=calls.read_text(); actual=(config/'production.env').read_text()
    self.assertEqual((config/'private-key').read_text(),'must-not-change')
    self.assertEqual((deploy/'compose.yaml').read_text(),'custom compose must remain')
-   if not case or case=='existing-proxy':
+   if not case or case in ('existing-proxy','auto-enroll','identity'):
     self.assertEqual(result.returncode,0,result.stderr)
     if check:
      self.assertEqual(actual,original);self.assertNotIn('"pull"',log);self.assertNotIn('"stop"',log)
     else:
      self.assertIn('cloners/puppeteer-server@sha256:',actual)
      self.assertIn('PUPPETEER_GRAPHICS_IMAGE=custom-graphics',actual)
+     if case=='auto-enroll':self.assertTrue((deploy/'auto-enrolled').is_file())
+     if case=='identity':
+      model=json.loads((deploy/'compose-runtime.json').read_text())
+      self.assertEqual(model['services']['server']['volumes'][0]['source'],'appdata')
+      self.assertEqual(model['services']['server']['volumes'][0]['target'],'/var/lib/puppeteer')
+      self.assertIn('compose-runtime.json',(deploy/'puppeteerctl').read_text())
+      self.assertIn('/var/lib/retired-product',log)
+     if managed:
+      model=json.loads((deploy/'compose-managed.json').read_text())
+      self.assertIn('cloners/puppeteer-server@sha256:',model['services']['server']['image'])
+      self.assertEqual(model['services']['server']['environment']['KEEP'],'secret')
+      if graphics:
+       self.assertEqual(model['x-puppeteer-graphics'],{'version':1,'driveEnabled':'true'})
+       self.assertEqual(model['services']['guacd']['image'],'custom-graphics:1')
+       self.assertEqual(model['services']['guacd']['volumes'],['preserved:/storage'])
+       self.assertEqual(model['services']['guacd']['labels']['io.puppeteer.managed.graphics'],'v1')
+       if graphics=='disabled':
+        self.assertEqual(model['services']['guacd']['profiles'],['puppeteer-graphics-disabled'])
+        self.assertEqual(model['services']['server']['environment']['NT_GUACD_ADDR'],'')
+        self.assertEqual(model['services']['server']['environment']['NT_RDP_DRIVE_ENABLED'],'false')
+      self.assertTrue((config/'puppeteer-deployd').is_file())
+      self.assertIn('systemctl ["stop", "puppeteer-deployd-puppeteer.service"]',log)
+      self.assertIn('systemctl ["start", "puppeteer-deployd-puppeteer.service"]',log)
+
      self.assertEqual((deploy/'installed-version').read_text().strip(),'r17-rc11')
      backups=list((deploy/'backups').iterdir());self.assertEqual(len(backups),2 if repeat else 1)
      self.assertTrue((backups[0]/'SHA256SUMS').is_file())
@@ -102,7 +164,7 @@ class Upgrade(unittest.TestCase):
     if case!='start-failure':self.assertEqual(actual,original)
     if case in ['invalid','downgrade','pull-failure','custom-listener']:self.assertNotIn('"stop"',log)
     if case=='start-failure':self.assertEqual(log.count('"stop"'),2)
-   if check or (case and case not in ['start-failure','existing-proxy']):
+   if check or (case and case not in ['start-failure','existing-proxy','identity']):
     self.assertEqual((deploy/'puppeteerctl').read_text(),before_ctl)
     self.assertFalse((deploy/'database-proxy-managed.yaml').exists())
  def test_enable_proxy(self): self.run_case(proxy=True)

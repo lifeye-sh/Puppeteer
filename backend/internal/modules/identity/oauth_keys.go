@@ -9,9 +9,9 @@ import (
 	"encoding/json"
 	"github.com/golang-jwt/jwt/v5"
 	"math/big"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/oauthkeys"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/oauthkeys"
+	"puppeteer/backend/internal/platform/secretbox"
 	"time"
 )
 

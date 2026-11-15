@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/vault"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/vault"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/jobs"
 	"strings"
 )
 

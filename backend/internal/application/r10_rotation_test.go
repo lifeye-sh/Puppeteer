@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/vault"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/modules/vault"
+	"puppeteer/backend/internal/platform/jobs"
 	"strings"
 	"testing"
 )

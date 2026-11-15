@@ -6,8 +6,8 @@ import (
 	"errors"
 	"github.com/hashicorp/yamux"
 	"net"
-	"next-terminal/backend/internal/modules/connectivity/agentwire"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/connectivity/agentwire"
+	"puppeteer/backend/internal/platform/fault"
 	"sync"
 	"time"
 )

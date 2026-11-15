@@ -4,7 +4,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 	"net"
 	"net/url"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 )
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/website"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/website"
+	"puppeteer/backend/internal/platform/fault"
 	"slices"
 	"strconv"
 	"strings"
@@ -87,12 +87,24 @@ func (a *App) routesR09Websites(h func(string, func(http.ResponseWriter, *http.R
 		if e != nil {
 			return e
 		}
+		if err := a.websiteDeploymentIdle(r.Context()); err != nil {
+			return err
+		}
 		version, e := strconv.ParseInt(r.URL.Query().Get("version"), 10, 64)
 		if e != nil {
 			return fault.Invalid
 		}
+		if a.config.DeploySocket != "" {
+			site, err := a.websites().Get(r.Context(), r.PathValue("id"))
+			if err != nil {
+				return err
+			}
+			if site.Enabled {
+				return problem(409, "website_deployment_required", "请先完成停用部署，再删除网站")
+			}
+		}
 		e = a.db.Within(r.Context(), func(ctx context.Context) error {
-			tag, e := a.db.Exec(ctx, "UPDATE resource_registry SET deleted_at=now(),enabled=false,version=version+1 WHERE id=$1 AND version=$2 AND kind='website' AND deleted_at IS NULL", r.PathValue("id"), version)
+			tag, e := a.db.Exec(ctx, "UPDATE resource_registry SET deleted_at=now(),enabled=false,version=version+1 WHERE id=$1 AND version=$2 AND kind='website' AND deleted_at IS NULL AND (NOT $3 OR NOT enabled)", r.PathValue("id"), version, a.config.DeploySocket != "")
 			if e != nil {
 				return e
 			}
@@ -114,11 +126,28 @@ func (a *App) saveWebsite(w http.ResponseWriter, r *http.Request) error {
 	if e != nil {
 		return e
 	}
+	if err := a.websiteDeploymentIdle(r.Context()); err != nil {
+		return err
+	}
 	var in website.Website
 	if e = decode(w, r, &in); e != nil {
 		return e
 	}
 	in.ID = r.PathValue("id")
+	if a.config.DeploySocket != "" {
+		enabled := false
+		if in.ID != "" {
+			current, err := a.websites().Get(r.Context(), in.ID)
+			if err != nil {
+				return err
+			}
+			enabled = current.Enabled
+		}
+		if in.Enabled != enabled {
+			return problem(409, "website_deployment_required", "请通过网站启停部署完成服务及端口调整；新网站须先保存为停用草稿")
+		}
+	}
+
 	settings, e := a.websites().Settings(r.Context())
 	if e != nil {
 		return e

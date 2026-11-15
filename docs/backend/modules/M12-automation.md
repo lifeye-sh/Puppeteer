@@ -75,7 +75,7 @@
 - 阶段：W3；协作：M06、M02。
 - 功能要求：命令片段检索/使用只插入终端，批量任务另走受控执行用例。
 - 验收条件：使用片段不自动附加换行执行；系统片段与个人片段范围明确；命令过滤和审计仍在真实执行入口生效。
-- 来源：[SSH 资产](https://www.next-terminal.com/zh/docs/usage/ssh.html)。
+- 来源：[SSH 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U16（主责 M08）、U29（主责 M16）。
 

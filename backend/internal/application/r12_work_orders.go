@@ -3,10 +3,10 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/database"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/database"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 )
 

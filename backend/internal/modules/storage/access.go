@@ -3,9 +3,9 @@ package storage
 import (
 	"context"
 	"github.com/jackc/pgx/v5"
-	"next-terminal/backend/internal/modules/authorization"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/authorization"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
 	"syscall"
 )
 

@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/backup"
+	"puppeteer/backend/internal/modules/backup"
 	"os"
 	"path/filepath"
 	"testing"

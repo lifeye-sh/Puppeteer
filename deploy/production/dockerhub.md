@@ -1,5 +1,7 @@
 # 从 Docker Hub 全新安装
 
+版本边界：当前源码候选为 [r17-rc12](r17-rc12.md)，schema 110、能力版本 90；公共镜像仍为 rc11。使用公共 rc11 镜像必须检出 rc11 的 Compose，不能混用当前源码的目录和配置。网页内 RDP 使用 guacd，无需原生 Worker，见[连接指南](../../docs/BROWSER-RDP.md)。
+
 希望自动完成配置、证书和启动时，优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)。下文用于手动部署或自定义组件。
 
 命名空间：`cloners`。当前后端/Web版本：`r17-rc11`（schema107）；图形、渲染和WAL镜像沿用 `r17-rc1`。支持平台：`linux/amd64`。

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/ssh"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 	"strings"
 	"time"
 )

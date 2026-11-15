@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"github.com/go-webauthn/webauthn/protocol"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/system"
 	"slices"
 )
 

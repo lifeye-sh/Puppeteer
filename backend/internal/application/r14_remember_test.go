@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/nativeclient"
+	"puppeteer/backend/internal/nativeclient"
 	"sync"
 )
 

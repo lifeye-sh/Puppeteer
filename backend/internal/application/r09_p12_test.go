@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	pkcs12 "software.sslmate.com/src/go-pkcs12"
 	"testing"
 	"time"

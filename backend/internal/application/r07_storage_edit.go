@@ -2,7 +2,7 @@ package application
 
 import (
 	"net/http"
-	"next-terminal/backend/internal/modules/storage"
+	"puppeteer/backend/internal/modules/storage"
 	"strconv"
 	"strings"
 	"syscall"

@@ -1,4 +1,4 @@
-declare module '@dushixiang/guacamole-common-js' {
+declare module '@puppeteer/guacamole-common-js' {
     namespace Guacamole {
         class Tunnel {
             constructor(...args: any[]);

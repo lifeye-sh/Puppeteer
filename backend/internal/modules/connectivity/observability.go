@@ -3,7 +3,7 @@ package connectivity
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/connectivity/agentwire"
+	"puppeteer/backend/internal/modules/connectivity/agentwire"
 	"time"
 )
 

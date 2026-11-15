@@ -75,7 +75,7 @@
 - 阶段：W4；协作：M10、M08、M14。
 - 功能要求：提交资产/数据库/SQL/原因，管理员决定后自动调度已批准内容，保存结果并通知申请人；代理不能因存在工单而任意放开写 SQL。
 - 验收条件：审批事务与执行意图原子提交，重复审批不重复执行；SQL 变动重审；超时结果不明进入 unknown，DDL 隐式提交和部分成功单独记录。
-- 来源：[数据库审计](https://www.next-terminal.com/zh/docs/usage/database.html)。
+- 来源：[数据库审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U15（主责 M08）、U36（主责 M14）。
 

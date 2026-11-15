@@ -74,14 +74,14 @@
 - 阶段：W3；协作：M04、M07、M08、M13。
 - 功能要求：官方 .ntbak 含 PostgreSQL 与 CA 材料，不含录屏和 Windows 映射盘；本方案提供数据库/CA 备份及独立对象备份清单。 按 D04 使用 nt-backup/v1 的 tar+age 容器、PG自定义dump、CA/KEK和对象清单；格式与官方明确区分。
 - 验收条件：备份页明确包含/排除内容；data/recordings 与 data/drive 独立恢复验证；格式未公开时不得宣称能导入官方 .ntbak，也不得把 ZIP 改扩展名冒充兼容。
-- 来源：[系统备份与恢复](https://www.next-terminal.com/zh/docs/usage/backup.html)。
+- 来源：[系统备份与恢复](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 ### U29 恢复编排与 PostgreSQL 升级
 
 - 阶段：W3；协作：M12、M14、M18。
 - 功能要求：立即/每日定时备份、保留天数、S3/SFTP/WebDAV 测试和复制；恢复前安全备份、维护锁、版本校验、重启及恢复验证；主版本升级走导出/恢复。 按 D04 在隔离数据库恢复、验证后切换；外部任务不重放，切换后写入不承诺无损回退。
 - 验收条件：验证 pg_dump/pg_restore 版本矩阵；禁止直接复用不同主版本数据目录；保留旧库和回滚方案；恢复不重放 SQL/轮换任务；异地复制失败与本地备份成功分开呈现。
-- 来源：[系统备份与恢复](https://www.next-terminal.com/zh/docs/usage/backup.html)、[从 PostgreSQL 16 迁移到 PostgreSQL 18](https://www.next-terminal.com/zh/docs/install/postgresql-16-to-18.html)。
+- 来源：[系统备份与恢复](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[从 PostgreSQL 16 迁移到 PostgreSQL 18](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U27（主责 M13）。
 

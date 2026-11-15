@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 	"encoding/hex"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/fault"
 )
 
 // IssueNativeRDPTicket belongs in the same application transaction as Reserve,

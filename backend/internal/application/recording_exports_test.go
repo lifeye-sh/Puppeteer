@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/jobs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -132,6 +132,36 @@ func TestMP4DurableJobPermissionsDedupeDownloadAndRetry(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+
+	// Deployment interruption pauses a claimed conversion without spending a retry.
+	if _, e = a.db.Exec(ctx, `UPDATE recording_exports SET attempts=2,progress=45 WHERE job_id=$1`, job.ID); e != nil {
+		t.Fatal(e)
+	}
+	if e = a.PauseRecordingExports(ctx); e != nil {
+		t.Fatal(e)
+	}
+	if e = a.PauseRecordingExports(ctx); e != nil {
+		t.Fatal(e)
+	} // Recovery must be idempotent.
+	var attempts, progress int
+	if e = a.db.Row(ctx, `SELECT attempts,progress FROM recording_exports WHERE job_id=$1`, job.ID).Scan(&attempts, &progress); e != nil || attempts != 1 || progress != 0 {
+		t.Fatal(attempts, progress, e)
+	}
+	if jobs.New(a.db).Fence(ctx, job) == nil {
+		t.Fatal("previous worker retained its lease")
+	}
+	originalURL := a.config.MP4URL
+	a.config.MP4URL = ""
+	expect(t, call(t, srv.URL, "POST", path, nil, owner, origin), 503)
+	paused, e := a.audit.Export(ctx, id)
+	if e != nil || paused.State != "queued" || paused.Reason != "component_paused" {
+		t.Fatal(paused, e)
+	}
+	a.config.MP4URL = originalURL
+	job, e = q.Claim(ctx, "recording.mp4")
+	if e != nil {
+		t.Fatal(e)
+	}
 	a.runRecordingExport(ctx, job)
 	state, e := a.audit.Export(ctx, id)
 	if e != nil || state.State != "succeeded" || !received {
@@ -143,6 +173,13 @@ func TestMP4DurableJobPermissionsDedupeDownloadAndRetry(t *testing.T) {
 	if !bytes.Equal(download.body, video) {
 		t.Fatal("MP4 mismatch")
 	}
+
+	// Disabling the renderer preserves cached downloads and their authorization.
+	a.config.MP4URL = ""
+	expect(t, call(t, srv.URL, "GET", path+"/download", nil, owner, origin), 200)
+	expect(t, call(t, srv.URL, "GET", path+"/download", nil, denied, origin), 403)
+	expect(t, call(t, srv.URL, "GET", path+"/download", nil, nil, origin), 401)
+	a.config.MP4URL = originalURL
 	// Tampering invalidates the cache and permits an explicit retry.
 	video[20] = 2
 	if e = os.WriteFile(filepath.Join(a.config.MP4Directory, job.ID+".mp4"), video, 0600); e != nil {

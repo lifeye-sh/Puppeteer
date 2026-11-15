@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"next-terminal/backend/internal/platform/mysqlproxy"
+	"puppeteer/backend/internal/platform/mysqlproxy"
 )
 
 func TestDatabaseDiagnosticProfiles(t *testing.T) {

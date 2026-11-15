@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"io"
 	"net/http"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	"strings"
 	"testing"
 )

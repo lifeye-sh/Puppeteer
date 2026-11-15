@@ -15,7 +15,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgproto3"
 	"github.com/xdg-go/scram"
-	"next-terminal/backend/internal/modules/databaseauth"
+	"puppeteer/backend/internal/modules/databaseauth"
 )
 
 type Parameter struct {

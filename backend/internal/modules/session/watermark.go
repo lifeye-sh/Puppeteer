@@ -2,7 +2,7 @@ package session
 
 import (
 	"context"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 )
 
 type Watermark = system.Watermark

@@ -13,22 +13,22 @@ import (
 	"mime"
 	"net"
 	"net/http"
-	"next-terminal/backend/internal/modules/ai"
-	"next-terminal/backend/internal/modules/audit"
-	"next-terminal/backend/internal/modules/authorization"
-	"next-terminal/backend/internal/modules/connectivity"
-	"next-terminal/backend/internal/modules/databaseauth"
-	"next-terminal/backend/internal/modules/entitlements"
-	"next-terminal/backend/internal/modules/files"
-	"next-terminal/backend/internal/modules/identity"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/modules/session"
-	"next-terminal/backend/internal/modules/system"
-	"next-terminal/backend/internal/modules/vault"
-	"next-terminal/backend/internal/platform/buildmeta"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/listener"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/modules/ai"
+	"puppeteer/backend/internal/modules/audit"
+	"puppeteer/backend/internal/modules/authorization"
+	"puppeteer/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/databaseauth"
+	"puppeteer/backend/internal/modules/entitlements"
+	"puppeteer/backend/internal/modules/files"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/modules/session"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/vault"
+	"puppeteer/backend/internal/platform/buildmeta"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/listener"
+	"puppeteer/backend/internal/platform/postgres"
 	"regexp"
 	"strings"
 	"sync"
@@ -42,34 +42,39 @@ const Release = buildmeta.Release
 const CapabilitiesRevision = buildmeta.CapabilitiesRevision
 
 type Config struct {
-	SecureCookies       bool
-	EntitlementLocal    entitlements.CapabilityProvider
-	EntitlementVerifier *entitlements.Verifier
-	NativeSSHAddr       string
-	NativeSSHName       string
-	PasskeyRPID         string
-	PasskeyOrigins      []string
-	DatabaseProxyAddr   string
-	PostgresProxyAddr   string
-	DatabaseProxyName   string
-	MP4URL              string
-	MP4Token            string
-	MP4Directory        string
-	RestoreDirectory    string
-	RestoreID           string
-	StartFrozen         bool
-	BackupDirectory     string
-	DatabaseURL         string
-	WebsitePublicPort   int
-	RDPDriveEnabled     bool
-	GuacdAddr           string
-	GuacdRelayHost      string
-	AgentBinaryPath     string
-	AllowedOrigins      []string
-	AllowRequestOrigin  bool
-	EncryptionKey       []byte
-	VaultKey            []byte
-	CaptchaRequired     bool
+	ManagedHTTPAddr             string
+	ManagedDeploymentProtocols  map[string]bool
+	DisabledDeploymentProtocols map[string]bool
+	DeploySocket                string
+	DeployTokenFile             string
+	SecureCookies               bool
+	EntitlementLocal            entitlements.CapabilityProvider
+	EntitlementVerifier         *entitlements.Verifier
+	NativeSSHAddr               string
+	NativeSSHName               string
+	PasskeyRPID                 string
+	PasskeyOrigins              []string
+	DatabaseProxyAddr           string
+	PostgresProxyAddr           string
+	DatabaseProxyName           string
+	MP4URL                      string
+	MP4Token                    string
+	MP4Directory                string
+	RestoreDirectory            string
+	RestoreID                   string
+	StartFrozen                 bool
+	BackupDirectory             string
+	DatabaseURL                 string
+	WebsitePublicPort           int
+	RDPDriveEnabled             bool
+	GuacdAddr                   string
+	GuacdRelayHost              string
+	AgentBinaryPath             string
+	AllowedOrigins              []string
+	AllowRequestOrigin          bool
+	EncryptionKey               []byte
+	VaultKey                    []byte
+	CaptchaRequired             bool
 }
 type App struct {
 	entitlements             *entitlements.Service
@@ -178,7 +183,7 @@ func decode(w http.ResponseWriter, r *http.Request, v any) error {
 		return problem(415, "json_required", "请求必须使用 JSON")
 	}
 	limit := int64(16 * 1024)
-	if r.URL.Path == "/api/settings" || r.URL.Path == "/api/admin/properties" {
+	if r.URL.Path == "/api/settings" || r.URL.Path == "/api/admin/properties" || strings.HasPrefix(r.URL.Path, "/api/admin/deployment/") || strings.HasPrefix(r.URL.Path, "/api/internal/deployment-") {
 		limit = 256 * 1024
 	}
 	if r.URL.Path == "/api/admin/entitlements" {
@@ -431,6 +436,8 @@ func (a *App) handler(registered func(string)) http.Handler {
 	a.registerDatabaseWorkOrders(handle)
 	a.registerDatabaseViews(handle)
 	a.registerConfiguration(handle)
+	a.registerDeployment(handle)
+	a.registerConfigurationStatus(handle)
 	a.routesR16Monitoring(handle)
 	a.routesR16Diagnostics(handle)
 	a.routesR16BrandLogo(handle)
@@ -552,7 +559,7 @@ func (a *App) handler(registered func(string)) http.Handler {
 		nativeEnroll := r.Method == "POST" && (r.URL.Path == "/api/agent/v1/enroll" || r.URL.Path == "/api/agent/v1/rotate") && r.Header.Get("Origin") == "" && token(r) == ""
 		nativeOAuth := r.Method == "POST" && (r.URL.Path == "/api/oidc/server/token" || r.URL.Path == "/api/oidc/server/revoke" || r.URL.Path == "/api/oidc/server/introspect") && r.Header.Get("Origin") == "" && token(r) == ""
 		nativeSession := ((r.Method == "POST" && (r.URL.Path == "/api/native/v1/connect" || r.URL.Path == "/api/native/v1/rdp-file" || r.URL.Path == "/api/native/v1/access-mfa")) || (r.Method == "DELETE" && strings.HasPrefix(r.URL.Path, "/api/native/v1/sessions/"))) && r.Header.Get("Origin") == "" && token(r) == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if r.Method != "GET" && r.Method != "HEAD" && !nativeEnroll && !nativeOAuth && !nativeSession {
+		if r.Method != "GET" && r.Method != "HEAD" && !nativeEnroll && !nativeOAuth && !nativeSession && !internalDeploymentRequest(r) {
 			allowed := a.allowsBrowserOrigin(r)
 			if !allowed {
 				a.failure(w, r, problem(403, "origin_denied", "请求来源未授权"))
@@ -560,6 +567,9 @@ func (a *App) handler(registered func(string)) http.Handler {
 			}
 		}
 		timeout := 15 * time.Second
+		if strings.HasPrefix(r.URL.Path, "/api/internal/deployment-") || r.URL.Path == "/api/admin/deployment/preflight" || r.URL.Path == "/api/admin/deployment/tasks" {
+			timeout = 60 * time.Second
+		}
 		if r.URL.Path == "/api/ai/ws" || r.URL.Path == "/api/agent/v1/connect" || r.URL.Path == "/api/native/v1/bridge" || (strings.HasPrefix(r.URL.Path, "/api/sessions/") && strings.HasSuffix(r.URL.Path, "/ws")) {
 			timeout = 4 * time.Hour
 		}
@@ -734,6 +744,7 @@ func Capabilities() map[string]any {
 	for key, round := range map[string]string{"session.graphics": "R07", "session.rdp.native": "R14"} {
 		features[key] = map[string]any{"state": "not_implemented", "reason": "planned_round_" + round}
 	}
+	features["system.settings.operations"] = map[string]any{"state": "available", "scope": "node-evidence-readonly-preflight-v1"}
 	features["system.settings.revisions"] = map[string]any{"state": "available", "scope": "login-password-mfa-listeners-mail-client-ip-postgres-branding-retention-resources-watermark"}
 	features["session.watermark"] = map[string]any{"state": "available", "scope": "browser-display", "reason": "新会话快照；网页终端、图形桌面和观察画面，不烧录到录屏或原生客户端"}
 	features["system.settings.history"] = map[string]any{"state": "available", "scope": "registered-non-secret-properties"}

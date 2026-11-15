@@ -4,7 +4,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Alert,Button,Space,Typography} from 'antd';
 import {useSearchParams} from 'react-router-dom';
 import {Terminal} from '@xterm/xterm';
-import Guacamole from '@dushixiang/guacamole-common-js';
+import Guacamole from '@puppeteer/guacamole-common-js';
 import requests from '@/api/core/requests';
 import '@xterm/xterm/css/xterm.css';
 

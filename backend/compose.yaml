@@ -45,7 +45,7 @@ services:
       NT_NATIVE_SSH_NAME: 127.0.0.1
       NT_DATABASE_PROXY_ADDR: :13306
       NT_DATABASE_PROXY_NAME: backend.localhost
-      NT_MYSQL_SPOOL_DIR: /var/run/next-terminal/mysql-spool
+      NT_MYSQL_SPOOL_DIR: /var/run/puppeteer/mysql-spool
       NT_WEBSITE_ADDR: :18443
       NT_WEBSITE_PUBLIC_PORT: "18443"
       NT_ENV: development
@@ -57,17 +57,17 @@ services:
       NT_GUACD_ADDR: ${NT_GUACD_ADDR:-}
       NT_GUACD_RELAY_HOST: ${NT_GUACD_RELAY_HOST:-server}
       NT_RDP_DRIVE_ENABLED: "true"
-      NT_BACKUP_DIRECTORY: /var/lib/next-terminal/backups
-      NT_RESTORE_DIRECTORY: /var/lib/next-terminal/restore
-      NT_RUNTIME_PROFILE: /var/lib/next-terminal/runtime/active.json
-      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+      NT_BACKUP_DIRECTORY: /var/lib/puppeteer/backups
+      NT_RESTORE_DIRECTORY: /var/lib/puppeteer/restore
+      NT_RUNTIME_PROFILE: /var/lib/puppeteer/runtime/active.json
+      NT_STORAGE_PROFILE: /var/lib/puppeteer/storage/active.json
       NT_MP4_URL: http://mp4-renderer:8090
       NT_MP4_TOKEN: ${NT_MP4_TOKEN:-}
-      NT_MP4_DIRECTORY: /var/lib/next-terminal/mp4
+      NT_MP4_DIRECTORY: /var/lib/puppeteer/mp4
     networks: [default, mp4]
     volumes:
-      - backupdata:/var/lib/next-terminal
-      - storageconfig:/var/lib/next-terminal/storage
+      - backupdata:/var/lib/puppeteer
+      - storageconfig:/var/lib/puppeteer/storage
     ports:
       - "127.0.0.1:8089:8089"
       - "127.0.0.1:2022:2022"
@@ -83,7 +83,7 @@ services:
       timeout: 3s
       retries: 20
     # Long-data parameters never outlive the container and cannot fill host storage.
-    tmpfs: ["/var/run/next-terminal/mysql-spool:rw,size=128m,mode=0700,uid=10001,gid=10001"]
+    tmpfs: ["/var/run/puppeteer/mysql-spool:rw,size=128m,mode=0700,uid=10001,gid=10001"]
   guacd:
     profiles: [graphics]
     build:
@@ -95,9 +95,9 @@ services:
     devices: [/dev/fuse:/dev/fuse]
     environment:
       NT_DATABASE_URL: postgres://nt_dev:${NT_DB_PASSWORD}@postgres:5432/nt_backend?sslmode=disable
-      NT_STORAGE_PROFILE: /var/lib/next-terminal/storage/active.json
+      NT_STORAGE_PROFILE: /var/lib/puppeteer/storage/active.json
     volumes:
-      - storageconfig:/var/lib/next-terminal/storage:ro
+      - storageconfig:/var/lib/puppeteer/storage:ro
     depends_on:
       postgres:
         condition: service_healthy

@@ -4,3 +4,7 @@ Dockerfile text eol=lf
 *.Dockerfile text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+# SQL bytes are part of the published migration checksum history.
+backend/migrations/*.sql -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Preserve whitespace from the verified upstream source assembly.
+backend/renderer/vendor/guacamole-common-js/** text eol=lf -whitespace

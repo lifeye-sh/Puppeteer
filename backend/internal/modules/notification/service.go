@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/mail"
 	"net/url"
-	"next-terminal/backend/internal/platform/fault"
-	"next-terminal/backend/internal/platform/postgres"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/fault"
+	"puppeteer/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/secretbox"
 	"strings"
 	"time"
 )

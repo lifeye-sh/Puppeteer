@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 	"errors"
-	"next-terminal/backend/internal/modules/system"
+	"puppeteer/backend/internal/modules/system"
 )
 
 var ErrAccessMFA = errors.New("remote access MFA required")

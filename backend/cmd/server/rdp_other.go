@@ -4,7 +4,7 @@ package main
 
 import (
 	"errors"
-	"next-terminal/backend/internal/application"
+	"puppeteer/backend/internal/application"
 	"os"
 )
 

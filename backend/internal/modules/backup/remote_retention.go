@@ -3,7 +3,7 @@ package backup
 import (
 	"context"
 	"encoding/json"
-	"next-terminal/backend/internal/platform/secretbox"
+	"puppeteer/backend/internal/platform/secretbox"
 )
 
 func (s *Service) PruneRemote(ctx context.Context, key []byte) error {

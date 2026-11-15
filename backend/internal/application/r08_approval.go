@@ -3,11 +3,11 @@ package application
 import (
 	"context"
 	"net/http"
-	"next-terminal/backend/internal/modules/approval"
-	"next-terminal/backend/internal/modules/authorization"
-	"next-terminal/backend/internal/modules/notification"
-	"next-terminal/backend/internal/modules/resource"
-	"next-terminal/backend/internal/platform/fault"
+	"puppeteer/backend/internal/modules/approval"
+	"puppeteer/backend/internal/modules/authorization"
+	"puppeteer/backend/internal/modules/notification"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/fault"
 	"strconv"
 	"time"
 )

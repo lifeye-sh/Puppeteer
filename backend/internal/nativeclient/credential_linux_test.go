@@ -156,7 +156,7 @@ func TestLinuxCredentialStore(t *testing.T) {
 	}); e != nil {
 		t.Fatal(e)
 	}
-	lockPath := filepath.Join(fmt.Sprintf("/run/user/%d", os.Getuid()), "next-terminal-native", s.key+".lock")
+	lockPath := filepath.Join(fmt.Sprintf("/run/user/%d", os.Getuid()), "puppeteer-native", s.key+".lock")
 	if e := os.Chmod(lockPath, 0644); e != nil {
 		t.Fatal(e)
 	}

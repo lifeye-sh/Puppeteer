@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/notification"
+	"puppeteer/backend/internal/modules/notification"
 	"regexp"
 	"strconv"
 	"strings"

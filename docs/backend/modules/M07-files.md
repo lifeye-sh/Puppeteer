@@ -74,7 +74,7 @@
 - 阶段：W2/W3；协作：M02、M06、M08、M18。
 - 功能要求：SSH 使用目标 SFTP；浏览器 RDP 使用共享存储或操作者默认存储。上传区分准备、浏览器上传、后端传输、成功/失败，提供取消和可安全重试。
 - 验收条件：99% 浏览器上传不算成功；新驱动配置需新会话；并发上传和映射盘写入均执行字节配额；编辑/目录上传/批量下载单列能力门控。
-- 来源：[文件管理](https://www.next-terminal.com/zh/docs/usage/file-management.html)、[Windows / RDP 资产](https://www.next-terminal.com/zh/docs/usage/rdp.html)、[SSH 资产](https://www.next-terminal.com/zh/docs/usage/ssh.html)。
+- 来源：[文件管理](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[Windows / RDP 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)、[SSH 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json)。
 
 协作项：U05（主责 M02）、U12（主责 M06）、U15（主责 M08）、U28（主责 M16）、U31（主责 M18）、U32（主责 M18）。
 

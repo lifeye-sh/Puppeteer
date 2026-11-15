@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/yamux"
 	"net/http"
 	"net/url"
-	"next-terminal/backend/internal/agentupdate"
-	"next-terminal/backend/internal/modules/connectivity"
-	"next-terminal/backend/internal/modules/connectivity/agentwire"
+	"puppeteer/backend/internal/agentupdate"
+	"puppeteer/backend/internal/modules/connectivity"
+	"puppeteer/backend/internal/modules/connectivity/agentwire"
 	"time"
 )
 

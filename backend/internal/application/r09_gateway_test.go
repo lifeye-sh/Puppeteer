@@ -8,8 +8,8 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"next-terminal/backend/internal/modules/pki"
-	"next-terminal/backend/internal/modules/website"
+	"puppeteer/backend/internal/modules/pki"
+	"puppeteer/backend/internal/modules/website"
 	"strings"
 	"testing"
 )

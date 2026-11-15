@@ -8,9 +8,10 @@ import {clearCurrentUser} from '@/utils/permission';
 import BackendDashboard from './BackendDashboard';
 import BackendSecurityPanel from './BackendSecurityPanel';
 import BackendPlatformSettings from './BackendPlatformSettings';
+import type {SettingsCategory} from './platform-settings-model';
 
 export default function BackendHomePage({accountOnly=false}:{accountOnly?:boolean}){return accountOnly?<AccountWorkbench/>:<BackendDashboard/>}
-export function BackendWorkbench({accountOnly=false}:{accountOnly?:boolean}){return accountOnly?<AccountWorkbench/>:<BackendPlatformSettings/>}
+export function BackendWorkbench({accountOnly=false,category}:{accountOnly?:boolean;category?:SettingsCategory}){return accountOnly?<AccountWorkbench/>:<BackendPlatformSettings category={category}/>}
 function AccountWorkbench(){
  const {account}=useBackendRuntime(),client=useQueryClient();const [leaving,setLeaving]=useState(false);
  const logout=async()=>{setLeaving(true);try{await accountApi.logout();clearCurrentUser();client.clear();window.location.replace('/login')}finally{setLeaving(false)}};

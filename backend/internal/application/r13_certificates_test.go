@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
-	"next-terminal/backend/internal/modules/identity"
+	"puppeteer/backend/internal/modules/identity"
 	pkcs12 "software.sslmate.com/src/go-pkcs12"
 	"strings"
 	"testing"

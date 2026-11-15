@@ -12,11 +12,12 @@ import (
 
 	"github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
-	"next-terminal/backend/internal/modules/storage"
-	"next-terminal/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/modules/storage"
+	"puppeteer/backend/internal/platform/postgres"
 )
 
 type Root struct {
+	EnableProbe bool
 	fs.Inode
 	DB    *postgres.DB
 	Store *storage.Service
@@ -99,6 +100,9 @@ func (r *Root) Readdir(ctx context.Context) (fs.DirStream, syscall.Errno) {
 	return fs.NewListDirStream(nil), 0
 }
 func (r *Root) Lookup(ctx context.Context, name string, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
+	if r.EnableProbe && name == ".deployment-probe" {
+		return r.probe(ctx, out)
+	}
 	if !caller(ctx) {
 		return nil, syscall.EACCES
 	}

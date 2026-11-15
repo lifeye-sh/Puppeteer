@@ -4,37 +4,37 @@
 
 | 页面 | 范围 | 图示引用 | 对应需求及主责模块 |
 |---|---|---|---|
-| [浏览器访问工作区](https://www.next-terminal.com/zh/docs/usage/access.html) | 使用文档 | 0 | U02 / M03、U12 / M06 |
-| [安全网关配置文件](https://www.next-terminal.com/zh/docs/usage/agent-gateway-config.html) | 使用文档 | 0 | U07 / M05、U08 / M05、U33 / M15 |
-| [安全网关](https://www.next-terminal.com/zh/docs/usage/agent-gateway.html) | 使用文档 | 2 | U07 / M05、U09 / M05 |
-| [资产管理总览](https://www.next-terminal.com/zh/docs/usage/asset.html) | 使用文档 | 2 | U02 / M03、U03 / M03、U04 / M03、U09 / M05 |
-| [日志审计](https://www.next-terminal.com/zh/docs/usage/audit.html) | 使用文档 | 0 | U15 / M08、U16 / M08 |
-| [资源授权与访问策略](https://www.next-terminal.com/zh/docs/usage/authorization.html) | 使用文档 | 0 | U05 / M02、U32 / M18 |
-| [系统备份与恢复](https://www.next-terminal.com/zh/docs/usage/backup.html) | 使用文档 | 0 | U28 / M16、U29 / M16 |
-| [命令行工具参考](https://www.next-terminal.com/zh/docs/usage/cli.html) | 使用文档 | 0 | U24 / M01、U25 / M01、U27 / M13、U30 / M18、U32 / M18 |
-| [授权凭证](https://www.next-terminal.com/zh/docs/usage/credential.html) | 使用文档 | 1 | U06 / M04 |
-| [数据库审计](https://www.next-terminal.com/zh/docs/usage/database.html) | 使用文档 | 8 | U21 / M01、U22 / M10、U23 / M11、U36 / M14 |
-| [RDP/VNC 错误码说明](https://www.next-terminal.com/zh/docs/usage/error-codes.html) | 使用文档 | 0 | U33 / M15 |
-| [文件管理](https://www.next-terminal.com/zh/docs/usage/file-management.html) | 使用文档 | 1 | U05 / M02、U14 / M07、U32 / M18 |
-| [绑定授权许可](https://www.next-terminal.com/zh/docs/usage/license.html) | 使用文档 | 2 | U32 / M18 |
-| [mTLS 双向认证](https://www.next-terminal.com/zh/docs/usage/mtls.html) | 使用文档 | 10 | U27 / M13 |
-| [OIDC 单点登录完整配置 — 用 Next Terminal 作 IdP 对接 Proxmox VE](https://www.next-terminal.com/zh/docs/usage/oidc_server.html) | 使用文档 | 3 | U26 / M01 |
-| [OTP 一次性密码](https://www.next-terminal.com/zh/docs/usage/otp.html) | 使用文档 | 0 | U24 / M01 |
-| [通行密钥](https://www.next-terminal.com/zh/docs/usage/passkey.html) | 使用文档 | 2 | U25 / M01 |
-| [RDP 代理服务器](https://www.next-terminal.com/zh/docs/usage/rdp-server.html) | 使用文档 | 0 | U11 / M06、U12 / M06、U13 / M06 |
-| [Windows / RDP 资产](https://www.next-terminal.com/zh/docs/usage/rdp.html) | 使用文档 | 5 | U03 / M03、U12 / M06、U14 / M07 |
-| [快速开始](https://www.next-terminal.com/zh/docs/usage/readme.html) | 使用文档 | 3 | U01 / M18、U33 / M15 |
-| [SSH 网关](https://www.next-terminal.com/zh/docs/usage/ssh-gateway.html) | 使用文档 | 1 | U09 / M05 |
-| [SSH 代理服务器](https://www.next-terminal.com/zh/docs/usage/ssh-server.html) | 使用文档 | 6 | U04 / M03、U10 / M06 |
-| [SSH 资产](https://www.next-terminal.com/zh/docs/usage/ssh.html) | 使用文档 | 3 | U03 / M03、U14 / M07、U33 / M15、U34 / M12、U35 / M17 |
-| [系统属性配置参考](https://www.next-terminal.com/zh/docs/usage/system-properties.html) | 使用文档 | 0 | U10 / M06、U16 / M08、U20 / M18、U22 / M10、U25 / M01、U26 / M01、U31 / M18、U35 / M17、U36 / M14 |
-| [使用 Termark 接入 NextTerminal 资产](https://www.next-terminal.com/zh/docs/usage/termark.html) | 使用文档 | 3 | U13 / M06 |
-| [VNC 与 Telnet 资产](https://www.next-terminal.com/zh/docs/usage/vnc-telnet.html) | 使用文档 | 0 | U03 / M03、U12 / M06 |
-| [Web 资产](https://www.next-terminal.com/zh/docs/usage/website.html) | 使用文档 | 6 | U17 / M09、U18 / M09、U19 / M09、U20 / M18、U27 / M13 |
-| [RDP 连不上/黑屏/凭证失效？Windows 远程桌面 5 步排查](https://www.next-terminal.com/zh/docs/blog/rdp-black-screen-failed.html) | 关联资料 | 0 | U33 / M15 |
-| [SSH 里的“认证私钥”到底是什么，它认证的是谁？](https://www.next-terminal.com/zh/docs/blog/ssh-authentication.html) | 关联资料 | 0 | U10 / M06 |
-| [从 PostgreSQL 16 迁移到 PostgreSQL 18](https://www.next-terminal.com/zh/docs/install/postgresql-16-to-18.html) | 关联资料 | 0 | U29 / M16 |
-| [获取真实客户端 IP](https://www.next-terminal.com/zh/docs/install/real-ip.html) | 关联资料 | 0 | U18 / M09、U20 / M18 |
+| [浏览器访问工作区](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U02 / M03、U12 / M06 |
+| [安全网关配置文件](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U07 / M05、U08 / M05、U33 / M15 |
+| [安全网关](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 2 | U07 / M05、U09 / M05 |
+| [资产管理总览](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 2 | U02 / M03、U03 / M03、U04 / M03、U09 / M05 |
+| [日志审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U15 / M08、U16 / M08 |
+| [资源授权与访问策略](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U05 / M02、U32 / M18 |
+| [系统备份与恢复](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U28 / M16、U29 / M16 |
+| [命令行工具参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U24 / M01、U25 / M01、U27 / M13、U30 / M18、U32 / M18 |
+| [授权凭证](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 1 | U06 / M04 |
+| [数据库审计](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 8 | U21 / M01、U22 / M10、U23 / M11、U36 / M14 |
+| [RDP/VNC 错误码说明](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U33 / M15 |
+| [文件管理](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 1 | U05 / M02、U14 / M07、U32 / M18 |
+| [绑定授权许可](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 2 | U32 / M18 |
+| [mTLS 双向认证](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 10 | U27 / M13 |
+| [OIDC 单点登录完整配置 — 用 Puppeteer 作 IdP 对接 Proxmox VE](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 3 | U26 / M01 |
+| [OTP 一次性密码](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U24 / M01 |
+| [通行密钥](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 2 | U25 / M01 |
+| [RDP 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U11 / M06、U12 / M06、U13 / M06 |
+| [Windows / RDP 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 5 | U03 / M03、U12 / M06、U14 / M07 |
+| [快速开始](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 3 | U01 / M18、U33 / M15 |
+| [SSH 网关](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 1 | U09 / M05 |
+| [SSH 代理服务器](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 6 | U04 / M03、U10 / M06 |
+| [SSH 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 3 | U03 / M03、U14 / M07、U33 / M15、U34 / M12、U35 / M17 |
+| [系统属性配置参考](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U10 / M06、U16 / M08、U20 / M18、U22 / M10、U25 / M01、U26 / M01、U31 / M18、U35 / M17、U36 / M14 |
+| [使用 Termark 接入 Puppeteer 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 3 | U13 / M06 |
+| [VNC 与 Telnet 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 0 | U03 / M03、U12 / M06 |
+| [Web 资产](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 使用文档 | 6 | U17 / M09、U18 / M09、U19 / M09、U20 / M18、U27 / M13 |
+| [RDP 连不上/黑屏/凭证失效？Windows 远程桌面 5 步排查](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 关联资料 | 0 | U33 / M15 |
+| [SSH 里的“认证私钥”到底是什么，它认证的是谁？](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 关联资料 | 0 | U10 / M06 |
+| [从 PostgreSQL 16 迁移到 PostgreSQL 18](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 关联资料 | 0 | U29 / M16 |
+| [获取真实客户端 IP](https://github.com/lifeye-sh/Puppeteer/blob/main/docs/backend/usage-requirements.json) | 关联资料 | 0 | U18 / M09、U20 / M18 |
 
 ## 需求分配
 

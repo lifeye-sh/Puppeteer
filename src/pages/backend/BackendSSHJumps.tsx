@@ -1,3 +1,4 @@
+import BackendDependencyCheck from './BackendDependencyCheck';
 import Modal from './BackendFormModal';
 import {useState} from 'react';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
@@ -17,7 +18,7 @@ export default function BackendSSHJumps(){
   <Alert type="info" showIcon title="SSH 跳板 · 多级转发" description="先创建跳板并核验主机密钥，再到资产编辑中选择 SSH 跳板。跳板须允许 TCP 转发并可访问目标服务器；目标域名由跳板解析。停用或修改配置会断开已有连接，连接失败不会回退直连。最多支持 4 级跳板；从最外层开始逐级配置并核验主机密钥。"/>
   {(error||jumps.error||credentials.error)&&<Alert type="error" title={error||jumps.error?.message||credentials.error?.message}/>}
   <Space><Button type="primary" onClick={()=>edit(null)}>新建 SSH 跳板</Button><Button onClick={()=>void jumps.refetch()}>刷新</Button></Space>
-  <Table<Jump> rowKey="id" dataSource={jumps.data} loading={jumps.isFetching} columns={[
+  <Table<Jump> rowKey="id" expandable={{expandedRowRender:v=><BackendDependencyCheck feature={`ssh-jump:${v.id}`}/>}} dataSource={jumps.data} loading={jumps.isFetching} columns={[
    {title:'名称',dataIndex:'name'},{title:'上级跳板',render:(_,v)=>jumps.data?.find(j=>j.id===v.parentId)?.name||'后端直连'},{title:'地址',render:(_,v)=>`${v.host}:${v.port}`},{title:'状态',render:(_,v)=><Tag color={v.enabled?'green':'default'}>{v.enabled?'启用':'停用'}</Tag>},
    {title:'主机密钥',render:(_,v)=>v.fingerprint?<Typography.Text copyable style={{fontSize:12}}>{v.fingerprint}</Typography.Text>:<Tag color="orange">待核验</Tag>},
    {title:'操作',render:(_,v)=><Space><Button onClick={()=>edit(v)}>编辑</Button><Button disabled={busy} onClick={()=>void run(async()=>{const result=await requests.post<Observed>(`${base}/${v.id}/discover`,undefined,{errorMode:'local'});setConfirmed(false);setTrust({...result,id:v.id,name:v.name})})}>探测主机密钥</Button></Space>}
