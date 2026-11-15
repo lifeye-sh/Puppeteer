@@ -1,87 +1,37 @@
-# 从 Docker Hub 全新安装
+# Docker Hub 镜像部署
 
-版本边界：当前源码候选为 [r17-rc12](r17-rc12.md)，schema 110、能力版本 90；公共镜像仍为 rc11。使用公共 rc11 镜像必须检出 rc11 的 Compose，不能混用当前源码的目录和配置。网页内 RDP 使用 guacd，无需原生 Worker，见[连接指南](../../docs/BROWSER-RDP.md)。
-
-希望自动完成配置、证书和启动时，优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)。下文用于手动部署或自定义组件。
-
-命名空间：`cloners`。当前后端/Web版本：`r17-rc11`（schema107）；图形、渲染和WAL镜像沿用 `r17-rc1`。支持平台：`linux/amd64`。
-
-当前仍为候选发布版本。本次验证范围见[r17-rc11发布说明](r17-rc11.md)，历史R17验收不代表对每个后续版本重新完成全量验收。这里使用预构建镜像，不需要在服务器运行npm、Go或镜像构建命令；宿主机仍需Git、Node.js 24、Docker Engine和Compose v2，用于获取配置及运行配置生成器、预检查。
-
-## 镜像
+当前发布 `r17-rc13`，Linux amd64，schema 110、能力版本 90。镜像与构建提交见 [发布清单](dockerhub-r17-rc13.json)，验证范围见 [发布说明](r17-rc13.md)。
 
 | 组件 | 镜像 |
 | --- | --- |
-| 后端/API/SSH/审计 | `cloners/puppeteer-server:r17-rc11` |
-| Web前端 | `cloners/puppeteer-web:r17-rc11` |
-| 浏览器RDP/VNC与共享文件 | `cloners/puppeteer-graphics:r17-rc1` |
-| MP4渲染 | `cloners/puppeteer-renderer:r17-rc1` |
-| 可选PostgreSQL WAL归档 | `cloners/puppeteer-postgres-wal:r17-rc1` |
+| 后端、CLI、部署执行器 | `cloners/puppeteer-server:r17-rc13` |
+| Web 前端 | `cloners/puppeteer-web:r17-rc13` |
+| 网页 RDP/VNC、共享文件 | `cloners/puppeteer-graphics:r17-rc13` |
+| MP4 渲染 | `cloners/puppeteer-renderer:r17-rc13` |
 
-核心部署的数据库使用Compose中固定摘要的官方PostgreSQL镜像。只有启用`wal.yaml`时才使用第五个镜像。后端/Web摘要见[dockerhub-r17-rc11.json](dockerhub-r17-rc11.json)，其余组件摘要见[历史组件清单](dockerhub-r17-rc1.json)。下方配置固定后端/Web摘要，避免安装时内容漂移。
+安装器固定镜像摘要，自动生成私有配置、证书、Compose 管理脚本，并接入 systemd 部署执行器。无需在服务器安装 Node.js 或 Go。网页内 RDP 不需要原生 Worker；4822、8090 仅用于内部网络。
 
-## 安装步骤
+## 全新安装
 
-以下使用Linux Bash。域名和证书源路径必须替换，准备环境与端口要求见[全新部署指南](../../docs/FRESH-INSTALL.md)。
-
-```bash
-git clone https://github.com/lifeye-sh/Puppeteer.git
-cd Puppeteer
-git checkout r17-rc11
-sudo node scripts/production-config.mjs /etc/puppeteer https://puppeteer.example.com 443
-sudo install -o 101 -g 101 -m 0400 /secure/fullchain.pem /etc/puppeteer/tls/server.crt
-sudo install -o 101 -g 101 -m 0400 /secure/privkey.pem /etc/puppeteer/tls/server.key
-sudoedit /etc/puppeteer/production.env
-```
-
-替换已有同名配置项，添加尚不存在的WAL镜像项，保留生成的其他配置：
-
-```dotenv
-PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:b3c418c2c858dbb8795d6a08a5101c66d63854b4c1c6641562d6a88a7c77eecc
-PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:8db8d80ad99cf7abf63b6e56d5cea1d942a66b4d2c72eb517d08759d01c27add
-PUPPETEER_GRAPHICS_IMAGE=cloners/puppeteer-graphics:r17-rc1
-PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer:r17-rc1
-PUPPETEER_POSTGRES_WAL_IMAGE=cloners/puppeteer-postgres-wal:r17-rc1
-```
-
-默认入口绑定`127.0.0.1`。需要其他电脑访问时，在防火墙限制首次初始化来源的前提下，将`PUPPETEER_BIND`改为服务器指定内网IP或`0.0.0.0`。
-
-核心模式启动：
+准备 Linux amd64、Docker Engine、Compose v2、Python 3、systemd、flock、curl 和 OpenSSL；图形共享盘需要 FUSE，AppArmor 主机需要 apparmor_parser。替换下方示例域名：
 
 ```bash
-dc() {
-  sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
-    -f deploy/production/compose.yaml "$@"
-}
-dc pull
-sudo node scripts/production-preflight.mjs /etc/puppeteer/production.env
-dc up -d --no-build --wait
-dc ps
-dc exec -T server /app/nt health
+curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/install.sh -o install-puppeteer.sh
+sudo bash install-puppeteer.sh --host puppeteer.example.com
 ```
 
-需要浏览器RDP/VNC、共享文件与MP4时，使用以下命令替代上述核心启动命令：
+完成后访问 `https://puppeteer.example.com/setup` 创建管理员。默认自签名证书；正式证书、端口及核心安装选项见 [一键安装](../../docs/ONE-CLICK-INSTALL.md)。没有预置账号或密码。
 
-```bash
-sudo modprobe fuse
-test -c /dev/fuse
-dc() {
-  sudo docker compose --env-file /etc/puppeteer/production.env -p puppeteer \
-    -f deploy/production/compose.yaml -f deploy/production/services.yaml "$@"
-}
-dc pull
-sudo node scripts/production-preflight.mjs /etc/puppeteer/production.env --services
-dc up -d --no-build --wait
-dc ps
-dc exec -T server /app/nt health
-```
-
-使用`--no-build`确保运行下载的发布镜像。不要执行`dc build`覆盖同名版本。Compose文件虽保留源码构建入口，此路径不需要本地`dist/production`或node_modules。
-
-打开`https://puppeteer.example.com/setup`创建初始管理员，再按[全新部署指南](../../docs/FRESH-INSTALL.md)完成用户权限、资产、客户端IP、备份及业务验证。没有默认管理员账号。
-
-原生SSH/数据库代理端口见[协议叠加配置](README.md)，WAL配置与首份归档见[WAL指南](wal.md)。启用额外叠加文件后，后续维护始终使用同一组文件。服务器数据、证书、管理员账号和部署密钥均在首次安装时创建，不包含在这些镜像中。
+手工定制时，检出 `r17-rc13`，按[全新部署](../../docs/FRESH-INSTALL.md)生成私有配置及配置证书；将 production.env 中四个镜像替换为清单的 pinnedReference。用 `dc pull` 替代 `dc build`，启动时使用 `--no-build`，随后完成指南中的执行器接管。全部 Compose 叠加文件、AppArmor 策略、数据卷与管理脚本必须保持一致。
 
 ## 已有部署升级
 
-由一键安装器创建的部署使用[升级脚本](../../docs/UPGRADE.md)。本文的手动安装布局为仓库目录加 `/etc/puppeteer`，没有安装器生成的 `puppeteerctl`，不能直接套用该脚本。手动部署需备份配置、数据库和应用文件，维护时段暂停写入，修改原 `production.env` 中 server/web 的镜像引用，并用原来相同的项目名及全部叠加文件执行 `dc pull`、`dc up -d --no-build --wait`，随后重新创建 web 并检查后端健康。数据库迁移后不能直接退回旧镜像；恢复要求见[恢复切换](cutover.md)。不要重新运行配置生成器覆盖原密钥。
+```bash
+curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/upgrade.sh -o upgrade-puppeteer.sh
+sudo bash upgrade-puppeteer.sh --check
+sudo bash upgrade-puppeteer.sh
+```
+
+默认目录 `/opt/puppeteer`；自定义目录增加 `--dir`。脚本拉取摘要镜像，在维护窗口备份配置、数据库和应用文件，同步标准组件镜像，保留数据、密钥及停用状态，更新执行器并检查健康。原手动 `/etc/puppeteer` 布局没有 puppeteerctl，需先按全新部署指南明确现有卷与配置，再制定接管方案，不能重新初始化已有数据。
+
+数据库迁移后不可直接切回旧镜像，恢复步骤见[升级说明](../../docs/UPGRADE.md)。WAL/PITR 属于专项运维任务，使用固定 PG18 基础镜像构建，不是上述四个镜像的第五个常驻服务。脚本不改动防火墙、云安全组或 DNS。

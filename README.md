@@ -8,10 +8,10 @@ Puppeteer 是基于 Go + PostgreSQL 的远程运维与审计平台，提供资�
 
 | 交付 | 版本与范围 |
 | --- | --- |
-| 当前源码候选 | **r17-rc12**，schema 110、能力版本 90；包含 P0–P2 自动化和独立项目标识，见 [发布说明](deploy/production/r17-rc12.md) |
-| 已发布 Docker 镜像 | **r17-rc11**，schema 107；一键安装和镜像升级仍使用此版本，不包含新的自动部署功能 |
+| 当前版本 | **r17-rc13**，schema 110、能力版本 90；包含 P0–P2 自动化和独立项目标识，见 [发布说明](deploy/production/r17-rc13.md) |
+| Docker 镜像 | **r17-rc13**，server、web、graphics、renderer；安装和升级脚本固定各组件摘要 |
 
-rc12 镜像尚未发布。使用新功能需从匹配源码构建并接入部署执行器；不要混用旧镜像与新源码 Compose。源码版本与发布状态见 [VERSION](VERSION) 和 [版本元数据](deploy/production/source-release.json)。
+Linux 一键安装和升级会接入匹配的部署执行器。已有部署使用升级脚本，保留密钥和数据卷；不要重新运行安装器。源码版本与发布状态见 [VERSION](VERSION) 和 [版本元数据](deploy/production/source-release.json)。
 
 **快速安装：** 已安装Docker的Linux amd64服务器，替换服务器IP后执行：
 
@@ -36,7 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 - [全新生产部署规划](docs/backend/frontend-migration-plan.md)
 - [后端运行说明](backend/README.md)
 
-全新源码安装使用 `deploy/production`，`backend/compose.yaml` 用于开发验收。rc12 已验证本地现有 schema 109 数据库升级到 110，保留账号和数据；远程整机安装升级和 AppArmor 内核验收仍有独立发布门槛。历史 R17 记录不能代替新版本验收。
+全新源码安装使用 `deploy/production`，`backend/compose.yaml` 用于开发验收。rc13 已在隔离 Docker/systemd 环境验证完整组件新安装、rc11 核心部署从 schema 107 升级到 110，以及执行器自动接管；升级保留数据、密钥和数据卷。远程整机与 AppArmor 内核访问控制仍需在目标环境验证，具体范围见发布说明。
 
 ## 网页内 RDP
 
@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 
 ## 自动部署与版本维护
 
-rc12 将配置分为服务部署、外部依赖、业务策略、状态与发布。服务操作先预检，再显示持久化任务进度；失败给出原因并执行适用的恢复流程。自动化检查端口占用和部署依赖，不修改防火墙、云安全组或 DNS。普通 Compose 启动成功不代表执行器已经接入。
+rc13 将配置分为服务部署、外部依赖、业务策略、状态与发布。服务操作先预检，再显示持久化任务进度；失败给出原因并执行适用的恢复流程。自动化检查端口占用和部署依赖，不修改防火墙、云安全组或 DNS。普通 Compose 启动成功不代表执行器已经接入。
 
 维护源码版本时先编写对应发布说明，再执行 `node scripts/version.mjs --set r17-rcN`；`node scripts/version.mjs --check` 校验源码、后端、schema 和能力版本。脚本管理源码元数据，不推送 Git、创建标签或发布镜像，不修改安装器及配置生成器的镜像默认值。
 

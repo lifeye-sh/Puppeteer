@@ -1,8 +1,8 @@
 # Puppeteer R17 全新部署
 
-版本边界：当前源码候选为 [r17-rc12](r17-rc12.md)，schema 110、能力版本 90；公共镜像仍为 rc11。使用公共 rc11 镜像必须检出 rc11 的 Compose，不能混用当前源码的目录和配置。网页内 RDP 使用 guacd，无需原生 Worker，见[连接指南](../../docs/BROWSER-RDP.md)。
+当前版本 [r17-rc13](r17-rc13.md)，schema 110、能力版本 90。四个组件镜像已发布，安装与升级脚本固定摘要。网页内 RDP 使用 guacd，无需原生 Worker，见[连接指南](../../docs/BROWSER-RDP.md)。
 
-首次安装优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)；手动部署可选择[预构建镜像](dockerhub.md)或[源码构建](../../docs/FRESH-INSTALL.md)。一键安装创建的已有部署使用[升级脚本](../../docs/UPGRADE.md)。当前已发布后端/Web镜像为 `r17-rc11`（schema107），详见[发布说明](r17-rc11.md)；本文提供部署配置细节。
+首次安装优先使用[一键安装](../../docs/ONE-CLICK-INSTALL.md)；手动部署可选择[预构建镜像](dockerhub.md)或[源码构建](../../docs/FRESH-INSTALL.md)。一键安装创建的已有部署使用[升级脚本](../../docs/UPGRADE.md)。当前已发布后端/Web镜像为 `r17-rc13`（schema110），详见[发布说明](r17-rc13.md)；本文提供部署配置细节。
 
 可独立运行管理前端、新后端和空 PostgreSQL 数据库，并提供图形网关、MP4 和 SSH/数据库/网站协议入口的可选叠加配置。Agent签名发布与根轮换、双节点升级排空、备份/WAL/PITR、容量与恢复切换均有Docker模拟验收流程，见[运维步骤](operations.md)、[容量基线](capacity.md)和[恢复切换](cutover.md)。最终回归状态以[R17验收记录](../../docs/backend/acceptance/R17.md)为准。用户明确接受Docker模拟环境；正式部署不复制测试账号、证书、凭据或数据，原生RDP及RemoteApp保持既定暂缓范围。
 
@@ -12,7 +12,7 @@
 
 历史R17 Docker验收的5个应用镜像ID和发布文件SHA-256见[r17-release-manifest.json](r17-release-manifest.json)。镜像ID是本地内容标识，不是仓库RepoDigest；离线用`docker save`/`docker load`转运并用`docker image inspect IMAGE --format '{{.Id}}'`核对，推送仓库后记录并使用该仓库返回的digest。若重新构建，应生成新版本和重新验收，不能沿用本清单宣称二进制完全相同。
 
-仅在导入上述历史验收镜像及配套产物后，在仓库根目录运行`node scripts/verify-production-release.mjs`，逐项核对镜像ID和发布文件SHA-256；任一不符以非零退出。该校验不读取密钥或业务数据。当前发布的后端/Web应核对[dockerhub-r17-rc11.json](dockerhub-r17-rc11.json)中的仓库摘要，不套用历史镜像ID清单。
+仅在导入上述历史验收镜像及配套产物后，在仓库根目录运行`node scripts/verify-production-release.mjs`，逐项核对镜像ID和发布文件SHA-256；任一不符以非零退出。该校验不读取密钥或业务数据。当前发布的后端/Web应核对[dockerhub-r17-rc13.json](dockerhub-r17-rc13.json)中的仓库摘要，不套用历史镜像ID清单。
 
 仓库根目录执行：
 

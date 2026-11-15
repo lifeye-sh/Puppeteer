@@ -16,6 +16,7 @@ parser.add_argument("--drive", action="store_true", help="exercise shared-drive 
 parser.add_argument("--graphics", action="store_true", help="exercise internal graphics lifecycle instead of protocol ports")
 parser.add_argument("--vnc-fixture", type=Path, help="compiled Linux backend/fixtures/vnc binary for a representative graphics session")
 parser.add_argument("--server-image", default="puppeteer/server:p0-integration")
+parser.add_argument("--web-image", default="nginx:alpine", help="web runtime to validate, including a release image")
 parser.add_argument("--executor", type=Path, help="explicit freshly built Linux executor override")
 parser.add_argument("--recovery", action="store_true", help="inject daemon crashes and verify automatic reconciliation")
 parser.add_argument("--recovery-only", action="store_true")
@@ -192,7 +193,7 @@ try:
             "NT_ALLOWED_ORIGINS": "http://backend.localhost:5174", "NT_MYSQL_SPOOL_DIR": "/tmp/mysql-spool"},
             "depends_on": {"postgres": {"condition": "service_healthy"}}, "volumes": ["appdata:/var/lib/puppeteer"],
             "healthcheck": {"test": ["CMD", "/app/nt", "health"], "interval": "2s", "retries": 50}},
-        "web": {"image": "nginx:alpine", "user":"101:101", "group_add":["10001"], "read_only":True, "tmpfs":["/tmp"], "entrypoint":["nginx","-g","daemon off;"], "volumes": [{"type": "bind", "source": base + "/nginx.conf", "target": "/etc/nginx/nginx.conf", "read_only": True}, {"type":"bind","source":base+"/runtime","target":"/run/puppeteer-deploy","read_only":True}, {"type":"bind","source":base+"/progress.conf","target":"/etc/nginx/optional/deployment-progress.conf","read_only":True}],
+        "web": {"image": arguments.web_image, "user":"101:101", "group_add":["10001"], "read_only":True, "tmpfs":["/tmp"], "entrypoint":["nginx","-g","daemon off;"], "volumes": [{"type": "bind", "source": base + "/nginx.conf", "target": "/etc/nginx/nginx.conf", "read_only": True}, {"type":"bind","source":base+"/runtime","target":"/run/puppeteer-deploy","read_only":True}, {"type":"bind","source":base+"/progress.conf","target":"/etc/nginx/optional/deployment-progress.conf","read_only":True}],
                 "depends_on": {"server": {"condition": "service_healthy"}}, "healthcheck": {"test": ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8443/healthz"], "interval": "2s", "retries": 30}}},
         "volumes": {"database": {}, "appdata": {}}}
     if arguments.mp4:

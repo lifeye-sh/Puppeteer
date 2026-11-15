@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Puppeteer r17-rc11, fresh Linux amd64 deployment. Never replaces existing secrets/data.
+# Puppeteer r17-rc13, fresh Linux amd64 deployment. Never replaces existing secrets/data.
 set -Eeuo pipefail
 umask 077
-revision=ee8b463be025d975df74fcd7fe530cb22f1ecef4
+revision=c21a9534cfec76e11a35b8483391a4c91dc6863d
+version=r17-rc13
 install_dir=/opt/puppeteer
 project=puppeteer
 host_name=
@@ -201,10 +202,10 @@ PUPPETEER_CONFIG_DIR=$config
 PUPPETEER_ORIGIN=$origin
 PUPPETEER_BIND=$bind
 PUPPETEER_HTTPS_PORT=$port
-PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:b3c418c2c858dbb8795d6a08a5101c66d63854b4c1c6641562d6a88a7c77eecc
-PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:8db8d80ad99cf7abf63b6e56d5cea1d942a66b4d2c72eb517d08759d01c27add
-PUPPETEER_GRAPHICS_IMAGE=cloners/puppeteer-graphics@sha256:c20c63352bd1cf8764ba9b47857d82957ac3785e9a21ab07a73eb79e20ceea22
-PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:497fdacf02e3b7131cd7c6b9d0376ed2d267547a9f1439e8c1485981d785784e
+PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:2ce30ad7c583105f83fd667eee476aff7fc0f281efa7404727749467f5fd0b2e
+PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:98066e77da455bb1b63d2ea29254e028df34639395220b3162550c7aa15a6b07
+PUPPETEER_GRAPHICS_IMAGE=cloners/puppeteer-graphics@sha256:0a080fc6621426ac14da969dacd29b1cd52ec0ae834f75a714cd051d6a9efee8
+PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:a64b816e25ca7a2828ec46306a17b7a00c2fc9312a84da0a34b6f3c6d159f659
 ENV
 printf '#!/usr/bin/env bash\nset -euo pipefail\nexec docker compose --env-file %q -p %q -f %q ' "$config/production.env" "$project" "$install_dir/compose.yaml" > "$install_dir/puppeteerctl"
 if (( ! core )); then printf '%s %q ' '-f' "$install_dir/services.yaml" >> "$install_dir/puppeteerctl"; fi
@@ -246,7 +247,8 @@ if [[ ! -f $install_dir/config/deployd.json ]] && "$ctl" exec -T server test -x 
   docker cp "$executor_container:/app/deployment/." "$helper_dir/"
   bash "$helper_dir/enroll-deployd.sh" "$install_dir"
 fi
-printf '\nInstalled. Open %s/setup to create your administrator.\n' "$origin"
+printf '%s\n' "$version" > "$install_dir/installed-version"
+printf '\nInstalled %s. Open %s/setup to create your administrator.\n' "$version" "$origin"
 printf 'Manage: sudo %s ps (also supports logs, stop, and up -d --no-build --wait).\n' "$ctl"
 if [[ -z $cert ]]; then printf 'TLS uses a generated self-signed certificate. Trust %s/tls/server.crt on your client or replace it with your CA-issued certificate.\n' "$config"; fi
 printf 'Back up %s securely. No preset administrator or test data was installed.\n' "$config"

@@ -29,10 +29,10 @@
 
 ## API、安装和兼容
 
-新增迁移 `109_dependency_probe_artifacts.sql`，保留迁移 108 的统一任务表；能力版本 89。无需新增容器、端口或手工迁移。
+迁移 `109_dependency_probe_artifacts.sql` 保留迁移 108 的统一任务表；当前 rc13 为 schema 110、能力版本 90。无需新增容器、端口或手工迁移。
 
 资源级状态：`GET /api/settings/operations/{资源类型}:{UUID}`；提交预检使用同路径 `/preflight`，同时携带当前 `If-Match: "settings-版本"` 和响应的 `evidence`。备份显式验证使用 `/verify`。一般要求管理员及 `identity.manage`，备份操作另要求 `backup.manage`；资源查看沿用对应权限。取消仅限只读任务。
 
 旧服务端不支持时显示能力不足；既有 LDAP、OIDC 授权和管理员防锁死保护保留。安装/升级按既有流程备份并同步前后端，不能只更新页面。
 
-应用备份的显式兼容版本同步到 schema 109；恢复隔离会使源预检证据过期并移除源测试清理记录。备份/恢复支持范围见 [备份与隔离恢复](backend/implementation/backup-restore.md)。
+应用备份的显式兼容版本为 schema 110；恢复隔离会使源预检证据过期并移除源测试清理记录。备份/恢复支持范围见 [备份与隔离恢复](backend/implementation/backup-restore.md)。

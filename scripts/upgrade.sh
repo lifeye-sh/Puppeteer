@@ -3,20 +3,20 @@
 set -Eeuo pipefail
 umask 077
 install_dir=/opt/puppeteer
-version=r17-rc11
+version=r17-rc13
 check_only=0
 enable_database_proxy=0
 database_host=
 database_bind=127.0.0.1
 help() {
   cat <<'HELP'
-Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version r17-rc11] [--check]
+Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version r17-rc13] [--check]
   --check    Validate deployment and release; do not pull, stop or update services.
   --enable-database-proxy     Add missing MySQL/PostgreSQL listeners and mappings
   --database-proxy-host HOST  Certificate hostname (default: host from HTTPS origin)
   --database-proxy-bind IPV4  Bind for new mappings (default 127.0.0.1); preserves existing mappings
 Requires Linux amd64 with systemd, root, Docker Compose v2, curl, python3, tar and flock.
-Upgrades server/web only. Keeps existing Compose files, secrets and optional images.
+Upgrades server/web and packaged graphics/renderer images. Preserves disabled services and custom images.
 A maintenance window is required: connections are closed during backup and upgrade.
 HELP
 }
@@ -45,7 +45,7 @@ env_file="$install_dir/config/production.env"
 # Serialize upgrades for this installation, including downloads and backups.
 exec 9>"$install_dir/.upgrade.lock"
 flock -n 9 || die 'Another upgrade is running'
-unset PUPPETEER_SERVER_IMAGE PUPPETEER_WEB_IMAGE
+unset PUPPETEER_SERVER_IMAGE PUPPETEER_WEB_IMAGE PUPPETEER_GRAPHICS_IMAGE PUPPETEER_RENDERER_IMAGE
 docker compose version >/dev/null
 "$ctl" config --quiet
 work=$(mktemp -d "$install_dir/.upgrade-XXXXXXXX")
@@ -87,21 +87,45 @@ assert isinstance(m['schemaVersion'],int) and m['schemaVersion']>0, 'Missing sch
 images={}
 for entry in m['images']:
     component=entry['component']
-    assert component in ('server','web') and component not in images, 'Unexpected/duplicate component'
+    assert component in ('server','web','graphics','renderer') and component not in images, 'Unexpected/duplicate component'
     ref=entry['pinnedReference']
     assert re.fullmatch(r'cloners/puppeteer-'+component+r'@sha256:[a-f0-9]{64}',ref), 'Untrusted image reference'
     images[component]=ref
-assert set(images)=={'server','web'}, 'Both images required'
+assert {'server','web'} <= set(images), 'Server and web images required'
 text=pathlib.Path(env_path).read_text()
 for component,ref in images.items():
     key='PUPPETEER_'+component.upper()+'_IMAGE'
     pattern=r'^'+key+r'=.*$'
-    assert len(re.findall(pattern,text,re.M))==1, 'Missing/duplicate '+key
-    text=re.sub(pattern,key+'='+ref,text,flags=re.M)
+    matches=re.findall(pattern,text,re.M)
+    assert len(matches)<=1 and (matches or component not in ('server','web')), 'Missing/duplicate '+key
+    if component in ('graphics','renderer') and matches:
+        old=matches[0].split('=',1)[1].strip().strip('\"\'')
+        if not re.match(r'(?:cloners/puppeteer-'+component+r'|puppeteer/'+component+r')[:@]',old):
+            print('Preserving custom '+component+' image; verify compatibility with the target release.')
+            continue
+    text=re.sub(pattern,key+'='+ref,text,flags=re.M) if matches else text.rstrip()+'\n'+key+'='+ref+'\n'
 pathlib.Path(out,'production.env').write_text(text)
-pathlib.Path(out,'images').write_text(images['server']+'\n'+images['web']+'\n')
+pathlib.Path(out,'images').write_text('\n'.join(images[c] for c in ('server','web','graphics','renderer') if c in images)+'\n')
+pathlib.Path(out,'image-map.json').write_text(json.dumps(images))
 pathlib.Path(out,'schema').write_text(str(m['schemaVersion']))
 PY
+# Resolved managed Compose does not use env-file interpolation. Apply published
+# component images to standard recipes, including disabled shared-drive recipes.
+cat > "$work/update-images.py" <<'PYIMAGES'
+import json, pathlib, re
+def update_images(model, manifest):
+    for component, service in [('server','server'),('web','web'),('graphics','guacd'),('renderer','mp4-renderer')]:
+        ref = manifest.get(component)
+        if not ref: continue
+        targets = [model.get('services', {}).get(service)]
+        if component == 'graphics': targets.append(model.get('x-puppeteer-drive', {}).get('recipe'))
+        for item in targets:
+            if not isinstance(item, dict): continue
+            old = item.get('image', '')
+            if component in ('server','web') or re.match(r'(?:cloners/puppeteer-'+component+r'|puppeteer/'+component+r')[:@]', old):
+                item['image'] = ref
+    return model
+PYIMAGES
 mapfile -t images < "$work/images"
 mapfile -t running < <("$ctl" ps --status running --services)
 app_services=()
@@ -182,8 +206,7 @@ if [[ -f $install_dir/config/deployd.json ]]; then
   deployd_unit="puppeteer-deployd-$project.service"
 fi
 printf '[2/6] Pulling pinned images before downtime\n'
-docker pull "${images[0]}"
-docker pull "${images[1]}"
+for image in "${images[@]}"; do docker pull "$image"; done
 # Schema 110 introduces the canonical application root. Resolve the existing
 # root for backup, and prepare a volume-preserving candidate before downtime.
 appdata_root=$("$ctl" config --format json | python3 -c 'import json,sys,posixpath; m=json.load(sys.stdin); p=m["services"]["server"].get("environment",{}).get("NT_RUNTIME_PROFILE", ""); root=p.removesuffix("/runtime/active.json"); assert p.endswith("/runtime/active.json") and root.startswith("/var/lib/") and root.count("/")==3, "Unknown application data root"; print(root)')
@@ -196,6 +219,7 @@ if (( $(cat "$work/schema") >= 110 )) && [[ -z $deployd_unit ]]; then
 import json,pathlib,runpy,shlex,sys
 work,root=map(pathlib.Path,sys.argv[1:]); model=json.loads((work/'runtime-source.json').read_text())
 runpy.run_path(str(work/'enroll-deployd.py'))['migrate_application_paths'](model)
+runpy.run_path(str(work/'update-images.py'))['update_images'](model,json.loads((work/'image-map.json').read_text()))
 def escape(v):
  if isinstance(v,str): return v.replace('$','$$')
  if isinstance(v,list): return [escape(x) for x in v]
@@ -221,12 +245,13 @@ if [[ -n $deployd_unit ]]; then
   "$work/puppeteer-deployd" --help >/dev/null 2>&1
   systemctl stop "$deployd_unit"
   deployd_stopped=1
-  python3 - "$install_dir/compose-managed.json" "$work/compose-managed.json" "${images[0]}" "${images[1]}" "$work/enroll-deployd.py" <<'PYMANAGED'
+  python3 - "$install_dir/compose-managed.json" "$work/compose-managed.json" "${images[0]}" "${images[1]}" "$work/enroll-deployd.py" "$work" <<'PYMANAGED'
 import json, pathlib, sys, runpy
-source, target, server, web, helper = sys.argv[1:]
+source, target, server, web, helper, work = sys.argv[1:]
 model = json.loads(pathlib.Path(source).read_text())
 model['services']['server']['image'] = server
 model['services']['web']['image'] = web
+runpy.run_path(str(pathlib.Path(work,'update-images.py')))['update_images'](model,json.loads(pathlib.Path(work,'image-map.json').read_text()))
 helpers = runpy.run_path(helper)
 migrate_paths = helpers.get('migrate_application_paths')
 if migrate_paths: migrate_paths(model)

@@ -19,7 +19,8 @@ if name=='docker' and a and a[0]=='compose':
   if v in ('config','ps','exec','up','stop'):
    name='puppeteerctl';a=a[i:];break
 if name=='curl':
- m={'product':'Puppeteer','version':'r17-rc11','platform':'linux/amd64','schemaVersion':107,'images':[{'component':c,'pinnedReference':'cloners/puppeteer-'+c+'@sha256:'+'a'*64} for c in ['server','web']]}
+ release=os.environ.get('RELEASE','r17-rc11')
+ m={'product':'Puppeteer','version':release,'platform':'linux/amd64','schemaVersion':110 if release=='r17-rc13' else 107,'images':[{'component':c,'pinnedReference':'cloners/puppeteer-'+c+'@sha256:'+'a'*64} for c in (['server','web','graphics','renderer'] if release=='r17-rc13' else ['server','web'])]}
  if mode=='identity': m['schemaVersion']=110
  if mode=='invalid': m['images'][0]['pinnedReference']='evil/image:latest'
  Path(a[a.index('-o')+1]).write_text(json.dumps(m))
@@ -77,10 +78,17 @@ class Upgrade(unittest.TestCase):
  def test_upgrade_preserves_disabled_graphics(self):
   self.run_case(managed=True,graphics='disabled')
 
- def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None):
+ def test_published_components_preserve_disabled_state(self):
+  self.run_case(managed=True,graphics='disabled',published=True)
+
+ def test_published_release_preflight(self):
+  self.run_case(check=True,published=True)
+
+ def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None, published=False):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); deploy=root/'deploy'; config=deploy/'config'; config.mkdir(parents=True)
    original='PUPPETEER_SERVER_IMAGE=old-server\nPUPPETEER_WEB_IMAGE=old-web\nPUPPETEER_ORIGIN=https://custom.example\nPUPPETEER_GRAPHICS_IMAGE=custom-graphics\n'
+   if published: original=original.replace('custom-graphics','cloners/puppeteer-graphics:r17-rc1')+'PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer:r17-rc1\n'
    (config/'production.env').write_text(original)
    (config/'private-key').write_text('must-not-change')
    (deploy/'compose.yaml').write_text('custom compose must remain')
@@ -102,11 +110,16 @@ class Upgrade(unittest.TestCase):
      model['x-puppeteer-graphics']={'version':1,'driveEnabled':'true'}
      model['services']['guacd'].update({'profiles':['puppeteer-graphics-disabled'],'labels':{'io.puppeteer.managed.graphics':'v1'}})
      model['services']['server']['environment'].update({'NT_GUACD_ADDR':'','NT_GUACD_RELAY_HOST':'','NT_RDP_DRIVE_ENABLED':'false'})
+    if published:
+     model['services']['guacd']['image']='cloners/puppeteer-graphics:r17-rc1'
+     model['services']['mp4-renderer']={'image':'cloners/puppeteer-renderer:r17-rc1','profiles':['puppeteer-mp4-disabled']}
+     model['x-puppeteer-drive']={'recipe':{'image':'cloners/puppeteer-graphics:r17-rc1'}}
     (deploy/'compose-managed.json').write_text(json.dumps(model))
    before_ctl=(deploy/'puppeteerctl').read_text()
    calls=root/'calls';calls.write_text('')
-   env=dict(os.environ,PATH=str(binaries)+':'+os.environ['PATH'],CASE=case,CALLS=str(calls),DEPLOY=str(deploy),ENROLL_HELPER=str(SCRIPT.parent.parent/'backend/deploy/enroll-deployd.py'))
-   cmd=['bash',str(SCRIPT),'--dir',str(deploy)]+(['--check'] if check else [])+(['--enable-database-proxy','--database-proxy-bind','0.0.0.0'] if proxy else [])
+   release='r17-rc13' if published else 'r17-rc11'
+   env=dict(os.environ,PATH=str(binaries)+':'+os.environ['PATH'],CASE=case,RELEASE=release,CALLS=str(calls),DEPLOY=str(deploy),ENROLL_HELPER=str(SCRIPT.parent.parent/'backend/deploy/enroll-deployd.py'))
+   cmd=['bash',str(SCRIPT),'--dir',str(deploy)]+([] if published else ['--version',release])+(['--check'] if check else [])+(['--enable-database-proxy','--database-proxy-bind','0.0.0.0'] if proxy else [])
    result=subprocess.run(cmd,env=env,capture_output=True,text=True)
    if repeat and result.returncode==0:
     result=subprocess.run(cmd,env=env,capture_output=True,text=True)
@@ -119,7 +132,7 @@ class Upgrade(unittest.TestCase):
      self.assertEqual(actual,original);self.assertNotIn('"pull"',log);self.assertNotIn('"stop"',log)
     else:
      self.assertIn('cloners/puppeteer-server@sha256:',actual)
-     self.assertIn('PUPPETEER_GRAPHICS_IMAGE=custom-graphics',actual)
+     self.assertIn('PUPPETEER_GRAPHICS_IMAGE='+('cloners/puppeteer-graphics@sha256:' if published else 'custom-graphics'),actual)
      if case=='auto-enroll':self.assertTrue((deploy/'auto-enrolled').is_file())
      if case=='identity':
       model=json.loads((deploy/'compose-runtime.json').read_text())
@@ -133,7 +146,11 @@ class Upgrade(unittest.TestCase):
       self.assertEqual(model['services']['server']['environment']['KEEP'],'secret')
       if graphics:
        self.assertEqual(model['x-puppeteer-graphics'],{'version':1,'driveEnabled':'true'})
-       self.assertEqual(model['services']['guacd']['image'],'custom-graphics:1')
+       self.assertEqual(model['services']['guacd']['image'],'cloners/puppeteer-graphics@sha256:'+'a'*64 if published else 'custom-graphics:1')
+       if published:
+        self.assertEqual(model['services']['mp4-renderer']['image'],'cloners/puppeteer-renderer@sha256:'+'a'*64)
+        self.assertEqual(model['services']['mp4-renderer']['profiles'],['puppeteer-mp4-disabled'])
+        self.assertEqual(model['x-puppeteer-drive']['recipe']['image'],'cloners/puppeteer-graphics@sha256:'+'a'*64)
        self.assertEqual(model['services']['guacd']['volumes'],['preserved:/storage'])
        self.assertEqual(model['services']['guacd']['labels']['io.puppeteer.managed.graphics'],'v1')
        if graphics=='disabled':
@@ -144,7 +161,7 @@ class Upgrade(unittest.TestCase):
       self.assertIn('systemctl ["stop", "puppeteer-deployd-puppeteer.service"]',log)
       self.assertIn('systemctl ["start", "puppeteer-deployd-puppeteer.service"]',log)
 
-     self.assertEqual((deploy/'installed-version').read_text().strip(),'r17-rc11')
+     self.assertEqual((deploy/'installed-version').read_text().strip(),release)
      backups=list((deploy/'backups').iterdir());self.assertEqual(len(backups),2 if repeat else 1)
      self.assertTrue((backups[0]/'SHA256SUMS').is_file())
      self.assertLess(log.index('"pull"'),log.index('"stop"'))

@@ -15,7 +15,25 @@ const capabilitiesRevision=Number(/const CapabilitiesRevision = (\d+)/.exec(meta
 if(!Number.isInteger(schemaVersion)||schemaVersion<1||!Number.isInteger(capabilitiesRevision))throw Error('Invalid schema/capability metadata');
 const notes=`deploy/production/${version}.md`;
 await access(resolve(root,notes));
-const manifest={product:'Puppeteer',version,channel:'source-candidate',platform:'linux/amd64',schemaVersion,capabilitiesRevision,containerImagesPublished:false,publishedImageVersion:'r17-rc11',releaseNotes:notes};
+const releases=[];
+for(const name of await readdir(resolve(root,'deploy/production'))){
+ if(!/^dockerhub-r17-rc\d+\.json$/.test(name))continue;
+ const release=JSON.parse(await readFile(resolve(root,'deploy/production',name),'utf8'));
+ if(release.product==='Puppeteer'&&release.version&&release.images?.length)releases.push(release);
+}
+releases.sort((a,b)=>Number(b.version.split('rc')[1])-Number(a.version.split('rc')[1]));
+const published=releases.find(r=>r.version===version);
+if(published){
+ if(published.schemaVersion!==schemaVersion||published.platform!=='linux/amd64')throw Error('Published image/schema metadata differs');
+ const components=new Set();
+ for(const entry of published.images){
+  if(!['server','web','graphics','renderer'].includes(entry.component)||components.has(entry.component))throw Error('Unexpected image component');
+  components.add(entry.component);
+  if(!/^sha256:[a-f0-9]{64}$/.test(entry.digest)||entry.pinnedReference!==`cloners/puppeteer-${entry.component}@${entry.digest}`||entry.reference!==`cloners/puppeteer-${entry.component}:${version}`)throw Error('Invalid published image reference');
+ }
+ if(components.size!==4)throw Error('All four published components are required');
+}
+const manifest={product:'Puppeteer',version,channel:published?'release-candidate':'source-candidate',platform:'linux/amd64',schemaVersion,capabilitiesRevision,containerImagesPublished:Boolean(published),publishedImageVersion:releases[0]?.version??null,releaseNotes:notes};
 const manifestPath=resolve(root,'deploy/production/source-release.json');
 if(args[0]==='--set'){
  await writeFile(resolve(root,'VERSION'),version+'\n');
