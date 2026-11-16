@@ -20,7 +20,7 @@ if name=='docker' and a and a[0]=='compose':
    name='puppeteerctl';a=a[i:];break
 if name=='curl':
  release=os.environ.get('RELEASE','r17-rc11')
- m={'product':'Puppeteer','version':release,'platform':'linux/amd64','schemaVersion':110 if release in ('r17-rc13','beta0.9') else 107,'images':[{'component':c,'pinnedReference':'cloners/puppeteer-'+c+'@sha256:'+'a'*64} for c in (['server','web','graphics','renderer'] if release in ('r17-rc13','beta0.9') else ['server','web'])]}
+ m={'product':'Puppeteer','version':release,'platform':'linux/amd64','schemaVersion':110 if (release == 'r17-rc13' or release.startswith('beta')) else 107,'images':[{'component':c,'pinnedReference':'cloners/puppeteer-'+c+'@sha256:'+'a'*64} for c in (['server','web','graphics','renderer'] if (release == 'r17-rc13' or release.startswith('beta')) else ['server','web'])]}
  if mode=='identity': m['schemaVersion']=110
  if mode=='invalid': m['images'][0]['pinnedReference']='evil/image:latest'
  Path(a[a.index('-o')+1]).write_text(json.dumps(m))
@@ -126,7 +126,7 @@ class Upgrade(unittest.TestCase):
     (deploy/'compose-managed.json').write_text(json.dumps(model))
    before_ctl=(deploy/'puppeteerctl').read_text()
    calls=root/'calls';calls.write_text('')
-   release=version or ('beta0.9' if published else 'r17-rc11')
+   release=version or ((SCRIPT.parent.parent/'VERSION').read_text().strip() if published else 'r17-rc11')
    env=dict(os.environ,PATH=str(binaries)+':'+os.environ['PATH'],CASE=case,RELEASE=release,CALLS=str(calls),DEPLOY=str(deploy),ENROLL_HELPER=str(SCRIPT.parent.parent/'backend/deploy/enroll-deployd.py'))
    cmd=['bash',str(SCRIPT),'--dir',str(deploy)]+([] if published and not version else ['--version',release])+(['--check'] if check else [])+(['--enable-database-proxy','--database-proxy-bind','0.0.0.0'] if proxy else [])
    result=subprocess.run(cmd,env=env,capture_output=True,text=True)
