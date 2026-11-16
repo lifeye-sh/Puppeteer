@@ -3,13 +3,15 @@ package application
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"puppeteer/backend/internal/platform/guac"
 	"os"
+	"puppeteer/backend/internal/platform/guac"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -21,13 +23,18 @@ func TestR07GraphicsAuditReadonlyAndTermination(t *testing.T) {
 	t.Run("raw", func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, true, false) })
 }
 
-func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, legacyRDP bool) {
+func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, legacyRDP bool, names ...string) {
+	qualityName := ""
+	if len(names) > 0 {
+		qualityName = names[0]
+	}
+	quality, _ := guac.DisplayQuality(qualityName)
 	attach := func(t *testing.T, srv *httptest.Server, c *http.Cookie, id, ticket string) *websocket.Conn {
 		if !rawTransport {
 			return attach(t, srv, c, id, ticket)
 		}
 		h := http.Header{"Origin": []string{origin}, "Cookie": []string{c.String()}}
-		ws, _, e := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+"/api/sessions/"+id+"/ws?graphicsTransport=raw", h)
+		ws, _, e := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+"/api/sessions/"+id+"/ws?graphicsTransport=raw&graphicsDiagnostics=1&graphicsQuality="+qualityName, h)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -63,6 +70,7 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 		t.Fatal(e)
 	}
 	defer daemon.Close()
+	sizes := make(chan []string, 16)
 	var inputs atomic.Int32
 	var keepalives atomic.Int32
 	go func() {
@@ -79,17 +87,17 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 				if _, e := reader.Read(); e != nil {
 					return
 				}
-				io.WriteString(c, guac.Encode("args", "VERSION_1_1_0", "hostname", "port", "password", "read-only", "security", "ignore-cert"))
+				io.WriteString(c, guac.Encode("args", "VERSION_1_1_0", "hostname", "port", "password", "read-only", "security", "ignore-cert", "color-depth", "enable-font-smoothing"))
 				for i := 0; i < 4; i++ {
 					if _, e := reader.Read(); e != nil {
 						return
 					}
 				}
 				p, e := reader.Read()
-				if e != nil || len(p) != 8 {
+				if e != nil || len(p) != 10 {
 					return
 				}
-				if legacyRDP && (p[6] != "rdp" || p[7] != "false") {
+				if legacyRDP && (p[6] != "rdp" || p[7] != "false" || p[8] != strconv.Itoa(quality.Depth) || p[9] != strconv.FormatBool(quality.Smooth)) {
 					return
 				}
 				remote, e := net.Dial("tcp", net.JoinHostPort(p[2], p[3]))
@@ -107,6 +115,9 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 					p, e := reader.Read()
 					if e != nil {
 						return
+					}
+					if p[0] == "size" {
+						sizes <- p
 					}
 					if p[0] == "key" {
 						inputs.Add(1)
@@ -133,6 +144,7 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 	body["host"] = "127.0.0.1"
 	body["port"] = target.Addr().(*net.TCPAddr).Port
 	asset := postID(t, srv, "/api/admin/assets", body, admin)
+	stages := map[string]string{}
 	readFrame := func(ws *websocket.Conn) {
 		t.Helper()
 		ws.SetReadDeadline(time.Now().Add(5 * time.Second))
@@ -140,6 +152,19 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 			_, b, e := ws.ReadMessage()
 			if e != nil {
 				t.Fatal(e)
+			}
+			if len(b) > 0 && b[0] == 'P' {
+				var progress struct {
+					Stage, Label, Status string
+					ElapsedMS            int64
+				}
+				if err := json.Unmarshal(b[1:], &progress); err != nil || progress.ElapsedMS < 0 {
+					t.Fatal("invalid progress", err)
+				}
+				stages[progress.Stage] = progress.Status
+				if strings.Contains(string(b), "password") {
+					t.Fatal("diagnostic secret")
+				}
 			}
 			if len(b) > 0 && ((!rawTransport && b[0] == '7') || (rawTransport && b[0] == 'G')) {
 				return
@@ -159,6 +184,25 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 	id, ticket := reserve(t, srv, admin, asset, false)
 	ws := attach(t, srv, admin, id, ticket)
 	readFrame(ws)
+	if rawTransport {
+		for _, name := range []string{"control", "target", "credential", "handshake"} {
+			if stages[name] != "succeeded" {
+				t.Fatal("missing stage", name, stages)
+			}
+		}
+	}
+	if legacyRDP {
+		send(ws, "size", "3840", "2160")
+		select {
+		case size := <-sizes:
+			if size[1] != strconv.Itoa(quality.Width) || size[2] != strconv.Itoa(quality.Height) {
+				t.Fatal("quality bypass", size)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("resize missing")
+		}
+		readFrame(ws)
+	}
 	if _, e = a.db.Exec(ctx, `UPDATE sessions SET last_activity_at=clock_timestamp()-interval '5 minutes' WHERE id=$1`, id); e != nil {
 		t.Fatal(e)
 	}
@@ -264,4 +308,77 @@ func testGraphicsAuditReadonlyAndTermination(t *testing.T, rawTransport bool, le
 
 func TestR07LegacyRDPAuditReadonlyAndTermination(t *testing.T) {
 	testGraphicsAuditReadonlyAndTermination(t, true, true)
+}
+
+func TestR07QualityAuditReadonlyAndTermination(t *testing.T) {
+	for _, name := range []string{"economy", "balanced", "sharp"} {
+		t.Run(name, func(t *testing.T) { testGraphicsAuditReadonlyAndTermination(t, true, true, name) })
+	}
+}
+
+func TestR07TargetFailureDiagnostic(t *testing.T) {
+	_, a, srv := r02Server(t, false)
+	daemon, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer daemon.Close()
+	closed, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := closed.Addr().(*net.TCPAddr).Port
+	closed.Close()
+	go func() {
+		conn, e := daemon.Accept()
+		if e == nil {
+			defer conn.Close()
+			io.Copy(io.Discard, conn)
+		}
+	}()
+	a.config.GuacdAddr = daemon.Addr().String()
+	a.config.GuacdRelayHost = "127.0.0.1"
+	admin := loginAs(t, srv, "accept-admin")
+	credential := postID(t, srv, "/api/admin/credentials", credInput("failure credential"), admin)
+	body := assetInput("unreachable graphics", credential, "")
+	body["protocol"] = "vnc"
+	body["host"] = "127.0.0.1"
+	body["port"] = port
+	asset := postID(t, srv, "/api/admin/assets", body, admin)
+	id, ticket := reserve(t, srv, admin, asset, false)
+	ws, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+"/api/sessions/"+id+"/ws?graphicsTransport=raw&graphicsDiagnostics=1", http.Header{"Origin": []string{origin}, "Cookie": []string{admin.String()}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ws.Close()
+	ws.SetReadDeadline(time.Now().Add(5 * time.Second))
+	ws.WriteMessage(websocket.TextMessage, []byte("3"+ticket))
+	stages := map[string]string{}
+	for {
+		_, data, err := ws.ReadMessage()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(data) == 0 {
+			continue
+		}
+		if data[0] == 'P' {
+			var v struct{ Stage, Status string }
+			if json.Unmarshal(data[1:], &v) != nil {
+				t.Fatal("invalid diagnostic")
+			}
+			stages[v.Stage] = v.Status
+		}
+		if data[0] == '0' {
+			break
+		}
+	}
+	if stages["control"] != "succeeded" || stages["target"] != "failed" || stages["handshake"] != "" {
+		t.Fatal(stages)
+	}
+	waitClosed(t, a, id)
+	access, err := a.audit.Access(context.Background(), id)
+	if err != nil || access.Reason != "graphics_target_unavailable" {
+		t.Fatal(access.Reason, err)
+	}
 }

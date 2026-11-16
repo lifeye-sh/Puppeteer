@@ -114,7 +114,10 @@ func (d *HostDriver) walPlan(ctx context.Context, raw []byte, r Request) (Compos
 	} else {
 		var image string
 		json.Unmarshal(pg["image"], &image)
-		if !strings.HasPrefix(image, "postgres:18-") || len(pg["command"]) > 0 && string(pg["command"]) != "null" {
+		var budgetVersion int
+		_ = json.Unmarshal(doc["x-puppeteer-database-budget"], &budgetVersion)
+		plain, budgetErr := databaseCommand(pg["command"], budgetVersion == 1)
+		if !strings.HasPrefix(image, "postgres:18-") || budgetErr != nil || len(plain) != 1 {
 			return ComposePlan{}, errors.New("自定义 PostgreSQL 镜像或启动参数尚未接管")
 		}
 		recipe = walRecipe{Image: pg["image"], Command: pg["command"]}
@@ -167,6 +170,11 @@ func (d *HostDriver) walPlan(ctx context.Context, raw []byte, r Request) (Compos
 		} else {
 			pg["command"] = recipe.Command
 		}
+	}
+	var serverEnv map[string]string
+	_ = json.Unmarshal(model.Services["server"]["environment"], &serverEnv)
+	if err := applyDatabaseBudget(doc, model, serverEnv["NT_RESOURCE_PROFILE"]); err != nil {
+		return ComposePlan{}, err
 	}
 	pg["volumes"], _ = json.Marshal(out)
 	pg["secrets"], _ = json.Marshal(kept)

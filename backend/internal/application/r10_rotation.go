@@ -109,6 +109,7 @@ func (a *App) routesR10Rotation(h func(string, func(http.ResponseWriter, *http.R
 		if e != nil {
 			return e
 		}
+		notifyWork(a.taskWake)
 		writeJSON(w, 201, map[string]string{"id": id})
 		return nil
 	})

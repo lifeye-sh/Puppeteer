@@ -17,7 +17,7 @@ func (c Client) Call(ctx context.Context, method, path string, input any) (int, 
 	if c.Socket == "" || len(c.Token) < 32 {
 		return 0, nil, errors.New("deployment executor is not enrolled")
 	}
-	if !(method == "GET" && path == "/v1/status" || method == "POST" && (path == "/v1/preflight" || path == "/v1/tasks")) {
+	if !(method == "GET" && path == "/v1/status" || method == "POST" && (path == "/v1/preflight" || path == "/v1/tasks" || path == "/v1/renderer/wake" || path == "/v1/renderer/touch")) {
 		return 0, nil, errors.New("unsupported deployment operation")
 	}
 	raw, err := json.Marshal(input)

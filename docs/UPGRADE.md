@@ -1,6 +1,8 @@
 # 已有部署版本升级
 
-适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `r17-rc13`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
+> 开发分支新增资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。公开默认镜像仍为 rc13；新功能需要同批构建的服务端、前端、渲染器及执行器，不能仅更新网页后使用旧镜像。
+
+适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.9`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
 
 ## 执行
 
@@ -15,10 +17,12 @@ sudo bash upgrade-puppeteer.sh
 自定义安装目录或显式指定已发布版本：
 
 ```bash
-sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version r17-rc13
+sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.9
 ```
 
-依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本仅支持 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
+依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本支持 beta主版本.次版本（如 beta0.9）及历史 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
+
+使用新资源档位、按需渲染或质量设置的开发部署升级时，会保留档位、运行方式、质量、临时卷、配额和组件关闭状态，并在镜像拉取后、服务停机前检查目标镜像能力。`--check` 不拉镜像，不能完成目标镜像能力验证；旧镜像缺少能力时正式升级会提前停止。
 
 ## 同时补齐数据库代理
 
@@ -109,3 +113,8 @@ Agent 新安装目录为 `/opt/puppeteer-agent` 和 `/var/lib/puppeteer-agent`�
 rc13 清单包含 server、web、graphics 和 renderer。升级前拉取全部摘要；已安装的官方图形/MP4组件及共享盘恢复配方使用配套镜像，停用 profile 与原运行服务集合保留，不会因更新镜像启动已关闭组件。自定义图形/MP4镜像保留，需自行确认与目标版本兼容。原有 PostgreSQL/WAL 镜像及数据卷不因该更新替换。
 
 已接管部署的 compose-managed.json 会同步镜像；普通部署升级至 schema 110 时生成保留原卷身份的 compose-runtime.json，再自动接管。之后始终使用 puppeteerctl，不能直接启动旧 Compose 覆盖受管配置。
+
+
+第四轮优化的网页 RDP 档位与连接诊断需要匹配的新 server/web；转换资源预检还需要匹配的 renderer。没有新增 schema、端口或安装参数，旧客户端不传画质档位时保留原设置。旧渲染器缺少预检接口时兼容原提交流程，不能视为已具备完整预检。详见 [资源优化说明](RESOURCE-OPTIMIZATION.md)。本段描述未发布开发分支，不表示公开镜像已更新。
+
+开发分支的渲染镜像还修复了断开前最后一批绘图指令的导出，以及 Chromium 子进程退出后未回收的问题。镜像内置 Tini 作为入口；升级到匹配镜像即可生效，不增加安装参数、不提高 PID 上限。自定义覆盖镜像入口的部署需保留进程回收机制。

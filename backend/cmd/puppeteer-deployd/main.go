@@ -11,11 +11,11 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"puppeteer/backend/internal/platform/deploytask"
-	"puppeteer/backend/internal/platform/rdpstorage"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"puppeteer/backend/internal/platform/deploytask"
+	"puppeteer/backend/internal/platform/rdpstorage"
 	"strings"
 	"syscall"
 	"time"
@@ -98,6 +98,7 @@ func run(path string) error {
 	}
 	driver.Progress = engine.Report
 	go driver.RunMaintenance(ctx, engine)
+	go driver.RunRendererMaintenance(ctx, engine)
 	handler, err := deploytask.Handler(ctx, engine, strings.TrimSpace(string(token)))
 	if err != nil {
 		return err

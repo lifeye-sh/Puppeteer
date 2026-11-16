@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"github.com/gorilla/websocket"
 	"io"
@@ -71,13 +72,43 @@ func graphicsRelay(ctx context.Context, upstream net.Conn, peer net.IP) (*net.TC
 func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session, asset resource.Asset, state *string) error {
 	ctx, id := l.ctx, v.ID
 	rawTransport := r.URL.Query().Get("graphicsTransport") == "raw"
+	quality, validQuality := guac.DisplayQuality(r.URL.Query().Get("graphicsQuality"))
+	connectionStarted := time.Now()
+	stage := func(name, label string) func(error) {
+		started := time.Now()
+		report := func(status string, elapsed int64) {
+			if r.URL.Query().Get("graphicsDiagnostics") == "1" {
+				data, _ := json.Marshal(map[string]any{"stage": name, "label": label, "status": status, "elapsedMs": elapsed})
+				_ = l.send('P', string(data))
+			}
+		}
+		report("running", 0)
+		return func(err error) {
+			status := "succeeded"
+			if err != nil {
+				status = "failed"
+				var timeout net.Error
+				if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &timeout) && timeout.Timeout()) {
+					status = "timeout"
+				}
+			}
+			elapsed := time.Since(started).Milliseconds()
+			log.Printf("graphics_connect_stage session=%s stage=%s status=%s elapsed_ms=%d total_ms=%d quality=%s", id, name, status, elapsed, time.Since(connectionStarted).Milliseconds(), quality.Name)
+			report(status, elapsed)
+		}
+	}
 	fail := func(reason, message string) error { _ = l.send('0', message); l.stop(reason); return nil }
+	if !validQuality {
+		return fail("graphics_quality_invalid", "未知的远程桌面画质档位")
+	}
 	if a.config.GuacdAddr == "" || a.config.GuacdRelayHost == "" {
 		return fail("graphics_unavailable", "图形连接服务未配置")
 	}
 	dc, cancel := context.WithTimeout(ctx, time.Duration(asset.ConnectTimeout)*time.Second)
 	defer cancel()
+	finishStage := stage("control", "连接图形服务")
 	control, e := (&net.Dialer{}).DialContext(dc, "tcp", a.config.GuacdAddr)
+	finishStage(e)
 	if e != nil {
 		return fail("guacd_unavailable", "图形连接服务不可用")
 	}
@@ -98,9 +129,11 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 	case asset.ProxyID != "":
 		transport = a.proxyDialer(ctx, asset.ProxyID, v.ActorID, id)
 	}
+	finishStage = stage("target", "连接目标端口与网关路径")
 	target, e := transport(dc, asset.Host, asset.Port)
+	finishStage(e)
 	if e != nil {
-		return fail("graphics_target_unavailable", "无法连接图形资产，请检查目标端口和网关路径")
+		return fail("graphics_target_unavailable", "无法连接目标端口或网关路径；请查看分阶段耗时，目标拨号与图形服务连接共用资产连接超时")
 	}
 	defer target.Close()
 	relay, e := graphicsRelay(ctx, target, control.RemoteAddr().(*net.TCPAddr).IP)
@@ -109,6 +142,9 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 	}
 	defer relay.Close()
 	values := map[string]string{"hostname": a.config.GuacdRelayHost, "port": strconv.Itoa(relay.Addr().(*net.TCPAddr).Port), "read-only": strconv.FormatBool(v.Readonly), "security": "nla", "ignore-cert": "false", "cert-fingerprints": guac.CertificateFingerprints(asset.CertFingerprint), "disable-copy": "true", "disable-paste": "true", "enable-drive": "false", "enable-printing": "false", "enable-audio": "false", "disable-audio": "true", "color-depth": "24", "resize-method": "display-update", "enable-wallpaper": "false"}
+	if asset.Protocol == "rdp" {
+		quality.Apply(values)
+	}
 	if asset.Protocol == "rdp" && asset.RDPSecurity == "rdp" {
 		values["security"] = "rdp"
 		delete(values, "cert-fingerprints")
@@ -132,6 +168,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 			values["disable-download"] = strconv.FormatBool(!policy.Download)
 		}
 	}
+	finishStage = stage("credential", "读取授权凭据")
 	e = a.db.Within(ctx, func(c context.Context) error {
 		cred, password, e := a.vault.GraphicsAuth(c, asset.CredentialID, v.ActorID, id)
 		if e != nil {
@@ -144,12 +181,15 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 		values["password"] = password
 		return nil
 	})
+	finishStage(e)
 	if e != nil {
 		return fail("credential_unavailable", "图形会话需要有效的密码凭据")
 	}
 	_ = control.SetDeadline(time.Now().Add(20 * time.Second))
+	finishStage = stage("handshake", "协商图形协议")
 	reader, e := guac.Handshake(control, asset.Protocol, values)
 	clear(values)
+	finishStage(e)
 	if e != nil {
 		return fail("graphics_handshake_failed", "图形连接握手失败，请检查服务、认证方式和证书指纹")
 	}
@@ -182,17 +222,29 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 	var clipboard guac.Clipboard
 	batches := guac.NewBatchReader(ctx, reader)
 	var instructionCount, batchCount, wireBytes int64
-	var recordTime, sendTime time.Duration
+	var recordTime, sendTime, recordMax, sendMax time.Duration
+	var recordedBytes, maxBatchBytes int64
+	var firstFrame bool
+	finishFirstFrame := stage("first_frame", "等待远端认证与首帧")
+	var firstFrameOnce sync.Once
+	reportFirstFrame := func(err error) { firstFrameOnce.Do(func() { finishFirstFrame(err) }) }
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
+		payload := make([]byte, 0, 64*1024)
 		for {
 			batch, e := batches.Read()
 			if e != nil {
+				reportFirstFrame(e)
 				l.stop("remote_closed")
 				return
 			}
-			var payload []byte
+			// Reuse only after synchronous persistence and websocket write complete.
+			if cap(payload) > 64*1024 {
+				payload = make([]byte, 0, 64*1024)
+			} else {
+				payload = payload[:0]
+			}
 			instructionCount += int64(len(batch))
 			for _, instruction := range batch {
 				if asset.Protocol == "rdp" {
@@ -233,12 +285,13 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 					l.stop("unsupported_graphics_channel")
 					return
 				case "error":
+					reportFirstFrame(guac.ErrProtocol)
 					*state = "failed"
 					_ = l.send('0', "远端图形连接失败，请检查凭据、服务状态和证书指纹")
 					l.stop("graphics_remote_error")
 					return
 				}
-				payload = append(payload, guac.Encode(instruction...)...)
+				payload = guac.AppendEncode(payload, instruction...)
 			}
 			if len(payload) == 0 {
 				continue
@@ -247,12 +300,16 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 			recordStarted := time.Now()
 			e = a.audit.Record(c, id, "graphics", time.Since(l.started).Milliseconds(), payload)
 			finish()
-			recordTime += time.Since(recordStarted)
+			recordElapsed := time.Since(recordStarted)
+			recordTime += recordElapsed
+			recordMax = max(recordMax, recordElapsed)
 			if e != nil {
 				l.stop("recording_failed")
 				return
 			}
 			batchCount++
+			recordedBytes += int64(len(payload))
+			maxBatchBytes = max(maxBatchBytes, int64(len(payload)))
 			sendStarted := time.Now()
 			if rawTransport {
 				wireBytes += int64(1 + len(payload))
@@ -261,10 +318,17 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 				wireBytes += int64(1 + base64.StdEncoding.EncodedLen(len(payload)))
 				e = l.send('7', base64.StdEncoding.EncodeToString(payload))
 			}
-			sendTime += time.Since(sendStarted)
+			sendElapsed := time.Since(sendStarted)
+			sendTime += sendElapsed
+			sendMax = max(sendMax, sendElapsed)
 			if e != nil {
 				l.stop(graphicsClientFailure("write", e))
 				return
+			}
+			if !firstFrame && batch[len(batch)-1][0] == "sync" {
+				firstFrame = true
+				reportFirstFrame(nil)
+				log.Printf("graphics_first_frame session=%s elapsed_ms=%d quality=%s", id, time.Since(connectionStarted).Milliseconds(), quality.Name)
 			}
 		}
 	}()
@@ -272,7 +336,7 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 		l.cancel()
 		control.Close()
 		<-done
-		log.Printf("graphics_transport_stats session=%s raw=%t instructions=%d batches=%d wire_bytes_attempted=%d record_ms=%d send_ms=%d", id, rawTransport, instructionCount, batchCount, wireBytes, recordTime.Milliseconds(), sendTime.Milliseconds())
+		log.Printf("graphics_transport_stats session=%s raw=%t instructions=%d batches=%d wire_bytes_attempted=%d record_ms=%d send_ms=%d record_max_ms=%d send_max_ms=%d recorded_bytes=%d max_batch_bytes=%d first_frame=%t", id, rawTransport, instructionCount, batchCount, wireBytes, recordTime.Milliseconds(), sendTime.Milliseconds(), recordMax.Milliseconds(), sendMax.Milliseconds(), recordedBytes, maxBatchBytes, firstFrame)
 	}()
 	l.ws.SetReadLimit(32768)
 	for {
@@ -341,6 +405,12 @@ func (a *App) graphicsSession(r *http.Request, l *liveSession, v session.Session
 		}
 		if !guac.InputAllowed(p, v.Readonly) {
 			return fail("graphics_input_denied", "只读或通道策略禁止此操作")
+		}
+		if p[0] == "size" && asset.Protocol == "rdp" {
+			width, _ := strconv.Atoi(p[1])
+			height, _ := strconv.Atoi(p[2])
+			width, height = quality.ClampSize(width, height)
+			p[1], p[2] = strconv.Itoa(width), strconv.Itoa(height)
 		}
 		if p[0] == "key" || p[0] == "mouse" || p[0] == "touch" {
 			if e = a.sessionActivity(l, id); e != nil {

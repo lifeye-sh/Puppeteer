@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "esbuild replay.js --bundle --format=iife --outfile=public/replay.js",
-    "test": "node --test test.mjs"
+    "test": "node --test --test-concurrency=1 test.mjs streaming.test.mjs pressure.test.mjs secrets.test.mjs reaping.test.mjs"
   },
   "dependencies": {
     "@puppeteer/guacamole-common-js": "file:vendor/guacamole-common-js",

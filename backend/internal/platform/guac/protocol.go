@@ -92,6 +92,34 @@ func Encode(parts ...string) string {
 	return b.String()
 }
 
+// EncodedLen counts wire bytes without allocating a duplicate encoded instruction.
+func EncodedLen(parts ...string) int {
+	if len(parts) == 0 {
+		return 1
+	}
+	size := 0
+	for _, p := range parts {
+		digits := 1
+		for n := utf8.RuneCountInString(p); n >= 10; n /= 10 {
+			digits++
+		}
+		size += digits + 2 + len(p) // length dot and comma/semicolon
+	}
+	return size
+}
+
+func AppendEncode(dst []byte, parts ...string) []byte {
+	for i, p := range parts {
+		if i > 0 {
+			dst = append(dst, ',')
+		}
+		dst = strconv.AppendInt(dst, int64(utf8.RuneCountInString(p)), 10)
+		dst = append(dst, '.')
+		dst = append(dst, p...)
+	}
+	return append(dst, ';')
+}
+
 // Handshake returns the same reader, preserving any buffered display data.
 func Handshake(c io.ReadWriter, protocol string, values map[string]string) (*Reader, error) {
 	if protocol != "rdp" && protocol != "vnc" {

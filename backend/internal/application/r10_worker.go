@@ -10,6 +10,7 @@ import (
 	"puppeteer/backend/internal/modules/connectivity"
 	"puppeteer/backend/internal/platform/fault"
 	"puppeteer/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/pollwait"
 	"strings"
 	"sync"
 	"time"
@@ -27,16 +28,12 @@ func (a *App) RunTaskMaintenance(ctx context.Context) {
 		workers.Add(1)
 		go func() {
 			defer workers.Done()
-			tick := time.NewTicker(time.Second)
-			defer tick.Stop()
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case <-tick.C:
-					if e := a.RunTaskOnce(ctx); e != nil && ctx.Err() == nil {
-						slog.Error("task worker failed; lease recovery will prevent replay")
-					}
+			poll := pollwait.New(time.Second, 15*time.Second)
+			for poll.Wait(ctx, a.taskWake) {
+				active, e := a.runTaskOnce(ctx)
+				poll.Record(active && e == nil)
+				if e != nil && ctx.Err() == nil {
+					slog.Error("task worker failed; lease recovery will prevent replay")
 				}
 			}
 		}()
@@ -52,9 +49,12 @@ func (a *App) RunTaskMaintenance(ctx context.Context) {
 			e := a.RecoverTaskJobs(c)
 			if e == nil {
 				for i := 0; i < 10; i++ {
-					if e = automation.New(a.db).Tick(c, jobs.New(a.db)); e != nil {
+					var processed bool
+					processed, e = automation.New(a.db).TickOne(c, jobs.New(a.db))
+					if e != nil || !processed {
 						break
 					}
+					notifyWork(a.taskWake)
 				}
 			}
 			stop()
@@ -109,7 +109,8 @@ func (a *App) RecoverTaskJobs(ctx context.Context) error {
 		return nil
 	})
 }
-func (a *App) RunTaskOnce(ctx context.Context) error {
+func (a *App) RunTaskOnce(ctx context.Context) error { _, e := a.runTaskOnce(ctx); return e }
+func (a *App) runTaskOnce(ctx context.Context) (bool, error) {
 	q := jobs.New(a.db)
 	for kind, handler := range a.taskHandlers() {
 		claim, stop := context.WithTimeout(ctx, 5*time.Second)
@@ -119,7 +120,7 @@ func (a *App) RunTaskOnce(ctx context.Context) error {
 			continue
 		}
 		if e != nil {
-			return e
+			return false, e
 		}
 		c, cancel := context.WithCancel(ctx)
 		done := make(chan struct{})
@@ -145,9 +146,9 @@ func (a *App) RunTaskOnce(ctx context.Context) error {
 		e = handler(c, job)
 		cancel()
 		<-done
-		return e
+		return true, e
 	}
-	return nil
+	return false, nil
 }
 func (a *App) executeTaskJob(ctx context.Context, job jobs.Job) error {
 	s := automation.New(a.db)

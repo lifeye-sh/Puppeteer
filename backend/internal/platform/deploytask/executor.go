@@ -151,6 +151,7 @@ func (e ComposeExecutor) Verify(ctx context.Context, r Request) error {
 }
 
 type containerStatus struct {
+	ExitCode   int
 	Service    string
 	State      string
 	Health     string
@@ -223,13 +224,13 @@ func verifyContainers(raw []byte, r Request) error {
 }
 
 func (e ComposeExecutor) CheckApplication(ctx context.Context, r Request) error {
-	if specialized(r.Protocol) || r.Protocol == "website" {
+	if specialized(r.Protocol) || r.Protocol == "website" || r.Protocol == "resources" {
 		return e.liveApplication(ctx, r, "check")
 	}
 	return e.applicationProbe(ctx, r, false)
 }
 func (e ComposeExecutor) VerifyApplication(ctx context.Context, r Request) error {
-	if r.Protocol == "website" {
+	if r.Protocol == "website" || r.Protocol == "resources" {
 		return e.liveApplication(ctx, r, "verify")
 	}
 	return e.applicationProbe(ctx, r, true)

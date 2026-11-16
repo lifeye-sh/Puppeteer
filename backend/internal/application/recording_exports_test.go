@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"puppeteer/backend/internal/platform/jobs"
 	"os"
 	"path/filepath"
+	"puppeteer/backend/internal/platform/jobs"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -85,12 +86,17 @@ func TestMP4DurableJobPermissionsDedupeDownloadAndRetry(t *testing.T) {
 	a.config.MP4Token = strings.Repeat("m", 32)
 	video := append([]byte{0, 0, 0, 24, 'f', 't', 'y', 'p'}, bytes.Repeat([]byte{1}, 64)...)
 	received := false
+	var admissionStatus atomic.Int32
 	renderer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer "+a.config.MP4Token {
 			t.Error("renderer authentication missing")
 		}
 		switch {
 		case r.Method == "POST":
+			if status := admissionStatus.Load(); status != 0 {
+				writeJSON(w, int(status), map[string]string{"error": "renderer_memory_pressure"})
+				return
+			}
 			var header map[string]any
 			if json.NewDecoder(r.Body).Decode(&header) != nil || header["type"] != "header" {
 				t.Error("missing snapshot")
@@ -162,6 +168,23 @@ func TestMP4DurableJobPermissionsDedupeDownloadAndRetry(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	// Capacity can change after a successful preflight. No retry is consumed.
+	for _, status := range []int32{507, 503, 429} {
+		admissionStatus.Store(status)
+		a.runRecordingExport(ctx, job)
+		paused, e := a.audit.Export(ctx, id)
+		if e != nil || paused.State != "queued" || received {
+			t.Fatal("admission race lost job", paused, e)
+		}
+		if e = a.db.Row(ctx, `SELECT attempts FROM recording_exports WHERE job_id=$1`, job.ID).Scan(&attempts); e != nil || attempts != 1 {
+			t.Fatal("pressure consumed attempt", attempts, e)
+		}
+		job, e = q.Claim(ctx, "recording.mp4")
+		if e != nil {
+			t.Fatal(e)
+		}
+	}
+	admissionStatus.Store(0)
 	a.runRecordingExport(ctx, job)
 	state, e := a.audit.Export(ctx, id)
 	if e != nil || state.State != "succeeded" || !received {

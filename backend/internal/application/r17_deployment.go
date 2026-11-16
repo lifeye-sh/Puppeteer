@@ -8,15 +8,16 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"os"
 	"puppeteer/backend/internal/modules/identity"
 	"puppeteer/backend/internal/platform/deploytask"
 	"puppeteer/backend/internal/platform/fault"
-	"os"
+	"puppeteer/backend/internal/platform/resourcebudget"
 	"strings"
 )
 
 func (a *App) registerDeployment(h func(string, func(http.ResponseWriter, *http.Request) error)) {
-	for _, operation := range []string{"check", "site-apply", "verify"} {
+	for _, operation := range []string{"check", "site-apply", "verify", "resource-drain", "resource-resume"} {
 		h("POST /api/internal/deployment-"+operation, func(w http.ResponseWriter, r *http.Request) error {
 			if !internalDeploymentRequest(r) {
 				return fault.Denied
@@ -41,15 +42,40 @@ func (a *App) registerDeployment(h func(string, func(http.ResponseWriter, *http.
 			if err = a.allowed(r.Context(), &actor, "identity.manage"); err != nil {
 				return err
 			}
-			if operation == "site-apply" {
+			if operation == "resource-resume" {
+				if req.Protocol != "resources" || deploytask.Validate(req) != nil {
+					return fault.Invalid
+				}
+				a.resumeHeavyAfterDeployment()
+			} else if operation == "resource-drain" {
+				if req.Protocol != "resources" {
+					return fault.Invalid
+				}
+				if err = a.DeploymentApplicationCheck(r.Context(), req); err == nil {
+					err = a.drainHeavyForDeployment()
+				}
+			} else if operation == "site-apply" {
 				if req.Protocol != "website" || req.SiteID == "" {
 					return fault.Invalid
 				}
 				err = a.ApplyDeploymentWebsite(r.Context(), req)
+			} else if req.Protocol == "resources" && operation == "verify" {
+				err = deploytask.Validate(req)
+				if err == nil && a.config.ResourceProfile != req.ResourceProfile {
+					err = errors.New("应用尚未运行所选资源档位")
+				}
+				if err == nil {
+					budget, e := resourcebudget.Database(req.ResourceProfile)
+					if e != nil {
+						err = e
+					} else if a.db.PoolStats().MaxConns() != budget.PoolMax {
+						err = errors.New("应用连接池尚未应用所选资源预算")
+					}
+				}
 			} else {
 				err = a.DeploymentApplicationCheck(r.Context(), req)
 			}
-			if err == nil && operation == "verify" {
+			if err == nil && operation == "verify" && req.Protocol != "resources" {
 				if req.Protocol != "website" {
 					return fault.Invalid
 				}
@@ -172,7 +198,7 @@ func (a *App) registerDeployment(h func(string, func(http.ResponseWriter, *http.
 func internalDeploymentRequest(r *http.Request) bool {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	ip := net.ParseIP(host)
-	return err == nil && ip != nil && ip.IsLoopback() && r.Method == "POST" && (r.URL.Path == "/api/internal/deployment-check" || r.URL.Path == "/api/internal/deployment-site-apply" || r.URL.Path == "/api/internal/deployment-verify") && r.Header.Get("Origin") == "" && token(r) == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ")
+	return err == nil && ip != nil && ip.IsLoopback() && r.Method == "POST" && (r.URL.Path == "/api/internal/deployment-check" || r.URL.Path == "/api/internal/deployment-site-apply" || r.URL.Path == "/api/internal/deployment-verify" || r.URL.Path == "/api/internal/deployment-resource-drain" || r.URL.Path == "/api/internal/deployment-resource-resume") && r.Header.Get("Origin") == "" && token(r) == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ")
 }
 
 // Website metadata must not change beneath an accepted host deployment. The final

@@ -1,22 +1,27 @@
 package deploytask
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"net"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
 // HostDriver operates only on an enrolled standalone Compose file. The daemon
 // must hold an exclusive deployment lock. All paths are installer-owned.
 type HostDriver struct {
-	Executor       ComposeExecutor
-	StateDirectory string
+	rendererLeaseUntil       atomic.Int64
+	rendererMaintenanceError atomic.Pointer[string]
+	Executor                 ComposeExecutor
+	StateDirectory           string
 	// Check validates application policy, certificates and network capabilities.
 	// No deployment is allowed before this integration is installed.
 	Check         func(context.Context, Request) error
@@ -26,10 +31,11 @@ type HostDriver struct {
 	WALGuard      func(context.Context) error
 }
 type hostState struct {
-	Owned         map[string]*Mapping `json:"owned"`
-	Previous      json.RawMessage     `json:"previous,omitempty"`
-	PreviousOwned map[string]*Mapping `json:"previousOwned"`
-	Request       *Request            `json:"request,omitempty"`
+	ResourceStarted bool                `json:"resourceStarted,omitempty"`
+	Owned           map[string]*Mapping `json:"owned"`
+	Previous        json.RawMessage     `json:"previous,omitempty"`
+	PreviousOwned   map[string]*Mapping `json:"previousOwned"`
+	Request         *Request            `json:"request,omitempty"`
 }
 
 func atomicPrivate(path string, raw []byte) error {
@@ -107,7 +113,16 @@ func (d *HostDriver) Preflight(ctx context.Context, r Request) error {
 	if err = d.validatePlan(ctx, plan, r); err != nil {
 		return err
 	}
+	if r.Protocol == "resources" {
+		return d.Executor.resourcePreflight(ctx, raw, r)
+	}
 	if r.Protocol == "mp4" && r.Enabled {
+		mode, quality := rendererSettings(plan.Document)
+		if mode == "on-demand" || r.RendererQuality != "" {
+			if err = d.Executor.checkRendererCapabilities(ctx, plan.Document, mode, quality); err != nil {
+				return err
+			}
+		}
 		if _, err = d.Executor.run(ctx, 5*time.Second, "check MP4 cache permissions", "exec", "-T", "server", "sh", "-c", "if test -e /var/lib/puppeteer/mp4; then test -d /var/lib/puppeteer/mp4 && test -w /var/lib/puppeteer/mp4; else test -w /var/lib/puppeteer; fi"); err != nil {
 			return errors.New("MP4 缓存目录不可写")
 		}
@@ -195,9 +210,15 @@ func (d *HostDriver) Apply(ctx context.Context, r Request) error {
 	state.Previous = prior
 	state.PreviousOwned = state.Owned
 	state.Request = &r
+	state.ResourceStarted = false
 	// Journal precedes the config replacement; it contains the only recovery copy.
 	if err = d.save(state); err != nil {
 		return err
+	}
+	if r.Protocol == "resources" {
+		if err = d.Executor.liveApplication(ctx, r, "resource-drain"); err != nil {
+			return err
+		}
 	}
 	if r.SiteID != "" && !r.SiteEnabled {
 		if d.ApplyWebsite == nil {
@@ -227,8 +248,12 @@ func (d *HostDriver) Apply(ctx context.Context, r Request) error {
 		next[r.Protocol] = plan.Next
 	}
 	state.Owned = next
+	state.ResourceStarted = r.Protocol == "resources"
 	if err = d.save(state); err != nil {
 		return err
+	}
+	if r.Protocol == "resources" {
+		return d.Executor.applyResources(ctx, d.Progress)
 	}
 	if r.Protocol == "mp4" {
 		return d.Executor.applyMP4(ctx, r.Enabled)
@@ -242,6 +267,15 @@ func (d *HostDriver) Apply(ctx context.Context, r Request) error {
 	return d.Executor.Apply(ctx)
 }
 func (d *HostDriver) Verify(ctx context.Context, r Request) error {
+	if r.Protocol == "resources" {
+		if err := d.Executor.verifyResources(ctx, r); err != nil {
+			return err
+		}
+		if d.VerifyRuntime == nil {
+			return errors.New("resource runtime verification unavailable")
+		}
+		return d.VerifyRuntime(ctx, r)
+	}
 	if specialized(r.Protocol) {
 		return d.specializedVerify(ctx, r)
 	}
@@ -281,12 +315,23 @@ func (d *HostDriver) Rollback(ctx context.Context, r Request) error {
 	if state.Request == nil || *state.Request != r || len(state.Previous) == 0 {
 		return errors.New("matching recovery configuration missing")
 	}
+	if r.Protocol == "resources" && !state.ResourceStarted {
+		current, readErr := os.ReadFile(d.Executor.Files[0])
+		if readErr == nil && sameComposeDocument(current, state.Previous) {
+			// Drain/preflight failed before any configuration or container change.
+			// Release a possible reservation without interrupting a busy backup.
+			return d.Executor.liveApplication(ctx, r, "resource-resume")
+		}
+	}
 	if err = atomicPrivate(d.Executor.Files[0], state.Previous); err != nil {
 		return err
 	}
 	state.Owned = state.PreviousOwned
 	if err = d.save(state); err != nil {
 		return err
+	}
+	if r.Protocol == "resources" {
+		return d.Executor.applyResources(ctx)
 	}
 	if r.Protocol == "mp4" {
 		return d.Executor.applyMP4(ctx, mp4Enabled(state.Previous))
@@ -300,6 +345,24 @@ func (d *HostDriver) Rollback(ctx context.Context, r Request) error {
 		return d.Executor.applyGraphics(ctx, graphicsEnabled(state.Previous))
 	}
 	return d.Executor.Apply(ctx)
+}
+
+// RawMessage is compacted/HTML-escaped by journal encoding. Compare decoded
+// values so formatting alone never causes a restart after a rejected drain.
+func sameComposeDocument(a, b []byte) bool {
+	decode := func(raw []byte) (any, error) {
+		var value any
+		d := json.NewDecoder(bytes.NewReader(raw))
+		d.UseNumber()
+		err := d.Decode(&value)
+		return value, err
+	}
+	if !json.Valid(a) || !json.Valid(b) {
+		return false
+	}
+	x, e1 := decode(a)
+	y, e2 := decode(b)
+	return e1 == nil && e2 == nil && reflect.DeepEqual(x, y)
 }
 func (d *HostDriver) Fence(ctx context.Context, r Request) error {
 	if specialized(r.Protocol) {
@@ -406,6 +469,9 @@ func (d *HostDriver) Mappings() (map[string]*Mapping, error) {
 }
 
 func (d *HostDriver) plan(ctx context.Context, raw []byte, r Request, owned *Mapping) (ComposePlan, error) {
+	if r.Protocol == "resources" {
+		return planResources(raw, r)
+	}
 	if r.Protocol == "mp4" {
 		return planMP4(raw, r)
 	}

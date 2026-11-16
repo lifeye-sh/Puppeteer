@@ -9,6 +9,7 @@ test('dependencies remain separate from business policy and host deployment',()=
 });
 test('existing section links resolve to their new canonical routes',()=>{
  assert.equal(settingsDestination('mail'),'/integration-settings?section=mail');
+ assert.equal(settingsDestination('resourceBudget'),'/deployment-settings?section=resourceBudget');
  assert.equal(settingsDestination('drive'),'/deployment-settings?section=drive');
  assert.equal(settingsDestination('components'),'/deployment-settings?section=components');
  assert.equal(settingsDestination('listeners'),'/deployment-settings?section=listeners');

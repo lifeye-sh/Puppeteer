@@ -108,6 +108,33 @@ func Handler(lifetime context.Context, e *Engine, token string) (http.Handler, e
 	}
 	mux.HandleFunc("POST /v1/tasks", submit)
 	mux.HandleFunc("POST /v1/preflight", submit)
+	for _, operation := range []string{"wake", "touch"} {
+		mux.HandleFunc("POST /v1/renderer/"+operation, func(w http.ResponseWriter, r *http.Request) {
+			driver, ok := e.driver.(interface {
+				RendererWake(context.Context) error
+				RendererTouch(context.Context) error
+			})
+			if !ok {
+				respond(w, 501, map[string]string{"error": "executor_upgrade_required"})
+				return
+			}
+			err := e.Maintain(r.Context(), func(ctx context.Context) error {
+				if operation == "wake" {
+					return driver.RendererWake(ctx)
+				}
+				return driver.RendererTouch(ctx)
+			})
+			if err != nil {
+				status := 503
+				if errors.Is(err, ErrBusy) {
+					status = 409
+				}
+				respond(w, status, map[string]string{"error": err.Error()})
+				return
+			}
+			respond(w, 200, map[string]bool{"ready": true})
+		})
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" && strings.HasPrefix(r.URL.Path, "/deployment-progress/") {
 			task := e.Find(strings.TrimPrefix(r.URL.Path, "/deployment-progress/"))

@@ -122,6 +122,7 @@ func (a *App) routesR10Tasks(h func(string, func(http.ResponseWriter, *http.Requ
 		if e != nil {
 			return e
 		}
+		notifyWork(a.taskWake)
 		writeJSON(w, 200, map[string]string{"id": id})
 		return nil
 	}
@@ -189,6 +190,7 @@ func (a *App) routesR10Tasks(h func(string, func(http.ResponseWriter, *http.Requ
 		if e != nil {
 			return e
 		}
+		notifyWork(a.taskWake)
 		writeJSON(w, 200, map[string]string{"id": id})
 		return nil
 	})

@@ -59,7 +59,7 @@ func (r *BatchReader) Read() ([][]string, error) {
 		return nil, first.err
 	}
 	batch := [][]string{first.parts}
-	size := len(Encode(first.parts...))
+	size := EncodedLen(first.parts...)
 	if first.parts[0] == "sync" || size >= 64*1024 {
 		return batch, nil
 	}
@@ -75,7 +75,7 @@ func (r *BatchReader) Read() ([][]string, error) {
 				r.pending = &next
 				return batch, nil
 			}
-			n := len(Encode(next.parts...))
+			n := EncodedLen(next.parts...)
 			if size+n > 64*1024 {
 				r.pending = &next
 				return batch, nil

@@ -6,16 +6,22 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"os"
 	"puppeteer/backend/internal/modules/identity"
 	"puppeteer/backend/internal/modules/system"
 	"puppeteer/backend/internal/platform/deployment"
 	"puppeteer/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/resourcebudget"
 	"puppeteer/backend/internal/platform/runtimeprofile"
 	"puppeteer/backend/migrations"
-	"os"
 )
 
 func Open(ctx context.Context) (*pgxpool.Pool, error) {
+	if name := os.Getenv("NT_RESOURCE_PROFILE"); name != "" {
+		if _, err := resourcebudget.Lookup(name); err != nil {
+			return nil, err
+		}
+	}
 	if e := deployment.LoadSecrets(); e != nil {
 		return nil, e
 	}
@@ -38,8 +44,12 @@ func Open(ctx context.Context) (*pgxpool.Pool, error) {
 	if e != nil {
 		return nil, errors.New("invalid database configuration")
 	}
-	c.MaxConns = 10
-	c.MinConns = 1
+	budget, e := resourcebudget.Database(os.Getenv("NT_RESOURCE_PROFILE"))
+	if e != nil {
+		return nil, e
+	}
+	c.MaxConns = budget.PoolMax
+	c.MinConns = budget.PoolMin
 	c.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
 		_, e := conn.Exec(ctx, `SELECT pg_advisory_lock_shared(110031)`)
 		return e

@@ -5,7 +5,7 @@ import { Strategy } from "@/api/strategy-api";
 import PromptModal from "@/components/PromptModal";
 import { useLicense } from "@/hook/LicenseContext";
 import { cn } from "@/lib/utils";
-import FileEditor from "@/pages/access/FileEditor";
+const FileEditor = React.lazy(() => import("@/pages/access/FileEditor"));
 import { useFileEditor } from "@/pages/access/hooks/use-file-editor";
 import UploadTaskDrawer from "@/pages/access/upload/UploadTaskDrawer";
 import {useUploadManager} from "@/pages/access/upload/UploadManagerProvider";
@@ -1174,7 +1174,7 @@ const FileSystemPage = forwardRef<FileSystem, Props>(({
                     />
                 )}
 
-                <FileEditor
+                {fileEditor.isOpen && <React.Suspense fallback={<Modal open footer={null} onCancel={fileEditor.closeEditor}>正在加载编辑器…</Modal>}><FileEditor
                     fsId={fsId}
                     open={fileEditor.isOpen}
                     onClose={fileEditor.closeEditor}
@@ -1185,7 +1185,7 @@ const FileSystemPage = forwardRef<FileSystem, Props>(({
                     onFileSaved={fileEditor.markFileSaved}
                     onCloseFile={fileEditor.closeFile}
                     onRefreshFile={fileEditor.refreshFile}
-                />
+                /></React.Suspense>}
             </Drawer>
         </div>
     );

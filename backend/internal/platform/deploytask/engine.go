@@ -19,19 +19,22 @@ var ErrJournal = errors.New("deployment journal unavailable; restore storage and
 var ErrConflict = errors.New("deployment generation changed; preflight again")
 
 type Request struct {
-	AllowCIDRs  string `json:"allowCidrs,omitempty"`
-	AdminIP     string `json:"adminIp,omitempty"`
-	Repository  string `json:"repository,omitempty"`
-	TrustRoot   string `json:"trustRoot,omitempty"`
-	SiteID      string `json:"siteId,omitempty"`
-	SiteVersion int64  `json:"siteVersion,omitempty"`
-	SiteEnabled bool   `json:"siteEnabled,omitempty"`
-	Actor       string `json:"actor,omitempty"`
-	Protocol    string `json:"protocol"`
-	Enabled     bool   `json:"enabled"`
-	Bind        string `json:"bind"`
-	Port        int    `json:"port"`
-	Generation  uint64 `json:"generation"`
+	RendererMode    string `json:"rendererMode,omitempty"`
+	RendererQuality string `json:"rendererQuality,omitempty"`
+	ResourceProfile string `json:"resourceProfile,omitempty"`
+	AllowCIDRs      string `json:"allowCidrs,omitempty"`
+	AdminIP         string `json:"adminIp,omitempty"`
+	Repository      string `json:"repository,omitempty"`
+	TrustRoot       string `json:"trustRoot,omitempty"`
+	SiteID          string `json:"siteId,omitempty"`
+	SiteVersion     int64  `json:"siteVersion,omitempty"`
+	SiteEnabled     bool   `json:"siteEnabled,omitempty"`
+	Actor           string `json:"actor,omitempty"`
+	Protocol        string `json:"protocol"`
+	Enabled         bool   `json:"enabled"`
+	Bind            string `json:"bind"`
+	Port            int    `json:"port"`
+	Generation      uint64 `json:"generation"`
 }
 type Task struct {
 	ProgressToken string    `json:"progressToken,omitempty"`

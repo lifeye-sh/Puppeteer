@@ -1,3 +1,4 @@
+import {graphicsQualities, graphicsSize, type GraphicsQuality} from './graphics-quality';
 import useAccessMFA from './useAccessMFA';
 import {coalesceMouse} from './graphics-mouse';
 import SessionWatermark from '@/pages/access/SessionWatermark';
@@ -12,6 +13,9 @@ const encode=(parts:unknown[])=>parts.map(p=>{const s=String(p);return `${Array.
 const b64=(s:string)=>btoa(Array.from(new TextEncoder().encode(s),c=>String.fromCharCode(c)).join(''));
 export default function BackendGraphicsSession({assetId,asset,connectRequest,onStatus}:{assetId:string;asset?:TerminalAsset;connectRequest:number;onStatus:(id:string,state:string)=>void}){
  const accessMFA=useAccessMFA();
+ const [quality,setQuality]=useState<GraphicsQuality>('balanced');
+ const [activeQuality,setActiveQuality]=useState<GraphicsQuality>('balanced');
+ const [stages,setStages]=useState<{stage:string;label:string;status:string;elapsedMs:number}[]>([]);
  const [watermark,setWatermark]=useState<WatermarkConfig>();
  const container=useRef<HTMLDivElement>(null),close=useRef<()=>void>(()=>{}),generation=useRef(0);
  const clipboardSend=useRef<(text:string)=>boolean>(()=>false),keySend=useRef<(keys:number[])=>void>(()=>{});
@@ -22,7 +26,7 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
  useEffect(()=>onStatus(assetId,state),[assetId,state,onStatus]);
  useEffect(()=>()=>{generation.current++;close.current()},[]);
  const connect=async()=>{
-  const attempt=++generation.current;close.current();setBusy(true);setError('');setState('连接中');
+  const attempt=++generation.current;close.current();setBusy(true);setError('');setStages([]);setActiveQuality(quality);setState('连接中');
   try{
    await accessMFA.verify();
  if(attempt!==generation.current)return;
@@ -32,13 +36,14 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
    const tunnel=new Guacamole.Tunnel(),client=new Guacamole.Client(tunnel),parser=new Guacamole.Parser();
    let socket:WebSocket|undefined,heartbeat:ReturnType<typeof setInterval>|undefined,ready=false,disposed=false,rawTransport=false;
    let resizeRemote=()=>{},flushMouse=()=>{};
-   parser.oninstruction=(opcode:string,params:string[])=>{tunnel.oninstruction?.(opcode,params);if(opcode==='sync')resizeRemote()};
+   parser.oninstruction=(opcode:string,params:string[])=>{tunnel.oninstruction?.(opcode,params);if(opcode==='sync'){setBusy(false);setState('已连接');resizeRemote()}};
    tunnel.connect=()=>{
-    socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/api/sessions/${reservation.id}/ws?graphicsTransport=raw`);
+    socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/api/sessions/${reservation.id}/ws?graphicsTransport=raw&graphicsDiagnostics=1${asset?.protocol==='rdp'?`&graphicsQuality=${quality}`:''}`);
     socket.onopen=()=>{socket?.send('3'+reservation.ticket);reservation.ticket='';heartbeat=setInterval(()=>{if(socket?.readyState===WebSocket.OPEN)socket.send('9'+Date.now())},5000)};
     socket.onmessage=event=>{
      if(disposed||attempt!==generation.current)return;const data=String(event.data);
-     if(data[0]==='3'){ready=true;tunnel.setState(Guacamole.Tunnel.State.OPEN);setBusy(false);setState('已连接')}
+     if(data[0]==='3'){ready=true;tunnel.setState(Guacamole.Tunnel.State.OPEN);setState('等待桌面')}
+     else if(data[0]==='P'){try{const step=JSON.parse(data.slice(1));if(typeof step.stage==='string'&&typeof step.label==='string'&&typeof step.status==='string'&&typeof step.elapsedMs==='number')setStages(prev=>[...prev.filter(p=>p.stage!==step.stage),step])}catch{}}
      else if(data[0]==='G'){rawTransport=true;try{parser.receive(data.slice(1))}catch{setError('图形数据解析失败');close.current()}}
      else if(data[0]==='7'){try{parser.receive(new TextDecoder().decode(Uint8Array.from(atob(data.slice(1)),c=>c.charCodeAt(0))))}catch{setError('图形数据解析失败');close.current()}}
      else if(data[0]==='8'){try{const text=new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(atob(data.slice(1)),c=>c.charCodeAt(0)));setRemoteClipboard(v=>({text,sequence:v.sequence+1}))}catch{setError('剪贴板文本格式无效')}}
@@ -56,7 +61,7 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
    // Hidden tabs have zero size; retain their scale until they become visible again.
    const fit=()=>{const w=viewport.clientWidth,h=viewport.clientHeight,dw=display.getWidth(),dh=display.getHeight();if(!disposed&&w>0&&h>0&&dw>0&&dh>0)display.scale(Math.min(w/dw,h/dh))};
    let resizeTimer:ReturnType<typeof setTimeout>|undefined,lastSize='',lastResizeAt=0,resizeAttempts=0;
-   resizeRemote=()=>{if(disposed||!ready||readonly||asset?.protocol!=='rdp')return;const w=Math.min(3840,Math.floor(viewport.clientWidth/4)*4),h=Math.min(2160,Math.floor(viewport.clientHeight/2)*2);if(w<200||h<200)return;const key=`${w}x${h}`;if(key===lastSize){if(Math.abs(display.getWidth()-w)<4&&Math.abs(display.getHeight()-h)<2)return;if(Date.now()-lastResizeAt<2000||resizeAttempts>=5)return}else resizeAttempts=0;lastSize=key;lastResizeAt=Date.now();resizeAttempts++;clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!disposed&&ready&&viewport.clientWidth>0&&viewport.clientHeight>0)client.sendSize(w,h);else lastSize=''},250)};
+   resizeRemote=()=>{if(disposed||!ready||readonly||asset?.protocol!=='rdp')return;const {width:w,height:h}=graphicsSize(quality,viewport.clientWidth,viewport.clientHeight);if(w<200||h<200)return;const key=`${w}x${h}`;if(key===lastSize){if(Math.abs(display.getWidth()-w)<4&&Math.abs(display.getHeight()-h)<2)return;if(Date.now()-lastResizeAt<2000||resizeAttempts>=5)return}else resizeAttempts=0;lastSize=key;lastResizeAt=Date.now();resizeAttempts++;clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!disposed&&ready&&viewport.clientWidth>0&&viewport.clientHeight>0)client.sendSize(w,h);else lastSize=''},250)};
    const resizeObserver=new ResizeObserver(()=>{fit();resizeRemote()});resizeObserver.observe(viewport);display.onresize=fit;fit();
    const keyboard=new Guacamole.Keyboard(element),mouse=new Guacamole.Mouse(element);
    keyboard.onkeydown=(keysym:number)=>{if(!readonly&&ready)client.sendKeyEvent(1,keysym);return false};
@@ -85,6 +90,12 @@ export default function BackendGraphicsSession({assetId,asset,connectRequest,onS
  return <div style={{height:'100%',minHeight:0,minWidth:0,display:'flex',flexDirection:'column',background:'#1e1e1e',color:'#ddd'}}>
  {accessMFA.dialog}
 
+  {asset?.protocol==='rdp'&&<div style={{padding:'6px 12px',display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+   <label>画质 <select aria-label="远程桌面画质" value={quality} disabled={busy} onChange={e=>setQuality(e.target.value as GraphicsQuality)} style={{color:'#222'}}>{Object.entries(graphicsQualities).map(([key,q])=><option key={key} value={key}>{q.label}</option>)}</select></label>
+   <span>{graphicsQualities[quality].detail}；重连生效</span>
+   <button disabled={busy} onClick={()=>void connect()} style={{color:'#222'}}>重连{quality!==activeQuality?'应用画质':''}</button>
+  </div>}
+  <details style={{padding:'4px 12px'}}><summary aria-live="polite">{state} · 连接诊断</summary>{stages.map(s=><div key={s.stage}>{s.label}：{s.status==='running'?'进行中':s.status==='timeout'?'超时':s.status==='failed'?'失败':'完成'}{s.status!=='running'&&`（${s.elapsedMs} ms）`}</div>)}<div>协议协商完成后仍需等待远端认证和首帧；失败请结合访问记录与图形服务日志检查。</div></details>
   {error&&<div role="alert" style={{padding:12,color:'#ff9b9b'}}>{error}</div>}
   <div aria-label="远程桌面" style={{position:'relative',isolation:'isolate',flex:1,overflow:'hidden',minHeight:0,minWidth:0}}><div ref={container} style={{position:'absolute',inset:0,overflow:'hidden'}}/><SessionWatermark watermark={watermark} zIndex={2}/>{asset?.protocol==='rdp'&&<BackendRDPToolbox sessionId={sessionId} connected={state==='已连接'} readonly={readonly} remoteClipboard={remoteClipboard} clipboardError={clipboardError} onPaste={text=>clipboardSend.current(text)} onKeys={keys=>keySend.current(keys)}/>}</div>
  </div>;

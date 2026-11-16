@@ -1,8 +1,10 @@
 # 一条命令安装 Puppeteer
 
+> 开发分支新增资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。公开默认镜像仍为 rc13；新功能需要同批构建的服务端、前端、渲染器及执行器，不能仅更新网页后使用旧镜像。
+
 适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL、Python 3、flock、systemd；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
 
-当前安装脚本固定 server、web、graphics 和 renderer 为 `r17-rc13` 的发布摘要（schema 110、能力版本 90），包含自动部署执行器。见[镜像说明](../deploy/production/r17-rc13.md)。已有安装请使用本文的升级入口，不要重复运行安装器。
+当前安装脚本固定 server、web、graphics 和 renderer 为 `beta0.9` 的发布摘要（schema 110、能力版本 90），包含自动部署执行器。见[镜像说明](../deploy/production/beta0.9.md)。已有安装请使用本文的升级入口，不要重复运行安装器。
 
 本安装器不支持Snap封装的Docker。其文件访问和容器选项限制可能导致宿主机存在的`/opt/puppeteer/config/production.env`被Compose报告为不存在。安装器会提前拒绝此环境；不要通过删除安装目录、放宽密钥权限或关闭容器安全选项解决。Snap与普通Docker Engine可能管理不同的数据目录，已有容器时需先核对现有工作负载再安排切换。限制依据见[Canonical Docker Snap说明](https://github.com/canonical/docker-snap)。
 
@@ -104,7 +106,7 @@ sudo bash upgrade-puppeteer.sh --check
 sudo bash upgrade-puppeteer.sh
 ```
 
-自定义目录时，两条命令都添加 `--dir /实际安装目录`。升级额外需要 Python 3 和 flock；默认目标是 `r17-rc13`。脚本先拉取固定摘要镜像，再暂停应用服务并备份配置、数据库和应用数据，更新后检查健康。已有连接会中断，须安排维护时段并预留备份空间。密钥、证书、组件停用状态和数据卷保留；官方图形/MP4镜像同步更新，自定义镜像保留并提示兼容性检查；普通升级不会自动开放数据库代理端口；需要时使用下方 `--enable-database-proxy`。完整适用范围和失败恢复见[版本升级说明](UPGRADE.md)。
+自定义目录时，两条命令都添加 `--dir /实际安装目录`。升级额外需要 Python 3 和 flock；默认目标是 `beta0.9`。脚本先拉取固定摘要镜像，再暂停应用服务并备份配置、数据库和应用数据，更新后检查健康。已有连接会中断，须安排维护时段并预留备份空间。密钥、证书、组件停用状态和数据卷保留；官方图形/MP4镜像同步更新，自定义镜像保留并提示兼容性检查；普通升级不会自动开放数据库代理端口；需要时使用下方 `--enable-database-proxy`。完整适用范围和失败恢复见[版本升级说明](UPGRADE.md)。
 
 ## 数据库代理配置
 

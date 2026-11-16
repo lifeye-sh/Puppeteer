@@ -14,6 +14,21 @@ func ContainerPort(protocol string) (int, bool) {
 	return port, ok
 }
 func Validate(r Request) error {
+	if r.Protocol != "mp4" && (r.RendererMode != "" || r.RendererQuality != "") {
+		return errors.New("renderer options are only accepted by MP4 deployment")
+	}
+	if r.RendererMode != "" && r.RendererMode != "always" && r.RendererMode != "on-demand" {
+		return errors.New("MP4 运行模式必须为常驻或按需")
+	}
+	if r.RendererQuality != "" && r.RendererQuality != "economy" && r.RendererQuality != "balanced" && r.RendererQuality != "sharp" {
+		return errors.New("MP4 质量必须为经济、标准或清晰")
+	}
+	if r.Protocol == "resources" {
+		return validateResourceRequest(r)
+	}
+	if r.ResourceProfile != "" {
+		return errors.New("resource profile is only accepted by resource deployment")
+	}
 	if specialized(r.Protocol) {
 		return validateSpecialized(r)
 	}

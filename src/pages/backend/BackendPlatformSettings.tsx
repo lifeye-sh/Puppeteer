@@ -49,6 +49,7 @@ export default function BackendPlatformSettings({category}:{category?:SettingsCa
   {key:'components',label:'图形组件',note:'RDP / VNC 服务部署',icon:<CloudSyncOutlined/>,show:account.type==='admin'&&!!account.actions?.includes('identity.manage'),children:<BackendDeployment key="components" mode="components"/>},
   {key:'drive',label:'RDP 共享盘',note:'挂载、权限与 MyZone',icon:<CloudSyncOutlined/>,show:account.type==='admin'&&!!account.actions?.includes('identity.manage'),children:<BackendDeployment key="drive" mode="drive"/>},
   {key:'mp4',label:'MP4 渲染',note:'转换服务与任务队列',icon:<CloudSyncOutlined/>,show:account.type==='admin'&&!!account.actions?.includes('identity.manage'),children:<BackendDeployment key="mp4" mode="mp4"/>},
+  {key:'resourceBudget',label:'资源档位',note:'内存、磁盘与重任务并发',icon:<CloudSyncOutlined/>,show:account.type==='admin'&&!!account.actions?.includes('identity.manage'),children:<BackendDeployment key="resources" mode="resources"/>},
   ...(['agent-repository','wal','web-access'] as const).map(kind=>({key:kind,label:({'agent-repository':'Agent 更新仓库',wal:'WAL / PITR','web-access':'网页入口限制'})[kind],note:'专项预检、部署与恢复',icon:<CloudSyncOutlined/>,show:account.type==='admin'&&!!account.actions?.includes('identity.manage'),children:<BackendOperations key={kind} kind={kind}/>})),
   {key:'branding',label:'品牌设置',note:'名称、Logo 与页脚',icon:<AppstoreOutlined/>,show:revisions,children:<BackendConfiguration section="branding"/>},
   {key:'login',label:'登录安全',note:'会话与失败保护',icon:<SafetyOutlined/>,show:revisions,children:<BackendConfiguration section="login"/>},

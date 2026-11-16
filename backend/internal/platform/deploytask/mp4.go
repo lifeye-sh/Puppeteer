@@ -116,10 +116,21 @@ func planMP4(raw []byte, r Request) (ComposePlan, error) {
 	if json.Unmarshal(doc["secrets"], &secrets) != nil || secrets["mp4_token"].File == "" || secrets["mp4_token"].External {
 		return ComposePlan{}, errors.New("MP4 通信密钥必须来自本地文件 secret")
 	}
-	for _, key := range []string{"ports", "devices", "volumes", "cap_add"} {
+	for _, key := range []string{"ports", "devices", "cap_add"} {
 		var values []json.RawMessage
 		if c[key] != nil && (json.Unmarshal(c[key], &values) != nil || len(values) > 0) {
 			return ComposePlan{}, errors.New("MP4 渲染器不支持宿主端口、设备、额外挂载或附加 capabilities")
+		}
+	}
+	diskScratch := ce["NT_MP4_SCRATCH_DIRECTORY"] != "" || ce["NT_MP4_SCRATCH_QUOTA_MIB"] != ""
+	if diskScratch {
+		if !validScratch(doc, c, ce) {
+			return ComposePlan{}, errors.New("MP4 磁盘临时目录必须使用本项目独占的 mp4scratch 卷及有效配额")
+		}
+	} else {
+		var volumes []json.RawMessage
+		if c["volumes"] != nil && (json.Unmarshal(c["volumes"], &volumes) != nil || len(volumes) > 0) {
+			return ComposePlan{}, errors.New("MP4 不接受非受管的临时卷")
 		}
 	}
 	for _, key := range []string{"privileged", "pid", "ipc", "command", "entrypoint"} {
@@ -142,7 +153,11 @@ func planMP4(raw []byte, r Request) (ComposePlan, error) {
 		Test    []string
 		Disable bool
 	}
-	if json.Unmarshal(c["read_only"], &ro) != nil || !ro || json.Unmarshal(c["cap_drop"], &caps) != nil || len(caps) != 1 || strings.ToUpper(caps[0]) != "ALL" || json.Unmarshal(c["security_opt"], &security) != nil || len(security) != 1 || security[0] != "no-new-privileges:true" && security[0] != "no-new-privileges" || json.Unmarshal(c["tmpfs"], &tmpfs) != nil || len(tmpfs) != 1 || tmpfs[0] != "/tmp:rw,size=768m,mode=1777" || memory < 512<<20 || memory > 4<<30 || json.Unmarshal(c["cpus"], &cpus) != nil || cpus <= 0 || cpus > 4 || json.Unmarshal(c["pids_limit"], &pids) != nil || pids < 64 || pids > 512 || json.Unmarshal(c["healthcheck"], &health) != nil || health.Disable || len(health.Test) < 2 || health.Test[0] == "NONE" {
+	expectedTmpfs := "/tmp:rw,size=768m,mode=1777"
+	if diskScratch {
+		expectedTmpfs = "/tmp:rw,size=128m,mode=1777"
+	}
+	if json.Unmarshal(c["read_only"], &ro) != nil || !ro || json.Unmarshal(c["cap_drop"], &caps) != nil || len(caps) != 1 || strings.ToUpper(caps[0]) != "ALL" || json.Unmarshal(c["security_opt"], &security) != nil || len(security) != 1 || security[0] != "no-new-privileges:true" && security[0] != "no-new-privileges" || json.Unmarshal(c["tmpfs"], &tmpfs) != nil || len(tmpfs) != 1 || tmpfs[0] != expectedTmpfs || memory < 512<<20 || memory > 4<<30 || json.Unmarshal(c["cpus"], &cpus) != nil || cpus <= 0 || cpus > 4 || json.Unmarshal(c["pids_limit"], &pids) != nil || pids < 64 || pids > 512 || json.Unmarshal(c["healthcheck"], &health) != nil || health.Disable || len(health.Test) < 2 || health.Test[0] == "NONE" {
 		return ComposePlan{}, errors.New("MP4 资源与隔离要求不满足：只读文件系统、ALL 权限移除、no-new-privileges、768 MiB 临时目录、512 MiB–4 GiB 内存、至多 4 CPU、64–512 PID 及健康检查")
 	}
 	for name, svc := range m.Services {
@@ -168,6 +183,24 @@ func planMP4(raw []byte, r Request) (ComposePlan, error) {
 		env["NT_MP4_URL"] = ""
 	}
 	env["NT_DEPLOY_MANAGED_MP4"] = map[bool]string{true: "true", false: "false"}[r.Enabled]
+	if r.RendererMode != "" {
+		env["NT_MP4_ON_DEMAND"] = strconv.FormatBool(r.RendererMode == "on-demand")
+		c["restart"], _ = json.Marshal(map[bool]string{true: "no", false: "unless-stopped"}[r.RendererMode == "on-demand"])
+	}
+	if r.RendererQuality != "" {
+		ce["NT_MP4_QUALITY"] = r.RendererQuality
+	}
+	if env["NT_MP4_ON_DEMAND"] != "" && env["NT_MP4_ON_DEMAND"] != "true" && env["NT_MP4_ON_DEMAND"] != "false" {
+		return ComposePlan{}, errors.New("MP4 按需运行配置无效")
+	}
+	var restart string
+	if env["NT_MP4_ON_DEMAND"] == "true" && (json.Unmarshal(c["restart"], &restart) != nil || restart != "no") {
+		return ComposePlan{}, errors.New("按需渲染器必须关闭 Docker 自动重启策略，请重新应用运行方式")
+	}
+	if ce["NT_MP4_QUALITY"] != "" && ce["NT_MP4_QUALITY"] != "economy" && ce["NT_MP4_QUALITY"] != "balanced" && ce["NT_MP4_QUALITY"] != "sharp" {
+		return ComposePlan{}, errors.New("渲染器质量配置无效")
+	}
+	c["environment"], _ = json.Marshal(ce)
 	s["environment"], _ = json.Marshal(env)
 	doc["services"], _ = json.Marshal(m.Services)
 	out, err := json.Marshal(doc)
@@ -257,6 +290,7 @@ func (e ComposeExecutor) verifyMP4(ctx context.Context, enabled bool) error {
 
 func (d *HostDriver) withMP4Component(ctx context.Context, raw []byte, result map[string]ComponentStatus) map[string]ComponentStatus {
 	c := ComponentStatus{Enabled: mp4Enabled(raw), State: "unknown", ObservedAt: time.Now().UTC()}
+	c.Mode, c.Quality = rendererSettings(raw)
 	if _, err := planMP4(raw, Request{Protocol: "mp4", Enabled: c.Enabled}); err != nil {
 		c.Reason = err.Error()
 	} else {
@@ -276,6 +310,9 @@ func (d *HostDriver) withMP4Component(ctx context.Context, raw []byte, result ma
 							c.State, c.Reason = "running", "MP4 渲染器容器健康"
 						}
 					}
+					if s.State == "exited" && s.ExitCode != 0 {
+						c.State, c.Reason = "failed", "MP4 渲染器异常退出；请检查容器日志与资源限制"
+					}
 					for _, p := range s.Publishers {
 						if p.PublishedPort != 0 {
 							c.State, c.Reason = "failed", "MP4 组件存在宿主端口"
@@ -283,6 +320,15 @@ func (d *HostDriver) withMP4Component(ctx context.Context, raw []byte, result ma
 					}
 				}
 			}
+		}
+	}
+	if c.Enabled && c.Mode == "on-demand" && c.State == "stopped" {
+		c.State = "standby"
+		c.Reason = "按需待机；收到转换任务后只唤醒渲染器，应用与网页保持运行"
+	}
+	if c.Enabled && c.Mode == "on-demand" {
+		if message := d.rendererMaintenanceError.Load(); message != nil {
+			c.Reason += "；自动休眠未完成，将重试：" + *message
 		}
 	}
 	result["mp4"] = c

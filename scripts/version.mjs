@@ -1,13 +1,14 @@
+import {releaseVersionPattern,compareReleaseVersions} from './release-version.mjs';
 import {readFile,writeFile,readdir,access} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const args=process.argv.slice(2);
-if(args.length && !(args.length===1&&args[0]==='--check') && !(args.length===2&&args[0]==='--set'))throw Error('Usage: node scripts/version.mjs [--check | --set r17-rcN]');
+if(args.length && !(args.length===1&&args[0]==='--check') && !(args.length===2&&args[0]==='--set'))throw Error('Usage: node scripts/version.mjs [--check | --set beta0.9]');
 const old=(await readFile(resolve(root,'VERSION'),'utf8')).trim();
 const version=args[0]==='--set'?args[1]:old;
-if(!/^r17-rc[1-9]\d*$/.test(version))throw Error('Expected an explicit r17-rcN source version');
+if(!releaseVersionPattern.test(version))throw Error('Expected an explicit betaMAJOR.MINOR or r17-rcN version');
 const metaPath=resolve(root,'backend/internal/platform/buildmeta/version.go');
 const meta=await readFile(metaPath,'utf8');
 const schemaVersion=Math.max(...(await readdir(resolve(root,'backend/migrations'))).filter(n=>/^\d+_.+\.sql$/.test(n)).map(n=>Number(n.split('_')[0])));
@@ -17,11 +18,11 @@ const notes=`deploy/production/${version}.md`;
 await access(resolve(root,notes));
 const releases=[];
 for(const name of await readdir(resolve(root,'deploy/production'))){
- if(!/^dockerhub-r17-rc\d+\.json$/.test(name))continue;
+ if(!name.startsWith('dockerhub-')||!name.endsWith('.json')||!releaseVersionPattern.test(name.slice(10,-5)))continue;
  const release=JSON.parse(await readFile(resolve(root,'deploy/production',name),'utf8'));
  if(release.product==='Puppeteer'&&release.version&&release.images?.length)releases.push(release);
 }
-releases.sort((a,b)=>Number(b.version.split('rc')[1])-Number(a.version.split('rc')[1]));
+releases.sort((a,b)=>compareReleaseVersions(b.version,a.version));
 const published=releases.find(r=>r.version===version);
 if(published){
  if(published.schemaVersion!==schemaVersion||published.platform!=='linux/amd64')throw Error('Published image/schema metadata differs');
@@ -33,7 +34,7 @@ if(published){
  }
  if(components.size!==4)throw Error('All four published components are required');
 }
-const manifest={product:'Puppeteer',version,channel:published?'release-candidate':'source-candidate',platform:'linux/amd64',schemaVersion,capabilitiesRevision,containerImagesPublished:Boolean(published),publishedImageVersion:releases[0]?.version??null,releaseNotes:notes};
+const manifest={product:'Puppeteer',version,channel:published?(version.startsWith('beta')?'beta':'release-candidate'):'source-candidate',platform:'linux/amd64',schemaVersion,capabilitiesRevision,containerImagesPublished:Boolean(published),publishedImageVersion:releases[0]?.version??null,releaseNotes:notes};
 const manifestPath=resolve(root,'deploy/production/source-release.json');
 if(args[0]==='--set'){
  await writeFile(resolve(root,'VERSION'),version+'\n');

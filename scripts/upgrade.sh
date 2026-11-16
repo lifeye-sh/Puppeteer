@@ -3,14 +3,14 @@
 set -Eeuo pipefail
 umask 077
 install_dir=/opt/puppeteer
-version=r17-rc13
+version=beta0.9
 check_only=0
 enable_database_proxy=0
 database_host=
 database_bind=127.0.0.1
 help() {
   cat <<'HELP'
-Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version r17-rc13] [--check]
+Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version beta0.9] [--check]
   --check    Validate deployment and release; do not pull, stop or update services.
   --enable-database-proxy     Add missing MySQL/PostgreSQL listeners and mappings
   --database-proxy-host HOST  Certificate hostname (default: host from HTTPS origin)
@@ -35,7 +35,7 @@ while (($#)); do
 done
 [[ $(uname -s) == Linux && $(uname -m) == x86_64 ]] || die 'Linux amd64 is required'
 [[ $EUID == 0 ]] || die 'Run with sudo or as root'
-[[ $version =~ ^r17-rc[0-9]+$ ]] || die 'Version must be an explicit r17-rcN tag'
+[[ $version =~ ^(r17-rc[1-9][0-9]*|beta(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$ ]] || die 'Version must be an explicit betaMAJOR.MINOR or r17-rcN tag'
 [[ $install_dir == /* && $install_dir != / && -d $install_dir ]] || die 'Existing absolute installation directory required'
 for cmd in docker curl python3 tar flock realpath mktemp grep sha256sum systemctl; do command -v "$cmd" >/dev/null || die "Missing command: $cmd"; done
 install_dir=$(realpath -e "$install_dir")
@@ -112,7 +112,7 @@ PY
 # Resolved managed Compose does not use env-file interpolation. Apply published
 # component images to standard recipes, including disabled shared-drive recipes.
 cat > "$work/update-images.py" <<'PYIMAGES'
-import json, pathlib, re
+import json, pathlib, re, subprocess
 def update_images(model, manifest):
     for component, service in [('server','server'),('web','web'),('graphics','guacd'),('renderer','mp4-renderer')]:
         ref = manifest.get(component)
@@ -125,6 +125,28 @@ def update_images(model, manifest):
             if component in ('server','web') or re.match(r'(?:cloners/puppeteer-'+component+r'|puppeteer/'+component+r')[:@]', old):
                 item['image'] = ref
     return model
+
+def validate_resource_images(model):
+    services = model.get('services', {})
+    env = services.get('server', {}).get('environment', {})
+    ce = services.get('mp4-renderer', {}).get('environment', {})
+    required = []
+    if model.get("x-puppeteer-database-budget") == 1:
+        required += [("server", "io.puppeteer.database.budget")]
+    if env.get('NT_RESOURCE_PROFILE'):
+        required += [('server', 'io.puppeteer.resources'), ('mp4-renderer', 'io.puppeteer.renderer.streaming')]
+    if env.get('NT_MP4_ON_DEMAND') == 'true':
+        required += [('server', 'io.puppeteer.mp4.ondemand')]
+    if env.get('NT_MP4_ON_DEMAND') == 'true' or ce.get('NT_MP4_QUALITY'):
+        required += [('mp4-renderer', 'io.puppeteer.renderer.lifecycle')]
+    for service, label in required:
+        if service not in services:
+            raise ValueError('Missing '+service+'; upgrade stopped before downtime')
+        ref = services[service].get('image', '')
+        result = subprocess.run(['docker', 'image', 'inspect', ref, '--format', '{{json .Config.Labels}}'], capture_output=True, text=True)
+        if result.returncode or (json.loads(result.stdout or '{}') or {}).get(label) != 'v1':
+            raise ValueError('Runtime configuration requires compatible '+service+' image; upgrade stopped before downtime')
+
 PYIMAGES
 mapfile -t images < "$work/images"
 mapfile -t running < <("$ctl" ps --status running --services)
@@ -197,7 +219,7 @@ fi
 # Validate candidate settings using the original wrapper, preserving all overrides.
 PUPPETEER_SERVER_IMAGE="${images[0]}" PUPPETEER_WEB_IMAGE="${images[1]}" "$candidate_ctl" config --quiet
 printf 'Current schema: %s; target schema: %s\nServer: %s\nWeb: %s\n' "$current_schema" "$(cat "$work/schema")" "${images[0]}" "${images[1]}"
-if ((check_only)); then printf 'Preflight passed. No services or images changed.\n'; exit 0; fi
+if ((check_only)); then printf 'Configuration preflight passed. Image/resource capabilities are checked after pulling, before downtime. No services or images changed.\n'; exit 0; fi
 if [[ -f $install_dir/config/deployd.json ]]; then
   (( ! enable_database_proxy )) || die 'Managed deployments use the proxy deployment page; do not combine with --enable-database-proxy'
   command -v systemctl >/dev/null || die 'systemctl is required for managed deployments'
@@ -207,6 +229,17 @@ if [[ -f $install_dir/config/deployd.json ]]; then
 fi
 printf '[2/6] Pulling pinned images before downtime\n'
 for image in "${images[@]}"; do docker pull "$image"; done
+# Profiles depend on both application admission and renderer scratch support.
+# Refuse incompatible target images while the current deployment is still up.
+"$ctl" config --format json > "$work/resource-source.json"
+python3 - "$work" "$install_dir" <<'PYRESOURCES'
+import json, pathlib, runpy, sys
+w=pathlib.Path(sys.argv[1]); helper=runpy.run_path(str(w/'update-images.py'))
+managed=pathlib.Path(sys.argv[2])/'compose-managed.json'
+model=json.loads((managed if managed.is_file() else w/'resource-source.json').read_text())
+helper['update_images'](model,json.loads((w/'image-map.json').read_text()))
+helper['validate_resource_images'](model)
+PYRESOURCES
 # Schema 110 introduces the canonical application root. Resolve the existing
 # root for backup, and prepare a volume-preserving candidate before downtime.
 appdata_root=$("$ctl" config --format json | python3 -c 'import json,sys,posixpath; m=json.load(sys.stdin); p=m["services"]["server"].get("environment",{}).get("NT_RUNTIME_PROFILE", ""); root=p.removesuffix("/runtime/active.json"); assert p.endswith("/runtime/active.json") and root.startswith("/var/lib/") and root.count("/")==3, "Unknown application data root"; print(root)')

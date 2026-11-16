@@ -6,7 +6,7 @@ export const settingsCategories:Record<SettingsCategory,{label:string;path:strin
  status:{label:'状态与发布',path:'/configuration-status',description:'配置版本、节点反馈与运行能力',notice:'配置应用、依赖就绪和实际服务状态分别判断。能力声明和历史成功记录不能替代当前运行检测。'},
 };
 const sections:Record<string,SettingsCategory>={
- 'agent-repository':'deployment',wal:'deployment','web-access':'deployment',mp4:'deployment',drive:'deployment',components:'deployment',deployment:'deployment',listeners:'deployment',
+ 'agent-repository':'deployment',wal:'deployment','web-access':'deployment',resourceBudget:'deployment',mp4:'deployment',drive:'deployment',components:'deployment',deployment:'deployment',listeners:'deployment',
  mail:'dependencies',oidcProvider:'dependencies',wecomProvider:'dependencies',oauthServer:'dependencies',oauthKeys:'dependencies',passkey:'dependencies',ldap:'dependencies',aiModel:'dependencies',databasePolicy:'dependencies',forward:'dependencies',
  branding:'policies',login:'policies',postgres:'policies',network:'policies',ai:'policies',access:'policies',watermark:'policies',resources:'policies',recording:'policies',retention:'policies',oauthLifetime:'policies',
  operations:'status',license:'status',publish:'status',runtime:'status',

@@ -14,14 +14,22 @@ const remove=async id=>{assert.equal((await request('/jobs/'+id,{method:'DELETE'
 async function wait(id,want){for(let i=0;i<300;i++){const s=await(await request('/jobs/'+id)).json();if(s.state===want)return;if(s.state==='failed'&&want!=='failed')throw Error('conversion failed');await new Promise(r=>setTimeout(r,200));}throw Error('job timeout');}
 try{
  for(let i=0;i<40;i++){try{if((await fetch('http://127.0.0.1:8090/healthz')).ok)break}catch{}await new Promise(r=>setTimeout(r,250));}
+ assert.equal((await fetch('http://127.0.0.1:8090/runtime/admission')).status,401);
+ assert.equal((await request('/runtime/admission')).status,200);
+ for(const action of ['drain','resume'])assert.equal((await fetch('http://127.0.0.1:8090/runtime/'+action,{method:'POST'})).status,401);
  const responses=await Promise.all(Array.from({length:16},()=>request('/jobs',{method:'POST',body:archive(120000)})));
+ assert.equal((await request('/runtime/admission')).status,429);
  assert.equal(responses.filter(r=>r.status===202).length,1);assert.equal(responses.filter(r=>r.status===429).length,15);
- const {id}=await responses.find(r=>r.status===202).json();ids.add(id);await remove(id);
+ const {id}=await responses.find(r=>r.status===202).json();ids.add(id);
+ assert.equal((await(await request('/runtime/drain',{method:'POST'})).json()).drained,false);
+ await remove(id);
  evidence.checks.push('16 concurrent requests: 1 accepted, 15 busy; cancellation releases slot');
  for(let n=0;n<4;n++){const job=await submit(300);await wait(job,'succeeded');}
  assert.equal((await request('/jobs',{method:'POST',body:archive(300)})).status,429);
+ assert.equal((await(await request('/runtime/drain',{method:'POST'})).json()).drained,false);
  for(const job of [...ids])await remove(job);
  evidence.checks.push('four retained results enforce capacity; deletion frees slots');
+ evidence.checks.push('runtime control requires authentication; running and retained jobs reject idle drain');
  const long=await submit(120000);let killed=false;
  for(let n=0;n<100&&!killed;n++){
   for(const pid of (await readdir('/proc')).filter(x=>/^\d+$/.test(x))){
@@ -33,9 +41,11 @@ try{
  evidence.checks.push('killed encoder becomes failed job; cleanup releases capacity');
  const filler=await open('/tmp/r17-disk-fill','wx');
  try{const chunk=Buffer.alloc(1024*1024);while(true)await filler.write(chunk);}catch(e){assert.equal(e.code,'ENOSPC')}finally{await filler.close()}
+ assert.equal((await request('/runtime/admission')).status,507);
  assert.equal((await request('/jobs',{method:'POST',body:archive(300)})).status,507);
  assert.equal((await fetch('http://127.0.0.1:8090/healthz')).status,200);
  await rm('/tmp/r17-disk-fill');
+ assert.equal((await request('/runtime/admission')).status,200);
  const recovered=await submit(300);await wait(recovered,'succeeded');
  const bytes=Buffer.from(await(await request('/jobs/'+recovered+'/result')).arrayBuffer());assert.equal(bytes.toString('ascii',4,8),'ftyp');await remove(recovered);
  evidence.checks.push('full tmpfs returns 507; health remains available; freeing space restores MP4 conversion');

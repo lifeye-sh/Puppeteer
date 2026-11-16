@@ -252,6 +252,9 @@ func parseGraphicsContainers(raw []byte) ([]containerStatus, error) {
 }
 
 type ComponentStatus struct {
+	Mode       string    `json:"mode,omitempty"`
+	Quality    string    `json:"quality,omitempty"`
+	Profile    string    `json:"profile,omitempty"`
 	State      string    `json:"state"`
 	ObservedAt time.Time `json:"observedAt"`
 	Supported  bool      `json:"supported"`
@@ -262,7 +265,7 @@ type ComponentStatus struct {
 func (d *HostDriver) Components(ctx context.Context) map[string]ComponentStatus {
 	result := ComponentStatus{State: "unknown", ObservedAt: time.Now().UTC(), Reason: "组件部署配置不可读取"}
 	if len(d.Executor.Files) != 1 {
-		return d.withMP4Component(ctx, nil, d.withDriveComponent(ctx, nil, result))
+		return d.withResourceComponent(nil, d.withMP4Component(ctx, nil, d.withDriveComponent(ctx, nil, result)))
 	}
 	raw, err := os.ReadFile(d.Executor.Files[0])
 	if err == nil {
@@ -299,5 +302,5 @@ func (d *HostDriver) Components(ctx context.Context) map[string]ComponentStatus 
 			result.Reason = err.Error()
 		}
 	}
-	return d.withMP4Component(ctx, raw, d.withDriveComponent(ctx, raw, result))
+	return d.withResourceComponent(raw, d.withMP4Component(ctx, raw, d.withDriveComponent(ctx, raw, result)))
 }

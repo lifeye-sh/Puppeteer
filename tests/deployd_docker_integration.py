@@ -11,6 +11,9 @@ import time
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--renderer-demand", action="store_true", help="exercise real idle sleep and cold wake without app restart; requires --systemd")
+parser.add_argument("--resources", action="store_true", help="exercise resource profiles and disk scratch rollback; requires --systemd")
+parser.add_argument("--renderer-image", default="cloners/puppeteer-renderer:r17-rc13")
 parser.add_argument("--mp4", action="store_true", help="exercise internal renderer, sample conversion, queue preservation and recovery")
 parser.add_argument("--drive", action="store_true", help="exercise shared-drive FUSE deployment and removal")
 parser.add_argument("--graphics", action="store_true", help="exercise internal graphics lifecycle instead of protocol ports")
@@ -23,6 +26,12 @@ parser.add_argument("--recovery-only", action="store_true")
 parser.add_argument("--systemd", action="store_true", help="use actual systemd and packaged enrollment in a privileged disposable runner")
 parser.add_argument("--systemd-smoke", action="store_true", help="short enrollment/progress regression; requires --systemd")
 arguments = parser.parse_args()
+if arguments.renderer_demand:
+    if not arguments.systemd or arguments.graphics or arguments.drive: parser.error("--renderer-demand requires --systemd and excludes graphics/drive")
+    arguments.mp4=True
+if arguments.resources:
+    if not arguments.systemd or arguments.graphics or arguments.drive: parser.error("--resources requires --systemd and excludes graphics/drive fixtures")
+    arguments.mp4=True
 if arguments.drive: arguments.graphics=True
 if arguments.systemd and (arguments.recovery or arguments.recovery_only):
     parser.error("systemd enrollment and crash-injection runs are separate scenarios")
@@ -57,10 +66,12 @@ def request(path, body=None):
         args += ["-X", "POST", "--data-binary", json.dumps(body)]
     return json.loads(docker(*args, "http://deployd" + path))
 
-def task(protocol, enabled, port):
+def task(protocol, enabled, port, resource_profile=None, expect_failure=False, **options):
     generation = request("/v1/status")["generation"]
-    body = {"protocol": protocol, "enabled": enabled, "bind": "" if protocol in ("graphics","rdp-drive","mp4") else "0.0.0.0" if protocol == "management" else "127.0.0.1",
+    body = {"protocol": protocol, "enabled": enabled, "bind": "" if protocol in ("graphics","rdp-drive","mp4","resources") else "0.0.0.0" if protocol == "management" else "127.0.0.1",
             "port": port, "generation": generation}
+    body.update(options)
+    if resource_profile: body.update(resourceProfile=resource_profile, actor=resource_actor)
     preflight = request("/v1/preflight", body)
     if not preflight.get("passed"):
         raise RuntimeError("Preflight " + protocol + ": " + str(preflight.get("error")))
@@ -73,6 +84,10 @@ def task(protocol, enabled, port):
         if state["id"] != accepted["id"]:
             raise RuntimeError("Unexpected concurrent task")
         if state["state"] != "running":
+            if expect_failure:
+                if state["state"] != "failed": raise RuntimeError("Expected resource apply failure")
+                print("Resource apply failure and rollback reported: verified", flush=True)
+                return state
             if state["state"] != "succeeded":
                 raise RuntimeError(protocol + " failed at " + state["stage"] + ": " + state.get("error", ""))
             print(protocol + (" enabled" if enabled else " disabled") + ": verified", flush=True)
@@ -86,7 +101,7 @@ def start_executor():
 
 def recover_crash(enabled, protocol="mysql"):
     generation = request("/v1/status")["generation"]
-    body = {"protocol":protocol, "enabled":enabled, "bind":"" if protocol in ("graphics","rdp-drive","mp4") else "127.0.0.1", "port":0 if protocol in ("graphics","rdp-drive","mp4") else 25306, "generation":generation}
+    body = {"protocol":protocol, "enabled":enabled, "bind":"" if protocol in ("graphics","rdp-drive","mp4","resources") else "127.0.0.1", "port":0 if protocol in ("graphics","rdp-drive","mp4","resources") else 25306, "generation":generation}
     put("inject", "once", base + "/inject-crash")
     accepted = request("/v1/tasks", body)
     if "id" not in accepted: raise RuntimeError("Crash test task rejected")
@@ -109,7 +124,7 @@ def recover_crash(enabled, protocol="mysql"):
     else: raise RuntimeError("Crash recovery timeout")
     if current["state"] != "failed" or current["stage"] != "interrupted" or "recovery failed" in current.get("error", ""):
         raise RuntimeError("Unexpected crash recovery outcome: " + current.get("error", ""))
-    if protocol in ("graphics","rdp-drive","mp4"):
+    if protocol in ("graphics","rdp-drive","mp4","resources"):
         result=json.loads(compose("exec","-T","server","/app/nt","deployment-verify",protocol,"false","","0"))
         if not result.get("passed"): raise RuntimeError("Graphics remained open after crash recovery")
         print("Interrupted " + protocol + " " + ("enable rolled back" if enabled else "disable fenced") + ": verified",flush=True)
@@ -205,7 +220,7 @@ try:
         server['networks']={'default':None,'render':None}
         server['environment'].update({'NT_MP4_URL':'http://mp4-renderer:8090','NT_MP4_TOKEN_FILE':'/run/secrets/mp4_token','NT_MP4_DIRECTORY':'/var/lib/puppeteer/mp4'})
         server['secrets']=[{'source':'mp4_token','target':'mp4_token'}]
-        model['services']['mp4-renderer']={'image':docker('image','inspect','--format','{{.Id}}','cloners/puppeteer-renderer:r17-rc1'),
+        model['services']['mp4-renderer']={'image':docker('image','inspect','--format','{{.Id}}',arguments.renderer_image),
             'environment':{'NT_MP4_TOKEN_FILE':'/run/secrets/mp4_token'},'secrets':[{'source':'mp4_token','target':'mp4_token'}],
             'networks':{'render':None},'read_only':True,'cap_drop':['ALL'],'security_opt':['no-new-privileges:true'],
             'tmpfs':['/tmp:rw,size=768m,mode=1777'],'mem_limit':2147483648,'cpus':2,'pids_limit':160,
@@ -274,7 +289,7 @@ try:
             time.sleep(1)
     else:
         raise RuntimeError("Executor socket did not become ready")
-    if arguments.mp4:
+    if arguments.mp4 and not arguments.resources and not arguments.renderer_demand:
         component=request('/v1/status')['components']['mp4']
         if not component['supported'] or component['state']!='running': raise RuntimeError('Renderer was not enrolled: '+str(component))
         compose('exec','-T','server','sh','-c','echo keep > /var/lib/puppeteer/mp4/deployment-keep')
@@ -295,6 +310,51 @@ try:
         compose('exec','-T','server','test','-f','/var/lib/puppeteer/mp4/deployment-keep')
         if request('/v1/status')['components']['mp4']['state']!='stopped': raise RuntimeError('Renderer remains running')
         print('MP4 real sample conversion, disabled startup, durable queue and cache preservation: verified',flush=True)
+    if arguments.renderer_demand:
+        task('mp4',True,0,rendererMode='on-demand',rendererQuality='economy')
+        before={name:compose('ps','-q',name) for name in ('server','web')}
+        settings=json.loads(compose('config','--format','json'))
+        if settings['services']['mp4-renderer']['restart']!='no': raise RuntimeError('On-demand renderer would auto-restart')
+        if settings['services']['server']['environment']['NT_MP4_ON_DEMAND']!='true': raise RuntimeError('Worker not configured for cold wake')
+        # Real five-minute idle window, no test-only bypass in production code.
+        print('Waiting for the real renderer idle deadline (5 minutes plus maintenance interval)',flush=True)
+        deadline=time.monotonic()+390
+        while time.monotonic()<deadline:
+            component=request('/v1/status')['components']['mp4']
+            if component['state']=='standby': break
+            time.sleep(10)
+        else: raise RuntimeError('Idle renderer did not enter standby: '+str(component))
+        if component.get('mode')!='on-demand' or component.get('quality')!='economy': raise RuntimeError('Runtime settings not observed')
+        if before!={name:compose('ps','-q',name) for name in before}: raise RuntimeError('Idle sleep recreated application/web')
+        if not request('/v1/renderer/wake',{}).get('ready'): raise RuntimeError('Cold wake failed')
+        compose('exec','-T','server','/app/nt','deployment-mp4-sample')
+        if before!={name:compose('ps','-q',name) for name in before}: raise RuntimeError('Cold wake recreated application/web')
+        if request('/v1/status')['components']['mp4']['state']!='running': raise RuntimeError('Cold wake was not healthy')
+        task('mp4',False,0)
+        if request('/v1/renderer/wake',{}).get('ready'): raise RuntimeError('Disabled renderer was reopened')
+        if request('/v1/status')['components']['mp4']['state']!='stopped': raise RuntimeError('Disabled renderer still running')
+        print('MP4 demand: real idle stop, standby, cold wake, conversion and application continuity verified',flush=True)
+    if arguments.resources:
+        resource_actor=compose('exec','-T','postgres','psql','-U','p0','-d','p0','-Atc',"INSERT INTO users(username,nickname,password_hash,type) VALUES('resource-test','Resource fixture','test-only-unusable-hash','admin') RETURNING id").splitlines()[0]
+        # Running jobs must reject the operation before any container is replaced.
+        before=compose('ps','-q','server')
+        busy=compose('exec','-T','postgres','psql','-U','p0','-d','p0','-Atc',"INSERT INTO jobs(kind,state,reason,lease_token,lease_until) VALUES('backup.create','running','resource-test',gen_random_uuid(),now()+interval '1 hour') RETURNING id").splitlines()[0]
+        req={'protocol':'resources','enabled':True,'bind':'','port':0,'resourceProfile':'light','actor':resource_actor,'generation':request('/v1/status')['generation']}
+        if request('/v1/preflight',req).get('passed'): raise RuntimeError('Busy backup accepted resource mutation')
+        if before!=compose('ps','-q','server'): raise RuntimeError('Preflight restarted live application')
+        compose('exec','-T','postgres','psql','-U','p0','-d','p0','-c',"DELETE FROM jobs WHERE id='"+busy+"'")
+        task('resources',True,0,'light')
+        compose('exec','-T','server','/app/nt','deployment-mp4-sample')
+        compose('exec','-T','server','sh','-c','echo preserved > /var/lib/puppeteer/mp4/resource-keep')
+        task('resources',True,0,'standard')
+        # Sparse owned test data simulates retained scratch usage without filling disk.
+        compose('exec','-T','mp4-renderer','node','--input-type=module','-e',"import {mkdir,open} from 'node:fs/promises';const d='/var/lib/puppeteer-renderer/mp4-job-resource-fixture';await mkdir(d);const f=await open(d+'/preserve','wx');await f.truncate(3*1024**3);await f.close();")
+        failed=task('resources',True,0,'light',expect_failure=True)
+        if 'rollback failed' in failed.get('error',''): raise RuntimeError(failed['error'])
+        if request('/v1/status')['components']['resources']['profile']!='standard': raise RuntimeError('Previous resource profile was not restored')
+        compose('exec','-T','server','test','-f','/var/lib/puppeteer/mp4/resource-keep')
+        compose('exec','-T','mp4-renderer','node','--input-type=module','-e',"import {stat,unlink,rmdir} from 'node:fs/promises';const d='/var/lib/puppeteer-renderer/mp4-job-resource-fixture';if((await stat(d+'/preserve')).size!==3*1024**3)throw Error('scratch removed');await unlink(d+'/preserve');await rmdir(d);")
+        print('Resource profiles: busy guard, light conversion, actual limits, quota rollback and persistent data verified',flush=True)
     if arguments.graphics and not arguments.drive:
         components=request("/v1/status").get("components",{})
         if not components.get("graphics",{}).get("supported"): raise RuntimeError("Graphics was not automatically enrolled: "+str(components))

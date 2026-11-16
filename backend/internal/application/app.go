@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/sync/semaphore"
 	"io"
 	"log/slog"
 	"mime"
@@ -29,6 +30,7 @@ import (
 	"puppeteer/backend/internal/platform/fault"
 	"puppeteer/backend/internal/platform/listener"
 	"puppeteer/backend/internal/platform/postgres"
+	"puppeteer/backend/internal/platform/resourcebudget"
 	"regexp"
 	"strings"
 	"sync"
@@ -42,6 +44,8 @@ const Release = buildmeta.Release
 const CapabilitiesRevision = buildmeta.CapabilitiesRevision
 
 type Config struct {
+	MP4OnDemand                 bool
+	ResourceProfile             string
 	ManagedHTTPAddr             string
 	ManagedDeploymentProtocols  map[string]bool
 	DisabledDeploymentProtocols map[string]bool
@@ -77,6 +81,11 @@ type Config struct {
 	CaptchaRequired             bool
 }
 type App struct {
+	taskWake                 chan struct{}
+	exportWake               chan struct{}
+	backupWake               chan struct{}
+	resourceDrained          atomic.Bool
+	heavyTasks               *semaphore.Weighted
 	entitlements             *entitlements.Service
 	nativeSSHReady           atomic.Bool
 	nativeRDPAddress         atomic.Pointer[string]
@@ -139,6 +148,10 @@ func New(pool *pgxpool.Pool, c Config) *App {
 		a.maintenance.Store(true)
 	}
 	a.aiSlots = make(chan struct{}, 4)
+	a.taskWake = make(chan struct{}, 2)
+	a.exportWake = make(chan struct{}, 1)
+	a.backupWake = make(chan struct{}, 1)
+	a.heavyTasks = semaphore.NewWeighted(int64(resourcebudget.HeavyLimit(c.ResourceProfile)))
 	a.entitlements = entitlements.NewService(db, c.EntitlementLocal, c.EntitlementVerifier)
 	db.SetAdmissionCheck(a.entitlements.Admit)
 	a.configurationNode = identity.NewToken()[:24]

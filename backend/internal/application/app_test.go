@@ -10,9 +10,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"puppeteer/backend/internal/modules/identity"
-	"puppeteer/backend/migrations"
 	"os"
+	"puppeteer/backend/internal/modules/identity"
+	"puppeteer/backend/internal/platform/resourcebudget"
+	"puppeteer/backend/migrations"
 	"strings"
 	"sync"
 	"testing"
@@ -41,6 +42,14 @@ func testPool(t *testing.T) *pgxpool.Pool {
 	config, e := pgxpool.ParseConfig(dsn)
 	if e != nil {
 		t.Fatal(e)
+	}
+	if profile := os.Getenv("NT_TEST_RESOURCE_PROFILE"); profile != "" {
+		b, err := resourcebudget.Database(profile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		config.MaxConns = b.PoolMax
+		config.MinConns = b.PoolMin
 	}
 	config.ConnConfig.RuntimeParams["search_path"] = schema
 	p, e := pgxpool.NewWithConfig(ctx, config)

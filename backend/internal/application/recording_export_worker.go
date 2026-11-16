@@ -9,12 +9,13 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"puppeteer/backend/internal/modules/audit"
-	"puppeteer/backend/internal/modules/backup"
-	"puppeteer/backend/internal/modules/resource"
-	"puppeteer/backend/internal/platform/jobs"
 	"os"
 	"path/filepath"
+	"puppeteer/backend/internal/modules/audit"
+	"puppeteer/backend/internal/modules/resource"
+	"puppeteer/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/pollwait"
+	"puppeteer/backend/internal/platform/resourcebudget"
 	"strings"
 	"time"
 )
@@ -37,13 +38,34 @@ func (a *App) rendererJSON(ctx context.Context, method, path string, body io.Rea
 	}
 	defer r.Body.Close()
 	if r.StatusCode < 200 || r.StatusCode >= 300 {
-		return errors.New("converter_unavailable")
+		return rendererResponseError(r)
 	}
 	if dst != nil {
 		return json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(dst)
 	}
 	return nil
 }
+func rendererResponseError(r *http.Response) error {
+	if r.StatusCode == http.StatusInsufficientStorage {
+		return errors.New("temporary_storage_full")
+	}
+	if r.StatusCode == http.StatusTooManyRequests {
+		return errors.New("renderer_busy")
+	}
+	if r.StatusCode == http.StatusServiceUnavailable {
+		var body struct {
+			Error string `json:"error"`
+		}
+		if json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&body) == nil {
+			switch body.Error {
+			case "renderer_memory_pressure", "resource_probe_unavailable":
+				return errors.New(body.Error)
+			}
+		}
+	}
+	return errors.New("converter_unavailable")
+}
+
 func (a *App) RunRecordingExports(ctx context.Context) {
 	if !a.mp4Available() {
 		return
@@ -52,30 +74,36 @@ func (a *App) RunRecordingExports(ctx context.Context) {
 		slog.Error("MP4 cache unavailable")
 		return
 	}
-	tick := time.NewTicker(time.Second)
-	defer tick.Stop()
+	poll := pollwait.New(time.Second, 15*time.Second)
 	var cleanup time.Time
-	for {
-		select {
-		case <-ctx.Done():
+	for poll.Wait(ctx, a.exportWake) {
+		// Conversion is a pure derivative, so a lost worker can restart safely.
+		_, e := a.db.Exec(ctx, `UPDATE jobs j SET state=CASE WHEN e.attempts<3 THEN 'queued' ELSE 'failed' END,reason=CASE WHEN e.attempts<3 THEN 'restarting' ELSE 'worker_lease_lost' END,lease_token=NULL,lease_until=NULL FROM recording_exports e WHERE e.job_id=j.id AND NOT j.cancel_requested AND ((j.state='running' AND j.lease_until<now()) OR (j.state='unknown' AND j.reason='worker_lease_lost'))`)
+		if e != nil {
+			poll.Record(false)
+			continue
+		}
+		_, _ = a.db.Exec(ctx, `UPDATE jobs SET state='cancelled',ended_at=now() WHERE kind='recording.mp4' AND state='queued' AND cancel_requested`)
+		release, err := a.acquireHeavy(ctx)
+		if err != nil {
 			return
-		case <-tick.C:
-			// Conversion is a pure derivative, so a lost worker can restart safely.
-			_, e := a.db.Exec(ctx, `UPDATE jobs j SET state=CASE WHEN e.attempts<3 THEN 'queued' ELSE 'failed' END,reason=CASE WHEN e.attempts<3 THEN 'restarting' ELSE 'worker_lease_lost' END,lease_token=NULL,lease_until=NULL FROM recording_exports e WHERE e.job_id=j.id AND NOT j.cancel_requested AND ((j.state='running' AND j.lease_until<now()) OR (j.state='unknown' AND j.reason='worker_lease_lost'))`)
-			if e != nil {
+		}
+		j, e := a.claimRecordingExport(ctx)
+		poll.Record(e == nil)
+		if e == nil {
+			a.runRecordingExport(ctx, j)
+		} else if !jobs.IsEmpty(e) && ctx.Err() == nil {
+			slog.Warn("MP4 queue unavailable")
+		}
+		release()
+		if time.Now().After(cleanup) {
+			release, admitted := a.tryHeavy()
+			if !admitted {
 				continue
 			}
-			_, _ = a.db.Exec(ctx, `UPDATE jobs SET state='cancelled',ended_at=now() WHERE kind='recording.mp4' AND state='queued' AND cancel_requested`)
-			j, e := jobs.New(a.db).Claim(ctx, "recording.mp4")
-			if e == nil {
-				a.runRecordingExport(ctx, j)
-			} else if !jobs.IsEmpty(e) && ctx.Err() == nil {
-				slog.Warn("MP4 queue unavailable")
-			}
-			if time.Now().After(cleanup) {
-				a.pruneRecordingExports(ctx)
-				cleanup = time.Now().Add(time.Minute)
-			}
+			a.pruneRecordingExports(ctx)
+			release()
+			cleanup = time.Now().Add(time.Minute)
 		}
 	}
 }
@@ -99,9 +127,28 @@ func (a *App) runRecordingExport(parent context.Context, j jobs.Job) {
 			}
 		}
 	}()
+	// Executor latency must never delay the database lease heartbeat.
+	touchDone := make(chan struct{})
+	go func() {
+		defer close(touchDone)
+		if !a.config.MP4OnDemand {
+			return
+		}
+		tick := time.NewTicker(time.Minute)
+		defer tick.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-tick.C:
+				_ = a.rendererRuntimeCall(ctx, "touch")
+			}
+		}
+	}()
 	e := a.convertRecording(ctx, j)
 	cancel()
 	<-done
+	<-touchDone
 	if e == nil {
 		return
 	}
@@ -109,13 +156,18 @@ func (a *App) runRecordingExport(parent context.Context, j jobs.Job) {
 	defer stop()
 	var cancelled bool
 	_ = a.db.Row(c, `SELECT cancel_requested FROM jobs WHERE id=$1`, j.ID).Scan(&cancelled)
-	if parent.Err() != nil && !cancelled {
-		// A maintenance drain or graceful restart can retry without consuming attempts.
+	deferred := e.Error() == "export_disk_pressure" || e.Error() == "export_memory_pressure" || e.Error() == "temporary_storage_full" || e.Error() == "renderer_memory_pressure" || e.Error() == "renderer_busy" || e.Error() == "resource_probe_unavailable"
+	if (parent.Err() != nil || deferred) && !cancelled {
+		reason := "restarting"
+		if deferred {
+			reason = e.Error()
+		}
+		// Admission races and maintenance drains preserve the job without spending attempts.
 		_ = a.db.Within(c, func(tx context.Context) error {
 			if e := jobs.New(a.db).Owned(tx, j); e != nil {
 				return e
 			}
-			if _, e := a.db.Exec(tx, `UPDATE jobs SET state='queued',reason='restarting',lease_token=NULL,lease_until=NULL WHERE id=$1`, j.ID); e != nil {
+			if _, e := a.db.Exec(tx, `UPDATE jobs SET state='queued',reason=$2,lease_token=NULL,lease_until=NULL WHERE id=$1`, j.ID, reason); e != nil {
 				return e
 			}
 			_, e := a.db.Exec(tx, `UPDATE recording_exports SET attempts=greatest(0,attempts-1),progress=0 WHERE job_id=$1`, j.ID)
@@ -128,7 +180,7 @@ func (a *App) runRecordingExport(parent context.Context, j jobs.Job) {
 		state, reason = "cancelled", "cancelled"
 	} else {
 		switch e.Error() {
-		case "converter_unavailable", "recording_integrity_failed", "recording_limit", "output_limit":
+		case "converter_unavailable", "recording_integrity_failed", "recording_limit", "output_limit", "temporary_storage_full":
 			reason = e.Error()
 		}
 	}
@@ -139,7 +191,7 @@ func (a *App) convertRecording(ctx context.Context, j jobs.Job) error {
 	if e := a.db.Row(ctx, `UPDATE recording_exports SET attempts=attempts+1,progress=0,updated_at=now() WHERE job_id=$1 RETURNING session_id::text`, j.ID).Scan(&sessionID); e != nil {
 		return e
 	}
-	if e := backup.RequireSpace(ctx, a.config.MP4Directory, 512<<20); e != nil {
+	if e := resourcebudget.ExportPressure(ctx, a.config.MP4Directory); e != nil {
 		return e
 	}
 	input, e := os.CreateTemp(a.config.MP4Directory, j.ID+"-*.jsonl")
@@ -225,8 +277,8 @@ func (a *App) convertRecording(ctx context.Context, j jobs.Job) error {
 			return e
 		}
 		if status.State == "failed" {
-			if status.Reason == "output_limit" {
-				return errors.New("output_limit")
+			if status.Reason == "output_limit" || status.Reason == "temporary_storage_full" {
+				return errors.New(status.Reason)
 			}
 			return errors.New("conversion_failed")
 		}

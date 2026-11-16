@@ -224,8 +224,10 @@ func (s *Service) Trigger(ctx context.Context, q *jobs.Queue, v Schedule, key st
 }
 
 // Each transaction consumes one due schedule. Missed occurrences are coalesced, never flooded.
-func (s *Service) Tick(ctx context.Context, q *jobs.Queue) error {
-	return s.db.Within(ctx, func(c context.Context) error {
+func (s *Service) Tick(ctx context.Context, q *jobs.Queue) error { _, e := s.TickOne(ctx, q); return e }
+func (s *Service) TickOne(ctx context.Context, q *jobs.Queue) (bool, error) {
+	processed := false
+	err := s.db.Within(ctx, func(c context.Context) error {
 		v, e := scanSchedule(s.db.Row(c, `SELECT `+scheduleColumns+` FROM schedules WHERE enabled AND deleted_at IS NULL AND next_run<=now() ORDER BY next_run FOR UPDATE SKIP LOCKED LIMIT 1`))
 		if errors.Is(e, pgx.ErrNoRows) {
 			return nil
@@ -233,6 +235,7 @@ func (s *Service) Tick(ctx context.Context, q *jobs.Queue) error {
 		if e != nil {
 			return e
 		}
+		processed = true
 		var now time.Time
 		if e = s.db.Row(c, `SELECT now()`).Scan(&now); e != nil {
 			return e
@@ -251,4 +254,5 @@ func (s *Service) Tick(ctx context.Context, q *jobs.Queue) error {
 		_, e = s.db.Exec(c, `UPDATE schedules SET next_run=$2 WHERE id=$1`, v.ID, times[0])
 		return e
 	})
+	return processed, err
 }

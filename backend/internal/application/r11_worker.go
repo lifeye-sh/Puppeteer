@@ -9,10 +9,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"io"
 	"log/slog"
-	"puppeteer/backend/internal/modules/backup"
-	"puppeteer/backend/internal/platform/jobs"
 	"os"
 	"path/filepath"
+	"puppeteer/backend/internal/modules/backup"
+	"puppeteer/backend/internal/platform/jobs"
+	"puppeteer/backend/internal/platform/pollwait"
 	"time"
 )
 
@@ -20,31 +21,35 @@ func (a *App) RunBackupMaintenance(ctx context.Context) {
 	if a.config.BackupDirectory == "" || a.config.DatabaseURL == "" {
 		return
 	}
-	tick := time.NewTicker(time.Second)
-	defer tick.Stop()
+	poll := pollwait.New(time.Second, 15*time.Second)
 	var nextRetention time.Time
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-tick.C:
-			if e := a.tickBackupSchedule(ctx); e != nil && ctx.Err() == nil {
-				slog.Error("backup scheduler failed")
-			}
+	for poll.Wait(ctx, a.backupWake) {
+		if e := a.tickBackupSchedule(ctx); e != nil && ctx.Err() == nil {
+			slog.Error("backup scheduler failed")
+		}
+		var pending bool
+		err := a.db.Row(ctx, `SELECT EXISTS(SELECT 1 FROM jobs WHERE kind='backup.create' AND state='queued' AND NOT cancel_requested)`).Scan(&pending)
+		poll.Record(err == nil && pending)
+		if pending {
 			if e := a.RunBackupOnce(ctx); e != nil && ctx.Err() == nil {
 				slog.Error("backup worker failed")
 			}
-			if time.Now().After(nextRetention) {
-				c, cancel := context.WithTimeout(ctx, 20*time.Second)
-				if e := backup.New(a.db).Prune(c, a.config.BackupDirectory); e != nil && ctx.Err() == nil {
-					slog.Error("backup retention failed")
-				}
-				if e := backup.New(a.db).PruneRemote(c, a.config.VaultKey); e != nil && ctx.Err() == nil {
-					slog.Error("remote backup retention failed")
-				}
-				cancel()
-				nextRetention = time.Now().Add(time.Hour)
+		}
+		if time.Now().After(nextRetention) {
+			release, admitted := a.tryHeavy()
+			if !admitted {
+				continue
 			}
+			c, cancel := context.WithTimeout(ctx, 20*time.Second)
+			if e := backup.New(a.db).Prune(c, a.config.BackupDirectory); e != nil && ctx.Err() == nil {
+				slog.Error("backup retention failed")
+			}
+			if e := backup.New(a.db).PruneRemote(c, a.config.VaultKey); e != nil && ctx.Err() == nil {
+				slog.Error("remote backup retention failed")
+			}
+			cancel()
+			release()
+			nextRetention = time.Now().Add(time.Hour)
 		}
 	}
 }
@@ -71,6 +76,11 @@ func (a *App) tickBackupSchedule(ctx context.Context) error {
 	return e
 }
 func (a *App) RunBackupOnce(parent context.Context) error {
+	release, err := a.acquireHeavy(parent)
+	if err != nil {
+		return err
+	}
+	defer release()
 	q := jobs.New(a.db)
 	j, e := q.Claim(parent, "backup.create")
 	if jobs.IsEmpty(e) {

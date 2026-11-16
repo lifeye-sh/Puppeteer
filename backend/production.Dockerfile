@@ -15,5 +15,10 @@ COPY --from=build /out/ /app/
 COPY deploy/ /app/deployment/
 RUN mkdir -p /var/lib/puppeteer/mp4 /var/lib/puppeteer/backups /var/lib/puppeteer/restore /var/lib/puppeteer/storage /var/lib/puppeteer/runtime && chown -R 10001:10001 /var/lib/puppeteer
 USER 10001:10001
+LABEL io.puppeteer.resources="v1"
 EXPOSE 8089
 ENTRYPOINT ["/app/server"]
+
+LABEL io.puppeteer.mp4.ondemand="v1"
+
+LABEL io.puppeteer.database.budget="v1"

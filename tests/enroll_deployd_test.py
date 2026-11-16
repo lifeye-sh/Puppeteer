@@ -141,6 +141,8 @@ class EnrollmentRecoveryTests(unittest.TestCase):
             self.assertEqual((root/'config/deployd-token').stat().st_mode & 0o777,0o640)
 
     def test_refresh_failure_restores_original_and_allows_retry(self):
+        # Minimal Linux test images need the mocked systemd unit directory.
+        Path('/etc/systemd/system').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='enroll-') as temporary:
             root = Path(temporary)
             (root/'config').mkdir()
@@ -169,6 +171,7 @@ if 'up' in args and any('compose-managed.json' in a for a in args): sys.exit(12)
             for attempt in range(2):
                 result=subprocess.run(['bash',str(script),str(root)],env=env,capture_output=True,text=True)
                 self.assertNotEqual(result.returncode,0)
+                self.assertEqual(result.returncode,12, result.stderr)
                 self.assertIn('original services restored automatically', result.stderr)
                 self.assertEqual((root/'puppeteerctl').read_text(),wrapper)
                 self.assertFalse((root/'config/deployd.json').exists())

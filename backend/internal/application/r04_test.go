@@ -46,7 +46,7 @@ func sshTargetOptions(t *testing.T, root string, forward func(ssh.NewChannel)) (
 		t.Fatal(e)
 	}
 	var mu sync.Mutex
-	var conns []net.Conn
+	conns := make(map[net.Conn]struct{})
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -57,12 +57,17 @@ func sshTargetOptions(t *testing.T, root string, forward func(ssh.NewChannel)) (
 				return
 			}
 			mu.Lock()
-			conns = append(conns, raw)
+			conns[raw] = struct{}{}
 			mu.Unlock()
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				defer raw.Close()
+				defer func() {
+					_ = raw.Close()
+					mu.Lock()
+					delete(conns, raw)
+					mu.Unlock()
+				}()
 				conn, channels, reqs, e := ssh.NewServerConn(raw, cfg)
 				if e != nil {
 					return
@@ -141,7 +146,7 @@ func sshTargetOptions(t *testing.T, root string, forward func(ssh.NewChannel)) (
 	t.Cleanup(func() {
 		_ = ln.Close()
 		mu.Lock()
-		for _, c := range conns {
+		for c := range conns {
 			_ = c.Close()
 		}
 		mu.Unlock()
@@ -173,13 +178,22 @@ func reserve(t *testing.T, srv *httptest.Server, c *http.Cookie, asset string, r
 }
 func attach(t *testing.T, srv *httptest.Server, c *http.Cookie, id, ticket string) *websocket.Conn {
 	t.Helper()
+	ws := attachOwned(t, srv, c, id, ticket)
+	t.Cleanup(func() { _ = ws.Close() })
+	return ws
+}
+
+// attachOwned transfers cleanup to the caller. Long-running tests must close
+// each connection within its iteration instead of retaining parent cleanups.
+func attachOwned(t *testing.T, srv *httptest.Server, c *http.Cookie, id, ticket string) *websocket.Conn {
+	t.Helper()
 	h := http.Header{"Origin": []string{origin}, "Cookie": []string{c.String()}}
 	ws, res, e := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+"/api/sessions/"+id+"/ws", h)
 	if e != nil {
 		t.Fatalf("ws attach: %v %v", e, res)
 	}
-	t.Cleanup(func() { _ = ws.Close() })
 	if e = ws.WriteMessage(websocket.TextMessage, []byte("3"+ticket)); e != nil {
+		_ = ws.Close()
 		t.Fatal(e)
 	}
 	return ws

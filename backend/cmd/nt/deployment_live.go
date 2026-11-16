@@ -7,14 +7,14 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"puppeteer/backend/internal/platform/deploytask"
 	"os"
+	"puppeteer/backend/internal/platform/deploytask"
 	"strings"
 	"time"
 )
 
 func deploymentLive(raw, operation string) error {
-	if operation != "check" && operation != "site-apply" && operation != "verify" {
+	if operation != "check" && operation != "site-apply" && operation != "verify" && operation != "resource-drain" && operation != "resource-resume" {
 		return errors.New("invalid operation")
 	}
 	var request deploytask.Request

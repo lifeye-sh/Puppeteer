@@ -40,6 +40,16 @@ func (a *App) DeploymentApplicationCheck(ctx context.Context, r deploytask.Reque
 	if err := deploytask.Validate(r); err != nil {
 		return err
 	}
+	if r.Protocol == "resources" {
+		var busy bool
+		if err := a.db.Row(ctx, `SELECT EXISTS(SELECT 1 FROM jobs WHERE state='running' AND kind IN ('recording.mp4','backup.create'))`).Scan(&busy); err != nil {
+			return errors.New("无法检查后台重任务状态")
+		}
+		if busy || a.maintenance.Load() {
+			return errors.New("备份、转换或维护任务仍在执行，请完成后再切换资源档位")
+		}
+		return nil
+	}
 	if !r.Enabled && r.SiteID == "" {
 		return nil
 	}

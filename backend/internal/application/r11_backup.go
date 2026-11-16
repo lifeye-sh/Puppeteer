@@ -25,6 +25,7 @@ func (a *App) routesR11Backup(h func(string, func(http.ResponseWriter, *http.Req
 		if e = a.audit.Detail(r.Context(), actor.ID, "backup.remote_retry", "backup:"+id, "local", map[string]string{"id": id}); e != nil {
 			return e
 		}
+		notifyWork(a.backupWake)
 		w.WriteHeader(204)
 		return nil
 	})
@@ -91,6 +92,7 @@ func (a *App) routesR11Backup(h func(string, func(http.ResponseWriter, *http.Req
 		if e != nil {
 			return e
 		}
+		notifyWork(a.backupWake)
 		w.WriteHeader(204)
 		return nil
 	})
@@ -135,6 +137,7 @@ func (a *App) routesR11Backup(h func(string, func(http.ResponseWriter, *http.Req
 		if e != nil {
 			return e
 		}
+		notifyWork(a.backupWake)
 		writeJSON(w, 202, map[string]string{"id": id})
 		return nil
 	})

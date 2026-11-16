@@ -62,6 +62,7 @@ func (a *App) requestRecordingExport(w http.ResponseWriter, r *http.Request) err
 		return e
 	}
 	writeJSON(w, 202, status)
+	notifyWork(a.exportWake)
 	return nil
 }
 func (a *App) cancelRecordingExport(w http.ResponseWriter, r *http.Request) error {
