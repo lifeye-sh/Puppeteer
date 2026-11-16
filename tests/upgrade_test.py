@@ -84,7 +84,16 @@ class Upgrade(unittest.TestCase):
  def test_published_release_preflight(self):
   self.run_case(check=True,published=True)
 
- def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None, published=False):
+ def test_historical_four_component_release_preflight(self):
+  self.run_case(check=True,published=True,version='r17-rc13')
+
+ def test_invalid_version_rejected_before_deployment_access(self):
+  for version in ['latest','beta01.9','beta0.09','beta0.9/../x','beta0.9;id','r17-rc0','beta0.9\n']:
+   result=subprocess.run(['bash',str(SCRIPT),'--version',version],capture_output=True,text=True)
+   self.assertNotEqual(result.returncode,0)
+   self.assertIn('Version must be an explicit',result.stderr)
+
+ def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None, published=False, version=None):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); deploy=root/'deploy'; config=deploy/'config'; config.mkdir(parents=True)
    original='PUPPETEER_SERVER_IMAGE=old-server\nPUPPETEER_WEB_IMAGE=old-web\nPUPPETEER_ORIGIN=https://custom.example\nPUPPETEER_GRAPHICS_IMAGE=custom-graphics\n'
@@ -117,9 +126,9 @@ class Upgrade(unittest.TestCase):
     (deploy/'compose-managed.json').write_text(json.dumps(model))
    before_ctl=(deploy/'puppeteerctl').read_text()
    calls=root/'calls';calls.write_text('')
-   release='beta0.9' if published else 'r17-rc11'
+   release=version or ('beta0.9' if published else 'r17-rc11')
    env=dict(os.environ,PATH=str(binaries)+':'+os.environ['PATH'],CASE=case,RELEASE=release,CALLS=str(calls),DEPLOY=str(deploy),ENROLL_HELPER=str(SCRIPT.parent.parent/'backend/deploy/enroll-deployd.py'))
-   cmd=['bash',str(SCRIPT),'--dir',str(deploy)]+([] if published else ['--version',release])+(['--check'] if check else [])+(['--enable-database-proxy','--database-proxy-bind','0.0.0.0'] if proxy else [])
+   cmd=['bash',str(SCRIPT),'--dir',str(deploy)]+([] if published and not version else ['--version',release])+(['--check'] if check else [])+(['--enable-database-proxy','--database-proxy-bind','0.0.0.0'] if proxy else [])
    result=subprocess.run(cmd,env=env,capture_output=True,text=True)
    if repeat and result.returncode==0:
     result=subprocess.run(cmd,env=env,capture_output=True,text=True)

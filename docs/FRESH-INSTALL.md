@@ -2,7 +2,7 @@
 
 适用源码：`beta0.9`（schema 110、能力版本 90）。本文从源码构建本地镜像，也可使用已发布的 beta0.9 镜像，见 Docker Hub 安装说明。新安装使用单台 Linux amd64、Docker Compose 和全新 PostgreSQL 数据卷；已有数据按升级说明处理。
 
-需要已发布镜像时使用[一键安装](ONE-CLICK-INSTALL.md)或[Docker Hub 安装](../deploy/production/dockerhub.md)，当前均为 rc13，与本文源码匹配。仅使用网页内 RDP 时选择图形组件，无需原生 Worker，见[网页内 RDP](BROWSER-RDP.md)。
+需要已发布镜像时使用[一键安装](ONE-CLICK-INSTALL.md)或[Docker Hub 安装](../deploy/production/dockerhub.md)，当前均为 beta0.9，与本文源码匹配。仅使用网页内 RDP 时选择图形组件，无需原生 Worker，见[网页内 RDP](BROWSER-RDP.md)。
 
 本文按“源码构建 → 初始化配置 → 安装证书 → 启动 → 创建管理员 → 验证”的顺序执行。Docker 模拟环境已验收；正式环境请使用自己的域名、证书及独立密钥。仓库内的开发夹具、测试账号和 `backend/compose.yaml` 不用于正式安装。
 

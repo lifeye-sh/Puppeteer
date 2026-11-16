@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 - [自动部署执行器与预检进度](docs/AUTO-DEPLOYMENT.md)
 - [资源优化：档位、按需渲染、数据库预算与任务调度（未发布）](docs/RESOURCE-OPTIMIZATION.md)
 
-网页 RDP 开发分支新增省资源、均衡、清晰三档及分阶段连接诊断；MP4 转换在资源不足时保留排队并自动恢复。使用方式与验收边界见 [资源优化说明](docs/RESOURCE-OPTIMIZATION.md)。
+beta0.9 网页 RDP 新增省资源、均衡、清晰三档及分阶段连接诊断；MP4 转换在资源不足时保留排队并自动恢复。第二轮 10 小时稳定性复测尚未完成。使用方式与验收边界见 [资源优化说明](docs/RESOURCE-OPTIMIZATION.md)。
 - [配置菜单及 P0–P2 功能范围](docs/CONFIGURATION-AUTOMATION-ROADMAP.md)
 - [P2 专项运维](docs/OPERATIONS-AUTO-DEPLOYMENT.md)
 - [后端设计与模块规划](docs/backend/README.md)
