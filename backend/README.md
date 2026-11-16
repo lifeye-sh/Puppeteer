@@ -1,8 +1,10 @@
 # Puppeteer Go 后端
 
-当前发布 r17-rc13：schema 110、能力版本 90，配套镜像已发布。历史轮次记录保留；当前交付及验证边界见[发布说明](../deploy/production/r17-rc13.md)。网页内 RDP 依赖 guacd，不依赖原生 Worker。
+当前发布 **beta0.11 测试版**：schema 110、能力版本 90，四个组件镜像已发布。新增签名更新发现、受管部署自升级、自动准备及维护窗口升级；后端镜像包含 CLI 与宿主机执行器。当前交付及验证边界见[发布说明](../deploy/production/beta0.11.md)、[项目概览](../docs/PROJECT-OVERVIEW.md)和[系统更新](../docs/SYSTEM-UPDATES.md)。网页内 RDP 依赖 guacd，不依赖原生 Worker。
 
-当前状态见 [轮次记录](../docs/backend/migration-rounds.md)。下列各批次说明为历史交付记录；生产部署按 R17 全新安装规划进行。
+生产安装使用[一键安装](../docs/ONE-CLICK-INSTALL.md)，已有安装使用[升级脚本](../docs/UPGRADE.md)。本页的 Docker Desktop 与测试账号命令仅用于开发验收；网页自升级要求受支持的 Linux/systemd 受管主机。以下 R01–R17 说明保留历史交付背景，当前版本以发布说明为准。
+
+## 历史开发背景
 
 R17 已提供核心、图形/MP4及协议入口的独立部署预览和生产启动保护，见[部署步骤](../deploy/production/README.md)。本页历史记录中的 development-only 限制不再代表当前代码；R17 的真实证书、容量、恢复演练和最终上线签收仍未完成。
 

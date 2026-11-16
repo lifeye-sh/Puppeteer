@@ -1,4 +1,6 @@
-# Puppeteer R17 全新部署
+# Puppeteer 生产部署
+
+项目定位和组件职责见[项目概览](../../docs/PROJECT-OVERVIEW.md)。本页描述部署配置；R17 清单保留为历史验收资料，当前版本以 beta0.11 发布清单为准。
 
 beta0.10 的资源档位、流式 MP4、按需渲染、质量配置与数据库预算部署要求见 [资源优化](../../docs/RESOURCE-OPTIMIZATION.md)。已有安装默认保持原资源配置；第二轮 10 小时稳定性复测尚未完成。
 
