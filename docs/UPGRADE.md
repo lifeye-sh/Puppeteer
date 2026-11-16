@@ -1,8 +1,8 @@
 # 已有部署版本升级
 
-> beta0.9 包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
+> beta0.10 包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
 
-适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.9`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
+适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.10`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
 
 ## 执行
 
@@ -17,10 +17,10 @@ sudo bash upgrade-puppeteer.sh
 自定义安装目录或显式指定已发布版本：
 
 ```bash
-sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.9
+sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.10
 ```
 
-依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本支持 beta主版本.次版本（如 beta0.9）及历史 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
+依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本支持 beta主版本.次版本（如 beta0.10）及历史 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
 
 使用新资源档位、按需渲染或质量设置的开发部署升级时，会保留档位、运行方式、质量、临时卷、配额和组件关闭状态，并在镜像拉取后、服务停机前检查目标镜像能力。`--check` 不拉镜像，不能完成目标镜像能力验证；旧镜像缺少能力时正式升级会提前停止。
 
@@ -115,6 +115,10 @@ rc13 清单包含 server、web、graphics 和 renderer。升级前拉取全部�
 已接管部署的 compose-managed.json 会同步镜像；普通部署升级至 schema 110 时生成保留原卷身份的 compose-runtime.json，再自动接管。之后始终使用 puppeteerctl，不能直接启动旧 Compose 覆盖受管配置。
 
 
-第四轮优化的网页 RDP 档位与连接诊断需要匹配的新 server/web；转换资源预检还需要匹配的 renderer。没有新增 schema、端口或安装参数，旧客户端不传画质档位时保留原设置。旧渲染器缺少预检接口时兼容原提交流程，不能视为已具备完整预检。详见 [资源优化说明](RESOURCE-OPTIMIZATION.md)。本段描述未发布开发分支，不表示公开镜像已更新。
+第四轮优化的网页 RDP 档位与连接诊断需要匹配的新 server/web；转换资源预检还需要匹配的 renderer。没有新增 schema、端口或安装参数，旧客户端不传画质档位时保留原设置。旧渲染器缺少预检接口时兼容原提交流程，不能视为已具备完整预检。详见 [资源优化说明](RESOURCE-OPTIMIZATION.md)。这些优化已包含于 beta0.9 及后续镜像。
 
 开发分支的渲染镜像还修复了断开前最后一批绘图指令的导出，以及 Chromium 子进程退出后未回收的问题。镜像内置 Tini 作为入口；升级到匹配镜像即可生效，不增加安装参数、不提高 PID 上限。自定义覆盖镜像入口的部署需保留进程回收机制。
+
+## 自动恢复密钥（beta0.10）
+
+beta0.10 起提供此功能。新版本后端在可写启动阶段自动生成未配置的备份恢复密钥，初始化失败会阻止启动；无需增加安装参数、挂载或手工命令。已有公钥与历史密钥保留，重复启动不会重新生成。管理员可在“备份与恢复 → 备份策略”下载恢复私钥或重新生成，请将下载的私钥保存在服务器之外。详见[备份与恢复说明](backend/implementation/backup-restore.md#页面与身份验证)。

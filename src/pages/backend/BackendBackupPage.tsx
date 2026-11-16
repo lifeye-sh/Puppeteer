@@ -6,13 +6,14 @@ import {useBackendRuntime} from '@/hook/BackendRuntimeContext';
 import Modal from './BackendFormModal';
 import BackendBackupDestinations from './BackendBackupDestinations';
 import BackendRestoreHistory from './BackendRestoreHistory';
+import BackendBackupRecoveryKeys from './BackendBackupRecoveryKeys';
 type Config={recipient:string;retentionDays:number;scheduleEnabled:boolean;scheduleTime:string;timezone:string;scope:'control-plane'|'full';revision:number;recipientProofId?:string;recipientResponse?:string};
 type BackupFile={id:string;size:number;sha256:string;createdAt:string;manifest:{scope:string;includes:string[];excludes:string[]}};
 type Task={id:string;state:string;stage:string;createdAt:string;remark:string;config:Config};
 const label:Record<string,string>={queued:'等待执行',preparing:'进入维护',snapshotting:'数据库快照与加密归档',verifying:'校验归档',uploading:'复制与校验远端',partial:'本地可用，远端复制未完成',succeeded:'已完成',failed:'失败',unknown:'执行中断，需检查',interrupted:'恢复后已停止'};
 const scopeLabel=(s:string)=>s==='full'?'完整备份':'控制面备份';
 export default function BackendBackupPage(){
- const {account}=useBackendRuntime();const client=useQueryClient();const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [editing,setEditing]=useState(false);const [exporting,setExporting]=useState<BackupFile>();const [form]=Form.useForm<Config>();const [proof]=Form.useForm();
+ const {account}=useBackendRuntime();const client=useQueryClient();const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [editing,setEditing]=useState(false);const [customRecipient,setCustomRecipient]=useState(false);const [exporting,setExporting]=useState<BackupFile>();const [form]=Form.useForm<Config>();const [proof]=Form.useForm();
  const cfg=useQuery({queryKey:['r11-backup-config'],queryFn:()=>requests.get<Config>('/admin/backup/config',{errorMode:'local'})});
  const status=useQuery({queryKey:['r11-backup-status'],queryFn:()=>requests.get<{available:boolean;maintenance:boolean}>('/admin/backup/status',{errorMode:'local'}),refetchInterval:3000});
  const files=useQuery({queryKey:['r11-backup-files'],queryFn:()=>requests.get<BackupFile[]>('/admin/backup/files',{errorMode:'local'}),refetchInterval:5000});
@@ -25,8 +26,9 @@ export default function BackendBackupPage(){
  {failure&&<Alert type="error" title={failure} showIcon/>}
  {status.data?.maintenance&&<Alert type="warning" title="系统正在维护" description="现有会话已停止，新登录和业务操作暂不可用。本页会继续更新备份进度。" showIcon/>}
  {status.data&&!status.data.available&&<Alert type="warning" title="备份服务尚未就绪" description="请完成部署配置后再创建备份。"/>}
- <Card title="备份策略" extra={<Button disabled={blocked||!cfg.data||!account.actions?.includes('backup.export')} onClick={()=>{form.resetFields();form.setFieldsValue(cfg.data!);setEditing(true)}}>编辑策略</Button>}>
+ <Card title="备份策略" extra={<Button disabled={blocked||!cfg.data||!account.actions?.includes('backup.export')} onClick={()=>{form.resetFields();form.setFieldsValue(cfg.data!);setCustomRecipient(false);setEditing(true)}}>编辑策略</Button>}>
  <Descriptions size="small" column={{xs:1,sm:2,lg:3}} items={[{key:'scope',label:'包含范围',children:scopeLabel(cfg.data?.scope??'control-plane')},{key:'retention',label:'保留时间',children:`${cfg.data?.retentionDays??31} 天（至少保留最新一份）`},{key:'schedule',label:'自动备份',children:cfg.data?.scheduleEnabled?`每天 ${cfg.data.scheduleTime} · ${cfg.data.timezone}`:'未启用'},{key:'format',label:'格式',children:'.ntbackup.age · age 加密'},{key:'key',label:'恢复公钥',span:2,children:cfg.data?.recipient?<Typography.Text copyable ellipsis>{cfg.data.recipient}</Typography.Text>:'尚未配置'}]}/>
+ <BackendBackupRecoveryKeys revision={cfg.data?.revision} recipient={cfg.data?.recipient} disabled={!!blocked} canExport={!!account.actions?.includes('backup.export')}/>
  <p>控制面备份包含配置、授权、密钥、证书和审计元数据；完整备份还包含录屏与共享存储文件。外部资产上的文件不在备份范围内。</p>
  <Popconfirm title="创建备份并进入维护？" description="会关闭现有会话，暂停新登录、业务操作和后台任务，完成后自动恢复服务。" onConfirm={()=>run(()=>requests.post('/admin/backup/tasks',{requestKey:crypto.randomUUID(),drainConfirmed:true},{errorMode:'local'}))}>
  <Button type="primary" disabled={blocked||active||!status.data?.available||!cfg.data?.recipient}>立即备份</Button></Popconfirm>
@@ -41,10 +43,10 @@ export default function BackendBackupPage(){
  <Card title="最近备份任务"><Table<Task> size="small" rowKey="id" dataSource={tasks.data} pagination={{pageSize:8}} scroll={{x:700}} columns={[{title:'创建时间',dataIndex:'createdAt',render:v=>new Date(v).toLocaleString()},{title:'范围',render:(_,t)=>scopeLabel(t.config.scope)},{title:'状态',render:(_,t)=><Tag color={t.state==='succeeded'?'success':t.state==='failed'?'error':'processing'}>{label[t.state]??t.state}</Tag>},{title:'阶段',render:(_,t)=>label[t.stage]??t.stage},{title:'任务编号',dataIndex:'id',ellipsis:true},{title:'操作',render:(_,t)=>['partial','unknown'].includes(t.state)?<Button type="link" disabled={blocked} onClick={()=>run(async()=>{await requests.post('/admin/backup/tasks/'+t.id+'/retry',{}, {errorMode:'local'})})}>重试远端复制</Button>:null}]}/></Card>
  <Tabs items={[{key:"copies",label:"远端复制",children:<BackendBackupDestinations/>},{key:"restores",label:"恢复记录",children:<BackendRestoreHistory/>}]}/><Modal title="备份策略" open={editing} onCancel={()=>{setEditing(false);form.resetFields()}} confirmLoading={busy} onOk={async()=>{const values=await form.validateFields();await run(async()=>{await requests.put('/admin/backup/config',{...values,revision:cfg.data!.revision},{errorMode:'local'});setEditing(false);form.resetFields()})}}>
  {error&&<Alert type="error" title={error} showIcon/>}
- <Alert type="info" title="妥善保存离线恢复私钥" description="备份服务只保存公钥。恢复时必须提供对应私钥；请先使用运维 CLI 生成并保存在独立位置。"/>
- <Form form={form} layout="vertical" style={{marginTop:16}}><Form.Item name="recipient" label="age 恢复公钥" rules={[{required:true}]}><Input placeholder="age1…"/></Form.Item>
+ <Alert type="info" title="恢复密钥自动配置" description="首次部署自动生成。您可在备份策略中下载私钥或重新生成；使用自动生成的密钥无需命令行验证。"/>
+ <Form form={form} layout="vertical" style={{marginTop:16}}><Form.Item name="recipient" label="age 恢复公钥" rules={[{required:true}]}><Input placeholder="部署时自动生成" readOnly={!customRecipient}/></Form.Item><Button type="link" onClick={()=>{setCustomRecipient(!customRecipient);form.setFieldValue('recipient',cfg.data?.recipient);form.setFieldValue('recipientProofId',undefined);form.setFieldValue('recipientResponse',undefined)}}>{customRecipient?'使用当前恢复公钥':'使用自有公钥（高级）'}</Button>
  <Form.Item name="recipientProofId" hidden><Input/></Form.Item>
- <Form.Item noStyle shouldUpdate={(a,b)=>a.recipient!==b.recipient}>{()=>form.getFieldValue('recipient')!==cfg.data?.recipient?<div style={{marginBottom:16}}>
+ <Form.Item noStyle shouldUpdate={(a,b)=>a.recipient!==b.recipient}>{()=>customRecipient&&form.getFieldValue('recipient')!==cfg.data?.recipient?<div style={{marginBottom:16}}>
  <Button loading={busy} onClick={()=>run(async()=>{const recipient=form.getFieldValue('recipient');const result=await requests.post<{id:string;challenge:string}>('/admin/backup/recipient-challenge',{recipient},{errorMode:'local'});form.setFieldValue('recipientProofId',result.id);form.setFieldValue('recipientResponse','');const url=URL.createObjectURL(new Blob([result.challenge],{type:'text/plain'}));const link=document.createElement('a');link.href=url;link.download='recipient-challenge.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)})}>下载私钥验证文件</Button>
  <Typography.Paragraph type="secondary" style={{marginTop:8}}>使用离线私钥解密验证文件，将一次性结果填入下方。私钥始终保留在本地，验证文件 30 分钟有效。</Typography.Paragraph>
  <Typography.Paragraph code copyable>nt backup verify-recipient --identity-file recovery.agekey --challenge-file recipient-challenge.txt</Typography.Paragraph>

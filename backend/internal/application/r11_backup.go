@@ -12,6 +12,7 @@ func (a *App) routesR11Backup(h func(string, func(http.ResponseWriter, *http.Req
 	a.routesBackupDownload(h)
 	a.routesBackupDestinations(h)
 	a.routesBackupRecipient(h)
+	a.routesBackupRecoveryKeys(h)
 	s := backup.New(a.db)
 	h("POST /api/admin/backup/tasks/{id}/retry", func(w http.ResponseWriter, r *http.Request) error {
 		actor, e := a.require(r, "backup.manage")

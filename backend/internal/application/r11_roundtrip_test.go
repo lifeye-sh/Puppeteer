@@ -14,12 +14,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"puppeteer/backend/internal/modules/storage"
-	"puppeteer/backend/internal/modules/system"
-	"puppeteer/backend/internal/platform/runtimeprofile"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"puppeteer/backend/internal/modules/storage"
+	"puppeteer/backend/internal/modules/system"
+	"puppeteer/backend/internal/platform/runtimeprofile"
 	"strconv"
 	"strings"
 	"syscall"
@@ -161,11 +161,31 @@ VALUES('roundtrip-dependency','00000000-0000-4000-8000-000000000001','fixture-ci
 		t.Fatal(e)
 	}
 	bundle := backup.RecoveryBundle{Version: 1, MFAKey: hex.EncodeToString(mfa), VaultKey: hex.EncodeToString(vault)}
-	recovery, _ := age.GenerateX25519Identity()
 	a.config.BackupDirectory = work
 	a.config.DatabaseURL = srcDSN
 	bs := backup.New(a.db)
-	if e = bs.SaveConfig(ctx, backup.Config{Recipient: recovery.Recipient().String(), RetentionDays: 31, ScheduleTime: "02:00", Timezone: "Asia/Shanghai", Scope: scope, Revision: 1}); e != nil {
+	if e = a.InitializeBackupRecovery(ctx); e != nil {
+		t.Fatal(e)
+	}
+	managedKeys, e := bs.RecoveryKeys(ctx)
+	if e != nil || len(managedKeys) != 1 {
+		t.Fatal("managed recovery key missing", e)
+	}
+	private, e := bs.RecoveryIdentity(ctx, vault, managedKeys[0].ID)
+	if e != nil {
+		t.Fatal(e)
+	}
+	recovery, e := age.ParseX25519Identity(string(private))
+	clear(private)
+	if e != nil {
+		t.Fatal(e)
+	}
+	backupConfig, e := bs.Config(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	backupConfig.Scope = scope
+	if e = bs.SaveConfig(ctx, backupConfig); e != nil {
 		t.Fatal(e)
 	}
 	requestKey := "11111111-1111-4111-8111-111111111111"

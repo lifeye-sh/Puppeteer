@@ -516,6 +516,7 @@ func (a *App) routesR03(handle func(string, func(http.ResponseWriter, *http.Requ
 		return nil
 	})
 	handle("POST /api/admin/grants", a.grantSave)
+	handle("POST /api/admin/grants/batch", a.grantBatch)
 	handle("PUT /api/admin/grants/{id}", a.grantSave)
 	handle("DELETE /api/admin/grants/{id}", func(w http.ResponseWriter, r *http.Request) error {
 		e := a.mutate(r, "grant.revoked", func(ctx context.Context, u *identity.User) (string, error) {

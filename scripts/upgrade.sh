@@ -3,14 +3,14 @@
 set -Eeuo pipefail
 umask 077
 install_dir=/opt/puppeteer
-version=beta0.9
+version=beta0.10
 check_only=0
 enable_database_proxy=0
 database_host=
 database_bind=127.0.0.1
 help() {
   cat <<'HELP'
-Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version beta0.9] [--check]
+Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version beta0.10] [--check]
   --check    Validate deployment and release; do not pull, stop or update services.
   --enable-database-proxy     Add missing MySQL/PostgreSQL listeners and mappings
   --database-proxy-host HOST  Certificate hostname (default: host from HTTPS origin)

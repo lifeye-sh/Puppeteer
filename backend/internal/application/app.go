@@ -196,6 +196,9 @@ func decode(w http.ResponseWriter, r *http.Request, v any) error {
 		return problem(415, "json_required", "请求必须使用 JSON")
 	}
 	limit := int64(16 * 1024)
+	if r.URL.Path == "/api/admin/grants/batch" {
+		limit = 64 * 1024
+	}
 	if r.URL.Path == "/api/settings" || r.URL.Path == "/api/admin/properties" || strings.HasPrefix(r.URL.Path, "/api/admin/deployment/") || strings.HasPrefix(r.URL.Path, "/api/internal/deployment-") {
 		limit = 256 * 1024
 	}

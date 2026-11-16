@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const args=process.argv.slice(2);
-if(args.length && !(args.length===1&&args[0]==='--check') && !(args.length===2&&args[0]==='--set'))throw Error('Usage: node scripts/version.mjs [--check | --set beta0.9]');
+if(args.length && !(args.length===1&&args[0]==='--check') && !(args.length===2&&args[0]==='--set'))throw Error('Usage: node scripts/version.mjs [--check | --set beta0.10]');
 const old=(await readFile(resolve(root,'VERSION'),'utf8')).trim();
 const version=args[0]==='--set'?args[1]:old;
 if(!releaseVersionPattern.test(version))throw Error('Expected an explicit betaMAJOR.MINOR or r17-rcN version');

@@ -65,6 +65,13 @@ func main() {
 		os.Exit(1)
 	}
 	if profile.WritesEnabled {
+		keyCtx, keyCancel := context.WithTimeout(life, 10*time.Second)
+		err = app.InitializeBackupRecovery(keyCtx)
+		keyCancel()
+		if err != nil {
+			slog.Error("backup recovery key initialization failed")
+			os.Exit(1)
+		}
 		recoverCtx, recoverCancel := context.WithTimeout(life, 10*time.Second)
 		err = app.RecoverFiles(recoverCtx)
 		recoverCancel()

@@ -1,8 +1,8 @@
 # Puppeteer 全新部署指南
 
-适用源码：`beta0.9`（schema 110、能力版本 90）。本文从源码构建本地镜像，也可使用已发布的 beta0.9 镜像，见 Docker Hub 安装说明。新安装使用单台 Linux amd64、Docker Compose 和全新 PostgreSQL 数据卷；已有数据按升级说明处理。
+适用源码：`beta0.10`（schema 110、能力版本 90）。本文从源码构建本地镜像，也可使用已发布的 beta0.10 镜像，见 Docker Hub 安装说明。新安装使用单台 Linux amd64、Docker Compose 和全新 PostgreSQL 数据卷；已有数据按升级说明处理。
 
-需要已发布镜像时使用[一键安装](ONE-CLICK-INSTALL.md)或[Docker Hub 安装](../deploy/production/dockerhub.md)，当前均为 beta0.9，与本文源码匹配。仅使用网页内 RDP 时选择图形组件，无需原生 Worker，见[网页内 RDP](BROWSER-RDP.md)。
+需要已发布镜像时使用[一键安装](ONE-CLICK-INSTALL.md)或[Docker Hub 安装](../deploy/production/dockerhub.md)，当前均为 beta0.10，与本文源码匹配。仅使用网页内 RDP 时选择图形组件，无需原生 Worker，见[网页内 RDP](BROWSER-RDP.md)。
 
 本文按“源码构建 → 初始化配置 → 安装证书 → 启动 → 创建管理员 → 验证”的顺序执行。Docker 模拟环境已验收；正式环境请使用自己的域名、证书及独立密钥。仓库内的开发夹具、测试账号和 `backend/compose.yaml` 不用于正式安装。
 
@@ -31,7 +31,7 @@ sudo docker compose version
 ```bash
 git clone https://github.com/lifeye-sh/Puppeteer.git
 cd Puppeteer
-git checkout beta0.9
+git checkout beta0.10
 git rev-parse HEAD
 npm ci
 npm run release:frontend
@@ -269,7 +269,7 @@ dc start
 | 图形服务不健康 | 宿主机FUSE设备、容器挂载权限、guacd日志及实际目标连通性 |
 | MP4任务繁忙或失败 | 渲染器健康状态、临时磁盘、任务清理；429表示繁忙，507表示存储不足 |
 
-已按上文完成接管的源码安装具备受管布局；升级使用目标版本发布镜像清单，当前支持 `upgrade.sh --version beta0.9`。保留本次源码、配置及镜像记录，升级前按[升级说明](UPGRADE.md)备份。
+已按上文完成接管的源码安装具备受管布局；升级使用目标版本发布镜像清单，当前支持 `upgrade.sh --version beta0.10`。保留本次源码、配置及镜像记录，升级前按[升级说明](UPGRADE.md)备份。
 
 应用更新和证书变更后的操作见[生产部署说明](../deploy/production/README.md)。不要执行 `docker compose down -v` 或删除数据卷来处理普通启动失败。数据库已有新写入后，不可简单切换旧镜像声称无损回滚；使用[恢复切换流程](../deploy/production/cutover.md)。
 

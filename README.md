@@ -8,8 +8,8 @@ Puppeteer 是基于 Go + PostgreSQL 的远程运维与审计平台，提供资�
 
 | 交付 | 版本与范围 |
 | --- | --- |
-| 当前版本 | **beta0.9**，schema 110、能力版本 90；包含 P0–P2 自动化和独立项目标识，见 [发布说明](deploy/production/beta0.9.md) |
-| Docker 镜像 | **beta0.9**，server、web、graphics、renderer；安装和升级脚本固定各组件摘要 |
+| 当前版本 | **beta0.10**，schema 110、能力版本 90；新增恢复密钥自动生成与批量访问授权，保留 P0–P2 自动化，见 [发布说明](deploy/production/beta0.10.md) |
+| Docker 镜像 | **beta0.10**，server、web、graphics、renderer；安装和升级脚本固定各组件摘要 |
 
 Linux 一键安装和升级会接入匹配的部署执行器。已有部署使用升级脚本，保留密钥和数据卷；不要重新运行安装器。源码版本与发布状态见 [VERSION](VERSION) 和 [版本元数据](deploy/production/source-release.json)。
 
@@ -26,9 +26,9 @@ curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/in
 - [已有部署版本升级（备份与健康检查）](docs/UPGRADE.md)
 - [网页内 RDP：准备、创建资产与排错](docs/BROWSER-RDP.md)
 - [自动部署执行器与预检进度](docs/AUTO-DEPLOYMENT.md)
-- [资源优化：档位、按需渲染、数据库预算与任务调度（未发布）](docs/RESOURCE-OPTIMIZATION.md)
+- [资源优化：档位、按需渲染、数据库预算与任务调度](docs/RESOURCE-OPTIMIZATION.md)
 
-beta0.9 网页 RDP 新增省资源、均衡、清晰三档及分阶段连接诊断；MP4 转换在资源不足时保留排队并自动恢复。第二轮 10 小时稳定性复测尚未完成。使用方式与验收边界见 [资源优化说明](docs/RESOURCE-OPTIMIZATION.md)。
+beta0.10 网页 RDP 新增省资源、均衡、清晰三档及分阶段连接诊断；MP4 转换在资源不足时保留排队并自动恢复。第二轮 10 小时稳定性复测尚未完成。使用方式与验收边界见 [资源优化说明](docs/RESOURCE-OPTIMIZATION.md)。
 - [配置菜单及 P0–P2 功能范围](docs/CONFIGURATION-AUTOMATION-ROADMAP.md)
 - [P2 专项运维](docs/OPERATIONS-AUTO-DEPLOYMENT.md)
 - [后端设计与模块规划](docs/backend/README.md)
@@ -51,7 +51,7 @@ beta0.9 网页 RDP 新增省资源、均衡、清晰三档及分阶段连接诊�
 
 rc13 将配置分为服务部署、外部依赖、业务策略、状态与发布。服务操作先预检，再显示持久化任务进度；失败给出原因并执行适用的恢复流程。自动化检查端口占用和部署依赖，不修改防火墙、云安全组或 DNS。普通 Compose 启动成功不代表执行器已经接入。
 
-维护源码版本时先编写对应发布说明，再执行 `node scripts/version.mjs --set beta0.9`；`node scripts/version.mjs --check` 校验源码、后端、schema 和能力版本。脚本管理源码元数据，不推送 Git、创建标签或发布镜像，不修改安装器及配置生成器的镜像默认值。
+维护源码版本时先编写对应发布说明，再执行 `node scripts/version.mjs --set beta0.10`；`node scripts/version.mjs --check` 校验源码、后端、schema 和能力版本。脚本管理源码元数据，不推送 Git、创建标签或发布镜像，不修改安装器及配置生成器的镜像默认值。
 
 ## 项目标识
 
