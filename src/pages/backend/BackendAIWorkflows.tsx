@@ -9,18 +9,19 @@ const opts={errorMode:'local' as const};
 export type AIToolCall={id:string;name:string;arguments:string};
 type Execution={id:string;name:string;state:string;parameterHash:string;revision:number;expiresAt:string;output:string;reason:string;cancelRequested:boolean;arguments:{command?:string;path?:string;content?:string;before?:string;expectedHash?:string;sessionId?:string}};
 const toolReasons:Record<string,string>={tool_failed:'业务操作失败，请检查会话、权限与目标状态',target_changed:'目标文件已变化，请重新预览并审批',unknown_remote_outcome:'执行结果未知，请在目标主机核查，不要直接重复执行',authorization_changed_after_execution:'执行后权限变化，结果已隐藏，请联系管理员核查',authorization_or_parameters_changed:'权限或参数版本已变化，需要重新审批',approval_expired:'审批已过期',restore_quarantine:'恢复后的操作已隔离'};
-const names:Record<string,string>={asset_inspect:'资产元数据',audit_commands:'会话命令审计',session_command:'执行命令',file_read:'读取文本文件',file_write:'修改文本文件'};
+const names:Record<string,string>={asset_inspect:'资产元数据',audit_commands:'会话命令审计',session_command:'执行命令',file_read:'读取文本文件',file_write:'修改文本文件',system_update_status:'系统更新状态（只读）'};
 const states:Record<string,string>={awaiting_approval:'等待审批',approved:'已批准，待执行',running:'执行中',succeeded:'成功',failed:'失败',rejected:'已拒绝',cancelled:'已取消',timed_out:'已超时',unknown:'结果未知，请人工核查',needs_revision:'目标或权限变化，请重新提案'};
 function AIToolResult({execution}:{execution:Execution}){
  let value:Record<string,unknown>;try{value=JSON.parse(execution.output)}catch{return <pre>{execution.output}</pre>}
  if(execution.name==='file_read')return <><Typography.Text type="secondary">SHA-256：{String(value.sha256||'')}</Typography.Text><pre>{String(value.content||'')}</pre></>;
  if(execution.name==='audit_commands'){type Row={id:string;command:string;state:string;exitCode:number|null;createdAt:string};return <><Typography.Text>共 {String(value.total)} 条，本次最多返回最近 100 条</Typography.Text><Table<Row> size="small" rowKey="id" dataSource={value.items as Row[]} scroll={{x:600}} pagination={{pageSize:10}} columns={[{title:'命令',dataIndex:'command',render:v=><pre>{v}</pre>},{title:'状态',dataIndex:'state'},{title:'退出码',dataIndex:'exitCode'},{title:'时间',dataIndex:'createdAt'}]}/></>}
+ if(execution.name==='system_update_status')return <><Alert type="info" title="系统更新只读结果" description="安装、授权和预检请前往系统更新页面操作。"/><Button href="/system-updates">打开系统更新</Button><pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(value,null,2)}</pre></>;
  const source=execution.name==='asset_inspect'?{...(value.asset as object),...(value.session as object)}:value;
  const labels:Record<string,string>={id:'业务执行编号',state:'状态',exitCode:'退出码',message:'结果说明',name:'名称',host:'主机地址',port:'端口',protocol:'协议',createdAt:'创建时间',connectedAt:'连接时间',closedAt:'结束时间',path:'文件路径',size:'文件大小（字节）',sha256:'SHA-256',hash:'SHA-256',sessionId:'会话编号'};
  return <Descriptions size="small" bordered column={1} items={Object.entries(source).filter(([key])=>key in labels).map(([key,v])=>({key,label:labels[key],children:v==null?'—':String(v)}))}/>;
 }
 export function AITools({conversation,turns,onCopy,showSnippets}:{showSnippets:boolean;conversation:string;turns:{id:string;toolCalls?:AIToolCall[]}[];onCopy:(text:string)=>void}){
- const {capabilities}=useBackendRuntime();const execution=aiExecutionState(capabilities.features);
+ const {capabilities,account}=useBackendRuntime();const execution=aiExecutionState(capabilities.features);
  const cache=useQueryClient();const [error,setError]=useState(''),[busy,setBusy]=useState(''),[selected,setSelected]=useState<Execution>();
  const [manual,setManual]=useState(false),[form]=Form.useForm();const name=Form.useWatch('name',form);
  const query=useQuery({queryKey:['ai-tools',conversation],queryFn:()=>requests.get<Execution[]>('/ai/conversations/'+conversation+'/tools',opts),refetchInterval:q=>q.state.data?.some(v=>['approved','running','awaiting_approval'].includes(v.state))?2000:false});
@@ -48,7 +49,7 @@ export function AITools({conversation,turns,onCopy,showSnippets}:{showSnippets:b
  </Modal>
  <Modal title="准备工具操作" open={manual} onCancel={()=>setManual(false)} confirmLoading={busy==='prepare'} onOk={async()=>{const v=await form.validateFields();await prepare({name:v.name,arguments:v.name==='session_command'?{command:v.command}:v.name==='file_write'?{path:v.path,content:v.content||''}:v.name==='file_read'?{path:v.path}:{}})}}>
  <Alert type="info" title="仅在已授权资产范围内操作" description="命令与文件工具需要本人保持连接的 SSH 会话；修改文件时会读取当前文本供你核对。支持修改现有 UTF-8 文本，提交内容最多 8 KiB。"/>
- {error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical"><Form.Item name="name" label="工具" rules={[{required:true}]}><Select options={Object.entries(names).map(([value,label])=>({value,label}))}/></Form.Item>
+ {error&&<Alert type="error" title={error}/>}<Form form={form} layout="vertical"><Form.Item name="name" label="工具" rules={[{required:true}]}><Select options={Object.entries(names).filter(([name])=>name!=='system_update_status'||account.type==='admin').map(([value,label])=>({value,label}))}/></Form.Item>
  {name==='session_command'&&<Form.Item name="command" label="完整命令" rules={[{required:true}]}><Input.TextArea rows={4} maxLength={4096}/></Form.Item>}
  {['file_read','file_write'].includes(name)&&<Form.Item name="path" label="文件路径" rules={[{required:true}]}><Input/></Form.Item>}
  {name==='file_write'&&<Form.Item name="content" label="修改后的完整内容"><Input.TextArea rows={8} maxLength={8192}/></Form.Item>}</Form>

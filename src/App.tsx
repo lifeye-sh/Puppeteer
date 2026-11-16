@@ -32,6 +32,7 @@ const BackendFederationCallback = lazy(()=>import('@/pages/backend/BackendFedera
 const BackendOAuthConsent = lazy(() => import('@/pages/backend/BackendOAuthConsent'));
 const BackendSettings = lazy(() => import('@/pages/backend/BackendSettings'));
 const BackendBackupPage = lazy(() => import('@/pages/backend/BackendBackupPage'));
+const BackendSystemUpdates = lazy(() => import('@/pages/backend/BackendSystemUpdates'));
 const BackendStoragePage = lazy(() => import('@/pages/backend/BackendStoragePage'));
 const BackendHomePage = lazy(() => import('@/pages/backend/BackendHomePage'));
 const BackendWorkbench = lazy(() => import('@/pages/backend/BackendHomePage').then(module=>({default:module.BackendWorkbench})));
@@ -254,6 +255,7 @@ const backendRoutes = [
  {path:'/notification-preferences',element:<BackendSettings section="preferences"/>},
  {path:'/identity-settings',element:<CapabilityGate feature="identity.oidc-config"><PermissionGate action="identity.manage"><BackendSettings section="identity"/></PermissionGate></CapabilityGate>},
  {path:'/system-event',element:<PermissionGate action="backup.manage"><BackendBackupPage/></PermissionGate>},
+ {path:'/system-updates',element:<PermissionGate action="identity.manage"><BackendSystemUpdates/></PermissionGate>},
  {path:'/website',element:<PermissionGate action="website.read"><BackendWebsites/></PermissionGate>},
  {path:'/x-website',element:<BackendWebsites portal/>},
  {path:'/certificate',element:<PermissionGate action="certificate.read"><BackendCertificates/></PermissionGate>},

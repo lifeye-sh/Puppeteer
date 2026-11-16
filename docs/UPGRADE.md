@@ -1,8 +1,8 @@
 # 已有部署版本升级
 
-> beta0.10 新增恢复密钥自动生成和批量访问授权，并包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
+> beta0.11 新增系统更新中心、网页自升级及维护窗口自动升级，保留恢复密钥管理和批量授权，并包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
 
-适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.10`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
+适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.11`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
 
 ## 执行
 
@@ -17,10 +17,10 @@ sudo bash upgrade-puppeteer.sh
 自定义安装目录或显式指定已发布版本：
 
 ```bash
-sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.10
+sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.11
 ```
 
-依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本支持 beta主版本.次版本（如 beta0.10）及历史 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
+依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本支持 beta主版本.次版本（如 beta0.11）及历史 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
 
 使用新资源档位、按需渲染或质量设置的开发部署升级时，会保留档位、运行方式、质量、临时卷、配额和组件关闭状态，并在镜像拉取后、服务停机前检查目标镜像能力。`--check` 不拉镜像，不能完成目标镜像能力验证；旧镜像缺少能力时正式升级会提前停止。
 
@@ -51,6 +51,14 @@ sudo bash upgrade-puppeteer.sh --enable-database-proxy --database-proxy-bind 0.0
 为数据库和应用文件的备份预留足够磁盘空间。此脚本从原运行时配置识别应用数据根目录并在原位置备份，避免目录改名后备份空目录；外部对象存储、独立数据库写入者或其他节点需要单独协调停写和备份。密钥备份必须与数据库备份一起妥善保管。
 
 ## 失败处理
+
+beta0.11 的自升级机制会在 `config/upgrade-state/upgrade.json` 留下持久化任务记录。新版手动脚本在拉取或停机前检查该记录：存在未完成升级、恢复或损坏记录时退出，不能通过重新运行脚本绕过。先核验对应任务及备份恢复状态，再处理记录；不要直接删除记录后启动旧镜像。配置备份排除升级事务目录及运行时 socket 目录，这些宿主机状态不会随应用配置回退。该机制从 beta0.11 开始提供，操作边界见[系统更新说明](SYSTEM-UPDATES.md)。
+
+已有 beta0.10 安装需先使用本升级脚本升级至 beta0.11 或后续兼容版本。脚本同步升级冻结配置、独立进度 Nginx 配置和宿主机执行器；之后可在“系统运维 → 系统更新”选择版本、预检并确认停机，输入管理员密码及已绑定 MFA 的新动态验证码后执行。自动检查不会自动安装；beta0.11 另支持明确授权后的自动准备或维护窗口升级，默认关闭，需限定已知版本上限、渠道及最长 30 天有效期。
+
+维护窗口任务与手动升级共用锁和恢复规则，活动任务期间不能修改策略。失败后暂停自动执行，需要管理员修复并重新授权。自动准备不会停机；窗口升级必须勾选允许停止会话。备份产物默认不清理，可配置 30–365 天保留，始终保护当前任务、最近 3 个成功任务和所有失败/恢复任务，不删除镜像和历史日志。通知、AI 只读查询及完整操作边界见[自动升级说明](SYSTEM-UPDATES.md#u3-自动准备与维护窗口升级)。
+
+网页自升级首批支持标准 Linux amd64/systemd 一键安装、内部 PostgreSQL 18、受管命名卷和官方固定摘要镜像。Docker Desktop、外部或已恢复数据库、WAL 专用布局、启用 RDP 共享盘、未知服务和自定义可写挂载会被拒绝，并给出原因。详细边界、备份目录和恢复故障处理见[系统更新说明](SYSTEM-UPDATES.md)。升级期间关闭页面不会取消宿主机任务；不要同时运行手动升级或清理任务镜像、数据卷和备份。
 
 - 拉取阶段失败：应用未停止，修复网络后可重试。
 - 停机或备份失败：镜像设置尚未切换，但部分或全部应用可能已停止。检查错误，确认旧配置仍有效后，使用 `puppeteerctl up -d --no-build --wait` 恢复；若曾手动停用可选服务，请仅指定 `running-services.txt` 中原来运行的应用服务。

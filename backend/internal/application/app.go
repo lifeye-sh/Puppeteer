@@ -31,6 +31,8 @@ import (
 	"puppeteer/backend/internal/platform/listener"
 	"puppeteer/backend/internal/platform/postgres"
 	"puppeteer/backend/internal/platform/resourcebudget"
+	"puppeteer/backend/internal/platform/runtimeprofile"
+	"puppeteer/backend/internal/platform/systemupdate"
 	"regexp"
 	"strings"
 	"sync"
@@ -67,6 +69,7 @@ type Config struct {
 	RestoreDirectory            string
 	RestoreID                   string
 	StartFrozen                 bool
+	UpgradeStartup              bool
 	BackupDirectory             string
 	DatabaseURL                 string
 	WebsitePublicPort           int
@@ -81,6 +84,10 @@ type Config struct {
 	CaptchaRequired             bool
 }
 type App struct {
+	upgradeMu                sync.Mutex
+	upgradeRelease           func()
+	updateMu                 sync.Mutex
+	updateManager            *systemupdate.Manager
 	taskWake                 chan struct{}
 	exportWake               chan struct{}
 	backupWake               chan struct{}
@@ -295,10 +302,10 @@ func (a *App) handler(registered func(string)) http.Handler {
 			registered(pattern)
 		}
 		mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-			control := r.URL.Path == "/healthz" || r.URL.Path == "/readyz" || (r.Method == "GET" && strings.HasPrefix(r.URL.Path, "/api/admin/backup/"))
+			control := r.URL.Path == "/healthz" || r.URL.Path == "/readyz" || (r.Method == "GET" && strings.HasPrefix(r.URL.Path, "/api/admin/backup/")) || (strings.HasPrefix(r.URL.Path, "/api/internal/deployment-upgrade-") && internalDeploymentRequest(r))
 			if !control {
 				if !a.enterRequest() {
-					a.failure(w, r, problem(503, "maintenance", "系统正在备份或恢复维护，请稍后重试"))
+					a.failure(w, r, problem(503, "maintenance", "系统正在备份、恢复或升级维护，请稍后重试"))
 					return
 				}
 				defer a.requests.RUnlock()
@@ -316,7 +323,7 @@ func (a *App) handler(registered func(string)) http.Handler {
 		if _, e := a.system.State(r.Context()); e != nil {
 			return e
 		}
-		writeJSON(w, 200, map[string]any{"status": "ready", "restoreId": a.config.RestoreID, "frozen": a.maintenance.Load()})
+		writeJSON(w, 200, map[string]any{"status": "ready", "restoreId": a.config.RestoreID, "frozen": a.maintenance.Load(), "version": Release, "upgradeHold": runtimeprofile.UpgradeHeld()})
 		return nil
 	})
 	handle("GET /api/branding", func(w http.ResponseWriter, r *http.Request) error {
@@ -453,6 +460,7 @@ func (a *App) handler(registered func(string)) http.Handler {
 	a.registerDatabaseViews(handle)
 	a.registerConfiguration(handle)
 	a.registerDeployment(handle)
+	a.registerSystemUpdates(handle)
 	a.registerConfigurationStatus(handle)
 	a.routesR16Monitoring(handle)
 	a.routesR16Diagnostics(handle)
@@ -583,7 +591,7 @@ func (a *App) handler(registered func(string)) http.Handler {
 			}
 		}
 		timeout := 15 * time.Second
-		if strings.HasPrefix(r.URL.Path, "/api/internal/deployment-") || r.URL.Path == "/api/admin/deployment/preflight" || r.URL.Path == "/api/admin/deployment/tasks" {
+		if strings.HasPrefix(r.URL.Path, "/api/internal/deployment-") || strings.HasPrefix(r.URL.Path, "/api/admin/updates") || r.URL.Path == "/api/admin/deployment/preflight" || r.URL.Path == "/api/admin/deployment/tasks" {
 			timeout = 60 * time.Second
 		}
 		if r.URL.Path == "/api/ai/ws" || r.URL.Path == "/api/agent/v1/connect" || r.URL.Path == "/api/native/v1/bridge" || (strings.HasPrefix(r.URL.Path, "/api/sessions/") && strings.HasSuffix(r.URL.Path, "/ws")) {

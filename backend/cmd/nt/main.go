@@ -8,14 +8,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"puppeteer/backend/internal/application"
 	"puppeteer/backend/internal/modules/system"
 	"puppeteer/backend/internal/platform/postgres"
-	"os"
 	"time"
 )
 
 func main() {
+	if len(os.Args) == 4 && os.Args[1] == "upgrade-control" {
+		if err := upgradeControl(os.Args[2], os.Args[3]); err != nil {
+			fmt.Fprintln(os.Stderr, "upgrade control failed")
+			os.Exit(1)
+		}
+		return
+	}
 	if len(os.Args) == 2 && os.Args[1] == "deployment-wal-guard" {
 		if err := deploymentWALGuard(); err != nil {
 			fmt.Fprintln(os.Stderr, "WAL runtime guard failed")

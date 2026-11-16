@@ -1,11 +1,11 @@
 {
   "product": "Puppeteer",
-  "version": "beta0.10",
-  "channel": "beta",
+  "version": "beta0.11",
+  "channel": "source-candidate",
   "platform": "linux/amd64",
   "schemaVersion": 110,
   "capabilitiesRevision": 90,
-  "containerImagesPublished": true,
+  "containerImagesPublished": false,
   "publishedImageVersion": "beta0.10",
-  "releaseNotes": "deploy/production/beta0.10.md"
+  "releaseNotes": "deploy/production/beta0.11.md"
 }

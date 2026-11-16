@@ -3,14 +3,14 @@
 set -Eeuo pipefail
 umask 077
 install_dir=/opt/puppeteer
-version=beta0.10
+version=beta0.11
 check_only=0
 enable_database_proxy=0
 database_host=
 database_bind=127.0.0.1
 help() {
   cat <<'HELP'
-Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version beta0.10] [--check]
+Usage: sudo bash upgrade.sh [--dir /opt/puppeteer] [--version beta0.11] [--check]
   --check    Validate deployment and release; do not pull, stop or update services.
   --enable-database-proxy     Add missing MySQL/PostgreSQL listeners and mappings
   --database-proxy-host HOST  Certificate hostname (default: host from HTTPS origin)
@@ -45,6 +45,22 @@ env_file="$install_dir/config/production.env"
 # Serialize upgrades for this installation, including downloads and backups.
 exec 9>"$install_dir/.upgrade.lock"
 flock -n 9 || die 'Another upgrade is running'
+# A crashed independent runner can release flock while its recovery is pending.
+# Never bypass that durable intent with the manual upgrade path.
+python3 - "$install_dir/config/upgrade-state/upgrade.json" <<'PYUPGRADEGUARD'
+import json, pathlib, re, sys
+p = pathlib.Path(sys.argv[1])
+if p.exists() or p.is_symlink():
+    try:
+        value = json.loads(p.read_text())
+        if (value.get('format') != 1 or value.get('stage') not in ('succeeded', 'prepared', 'rolled_back', 'failed')
+                or not re.fullmatch('[a-f0-9]{64}', value.get('planDigest', ''))
+                or not re.fullmatch('[a-f0-9]{32}', value.get('plan', {}).get('id', ''))
+                or not value.get('events') or not value.get('started') or not value.get('updated')):
+            raise ValueError('upgrade or recovery pending')
+    except (ValueError, OSError, TypeError, AttributeError):
+        sys.exit('An independent upgrade or recovery is pending, or its journal is unreadable; resolve it before a manual upgrade.')
+PYUPGRADEGUARD
 unset PUPPETEER_SERVER_IMAGE PUPPETEER_WEB_IMAGE PUPPETEER_GRAPHICS_IMAGE PUPPETEER_RENDERER_IMAGE
 docker compose version >/dev/null
 "$ctl" config --quiet
@@ -290,6 +306,10 @@ migrate_paths = helpers.get('migrate_application_paths')
 if migrate_paths: migrate_paths(model)
 enroll_graphics = helpers.get('enroll_graphics')
 if enroll_graphics: enroll_graphics(model)
+enroll_upgrade = helpers.get('enroll_upgrade')
+if enroll_upgrade: enroll_upgrade(model)
+progress = helpers.get('PROGRESS_CONFIG')
+if progress: pathlib.Path(work, 'deployment-progress.conf').write_text(progress)
 pathlib.Path(target).write_text(json.dumps(model))
 PYMANAGED
   docker compose --project-directory "$install_dir" -p "$project" -f "$work/compose-managed.json" config --quiet
@@ -303,7 +323,7 @@ printf '[3/6] Stopping application services and backing up data\n'
 phase=backup
 "$ctl" stop "${app_services[@]}"
 # Archive configuration (including custom files and secrets), excluding backups/work.
-tar --exclude='./backups' --exclude='./.upgrade-*' --exclude='./.upgrade.lock' -C "$install_dir" -cpf "$backup/configuration.tar" .
+tar --exclude='./backups' --exclude='./.upgrade-*' --exclude='./.upgrade.lock' --exclude='./config/upgrade-state' --exclude='./config/deployd-run' -C "$install_dir" -cpf "$backup/configuration.tar" .
 "$ctl" exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$backup/database.dump"
 "$ctl" exec -T postgres pg_restore --list < "$backup/database.dump" > "$backup/database-contents.txt"
 # Includes nested storageconfig mount; use the old image already on this host.
@@ -331,6 +351,11 @@ if [[ -f $work/puppeteerctl.runtime ]]; then
   install -m 700 "$work/puppeteerctl.runtime" "$ctl"
 fi
 if [[ -n $deployd_unit ]]; then
+  if [[ -f $work/deployment-progress.conf ]]; then
+    cp -p "$install_dir/config/deployment-progress.conf" "$install_dir/config/deployment-progress.conf.upgrade"
+    cat "$work/deployment-progress.conf" > "$install_dir/config/deployment-progress.conf.upgrade"
+    mv -f "$install_dir/config/deployment-progress.conf.upgrade" "$install_dir/config/deployment-progress.conf"
+  fi
   cp -p "$install_dir/compose-managed.json" "$install_dir/compose-managed.json.upgrade"
   cat "$work/compose-managed.json" > "$install_dir/compose-managed.json.upgrade"
   mv -f "$install_dir/compose-managed.json.upgrade" "$install_dir/compose-managed.json"

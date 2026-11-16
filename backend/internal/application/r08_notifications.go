@@ -189,14 +189,21 @@ func (a *App) routesR08Notifications(h func(string, func(http.ResponseWriter, *h
 }
 
 func (a *App) notificationEligible(ctx context.Context, delivery, user string) (bool, error) {
-	var request, actor, mode, databaseOrder, systemEvent string
+	var request, actor, mode, databaseOrder, systemEvent, eventType string
 	var enabled bool
-	e := a.db.Row(ctx, `SELECT coalesce(e.request_id::text,''),e.actor_id::text,r.recipient_mode,r.enabled,coalesce(e.database_order_id::text,''),coalesce(e.system_event_id::text,'') FROM notification_deliveries d JOIN notification_events e ON e.id=d.event_id JOIN notification_rules r ON r.id=d.rule_id WHERE d.id=$1`, delivery).Scan(&request, &actor, &mode, &enabled, &databaseOrder, &systemEvent)
+	e := a.db.Row(ctx, `SELECT coalesce(e.request_id::text,''),e.actor_id::text,r.recipient_mode,r.enabled,coalesce(e.database_order_id::text,''),coalesce(e.system_event_id::text,''),e.event_type FROM notification_deliveries d JOIN notification_events e ON e.id=d.event_id JOIN notification_rules r ON r.id=d.rule_id WHERE d.id=$1`, delivery).Scan(&request, &actor, &mode, &enabled, &databaseOrder, &systemEvent, &eventType)
 	if e != nil {
 		return false, e
 	}
 	if !enabled {
 		return false, nil
+	}
+	if eventType == "system.upgrade.prepared" || eventType == "system.upgrade.succeeded" || eventType == "system.upgrade.failed" {
+		subject, e := a.identity.Subject(ctx, user)
+		if e != nil {
+			return false, e
+		}
+		return mode == "specified" && subject.Enabled && subject.User.Type == "admin" && a.allowed(ctx, &subject.User, "identity.manage") == nil, nil
 	}
 	if systemEvent != "" {
 		subject, e := a.identity.Subject(ctx, user)

@@ -47,3 +47,10 @@ test('deployment navigation supports administrators and configuration readers wi
   assert.equal(navigationLocation(path,visibleNavigation(actions,features,'admin')).group.key,'configuration');
  }
 });
+
+test('system updates require a platform administrator even with identity management permission',()=>{
+ const paths=type=>visibleNavigation(['identity.manage'],{},type).flatMap(g=>g.pages).map(p=>p.path);
+ assert.ok(paths('admin').includes('/system-updates'));
+ assert.ok(!paths('user').includes('/system-updates'));
+ assert.equal(navigationLocation('/system-updates',visibleNavigation(['identity.manage'],{},'admin')).group.key,'operations');
+});

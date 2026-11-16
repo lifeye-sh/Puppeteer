@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -18,6 +19,8 @@ import (
 // HostDriver operates only on an enrolled standalone Compose file. The daemon
 // must hold an exclusive deployment lock. All paths are installer-owned.
 type HostDriver struct {
+	UpgradeHTTP              http.Handler
+	UpgradeAvailable         func() (bool, string)
 	rendererLeaseUntil       atomic.Int64
 	rendererMaintenanceError atomic.Pointer[string]
 	Executor                 ComposeExecutor
@@ -30,6 +33,9 @@ type HostDriver struct {
 	Progress      func(string) error
 	WALGuard      func(context.Context) error
 }
+
+func (d *HostDriver) UpgradeHandler() http.Handler { return d.UpgradeHTTP }
+
 type hostState struct {
 	ResourceStarted bool                `json:"resourceStarted,omitempty"`
 	Owned           map[string]*Mapping `json:"owned"`

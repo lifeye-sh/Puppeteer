@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"puppeteer/backend/internal/platform/deploytask"
+	"puppeteer/backend/internal/platform/hostupgrade"
 	"puppeteer/backend/internal/platform/rdpstorage"
 	"strings"
 	"syscall"
@@ -30,6 +31,12 @@ type config struct {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "upgrade-run" {
+		if err := runUpgrade(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	if len(os.Args) > 1 && os.Args[1] == "rdp-storage" {
 		rdpstorage.Run(os.Args[2:])
 		return
@@ -88,8 +95,10 @@ func run(path string) error {
 	driver := &deploytask.HostDriver{Executor: cfg.Executor, StateDirectory: cfg.StateDirectory, VerifyRuntime: cfg.Executor.VerifyApplication, ApplyWebsite: cfg.Executor.ApplyWebsite}
 	driver.Check = cfg.Executor.CheckApplication
 	driver.WALGuard = cfg.Executor.CheckWALApplication
-	if err = driver.RecoverWALDrills(ctx); err != nil {
-		return err
+	if !driver.DeploymentBlocked() {
+		if err = driver.RecoverWALDrills(ctx); err != nil {
+			return err
+		}
 	}
 
 	engine, err := deploytask.Open(ctx, cfg.StateDirectory, driver)
@@ -97,6 +106,8 @@ func run(path string) error {
 		return err
 	}
 	driver.Progress = engine.Report
+	upgrades := &hostupgrade.Controller{Engine: engine, Executor: cfg.Executor, ConfigPath: path}
+	driver.UpgradeHTTP, driver.UpgradeAvailable = upgrades, upgrades.Available
 	go driver.RunMaintenance(ctx, engine)
 	go driver.RunRendererMaintenance(ctx, engine)
 	handler, err := deploytask.Handler(ctx, engine, strings.TrimSpace(string(token)))
@@ -128,6 +139,8 @@ func run(path string) error {
 	server := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 60 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192}
 	stopped := make(chan error, 1)
 	go func() { stopped <- server.Serve(listener) }()
+	go upgrades.Run(ctx)
+	go upgrades.RunAutomation(ctx)
 	select {
 	case err = <-stopped:
 		if !errors.Is(err, http.ErrServerClosed) {

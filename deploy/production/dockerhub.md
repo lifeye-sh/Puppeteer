@@ -1,13 +1,13 @@
 # Docker Hub 镜像部署
 
-当前发布 `beta0.10`，Linux amd64，schema 110、能力版本 90。镜像与构建提交见 [发布清单](dockerhub-beta0.10.json)，验证范围见 [发布说明](beta0.10.md)。
+当前发布 `beta0.11`，Linux amd64，schema 110、能力版本 90。镜像与构建提交见 [发布清单](dockerhub-beta0.11.json)，验证范围见 [发布说明](beta0.11.md)。
 
 | 组件 | 镜像 |
 | --- | --- |
-| 后端、CLI、部署执行器 | `cloners/puppeteer-server:beta0.10` |
-| Web 前端 | `cloners/puppeteer-web:beta0.10` |
-| 网页 RDP/VNC、共享文件 | `cloners/puppeteer-graphics:beta0.10` |
-| MP4 渲染 | `cloners/puppeteer-renderer:beta0.10` |
+| 后端、CLI、部署执行器 | `cloners/puppeteer-server:beta0.11` |
+| Web 前端 | `cloners/puppeteer-web:beta0.11` |
+| 网页 RDP/VNC、共享文件 | `cloners/puppeteer-graphics:beta0.11` |
+| MP4 渲染 | `cloners/puppeteer-renderer:beta0.11` |
 
 安装器固定镜像摘要，自动生成私有配置、证书、Compose 管理脚本，并接入 systemd 部署执行器。无需在服务器安装 Node.js 或 Go。网页内 RDP 不需要原生 Worker；4822、8090 仅用于内部网络。
 
@@ -22,7 +22,7 @@ sudo bash install-puppeteer.sh --host puppeteer.example.com
 
 完成后访问 `https://puppeteer.example.com/setup` 创建管理员。默认自签名证书；正式证书、端口及核心安装选项见 [一键安装](../../docs/ONE-CLICK-INSTALL.md)。没有预置账号或密码。
 
-手工定制时，检出 `beta0.10`，按[全新部署](../../docs/FRESH-INSTALL.md)生成私有配置及配置证书；将 production.env 中四个镜像替换为清单的 pinnedReference。用 `dc pull` 替代 `dc build`，启动时使用 `--no-build`，随后完成指南中的执行器接管。全部 Compose 叠加文件、AppArmor 策略、数据卷与管理脚本必须保持一致。
+手工定制时，检出 `beta0.11`，按[全新部署](../../docs/FRESH-INSTALL.md)生成私有配置及配置证书；将 production.env 中四个镜像替换为清单的 pinnedReference。用 `dc pull` 替代 `dc build`，启动时使用 `--no-build`，随后完成指南中的执行器接管。全部 Compose 叠加文件、AppArmor 策略、数据卷与管理脚本必须保持一致。
 
 ## 已有部署升级
 

@@ -198,7 +198,7 @@ func (a *App) registerDeployment(h func(string, func(http.ResponseWriter, *http.
 func internalDeploymentRequest(r *http.Request) bool {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	ip := net.ParseIP(host)
-	return err == nil && ip != nil && ip.IsLoopback() && r.Method == "POST" && (r.URL.Path == "/api/internal/deployment-check" || r.URL.Path == "/api/internal/deployment-site-apply" || r.URL.Path == "/api/internal/deployment-verify" || r.URL.Path == "/api/internal/deployment-resource-drain" || r.URL.Path == "/api/internal/deployment-resource-resume") && r.Header.Get("Origin") == "" && token(r) == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ")
+	return err == nil && ip != nil && ip.IsLoopback() && r.Method == "POST" && (r.URL.Path == "/api/internal/deployment-check" || r.URL.Path == "/api/internal/deployment-site-apply" || r.URL.Path == "/api/internal/deployment-verify" || r.URL.Path == "/api/internal/deployment-resource-drain" || r.URL.Path == "/api/internal/deployment-resource-resume" || r.URL.Path == "/api/internal/deployment-upgrade-check" || r.URL.Path == "/api/internal/deployment-upgrade-drain" || r.URL.Path == "/api/internal/deployment-upgrade-resume") && r.Header.Get("Origin") == "" && token(r) == "" && strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ")
 }
 
 // Website metadata must not change beneath an accepted host deployment. The final
@@ -216,10 +216,14 @@ func (a *App) websiteDeploymentIdle(ctx context.Context) error {
 		return problem(503, "deployment_unavailable", "无法确认部署状态，请等待执行器恢复后重试")
 	}
 	var view struct {
-		Task *deploytask.Task `json:"task"`
+		Task           *deploytask.Task `json:"task"`
+		UpgradeBlocked bool             `json:"upgradeBlocked"`
 	}
 	if json.Unmarshal(raw, &view) != nil {
 		return problem(503, "deployment_unavailable", "部署状态不可解析")
+	}
+	if view.UpgradeBlocked {
+		return problem(409, "system_upgrade_busy", "系统升级或恢复正在执行，请等待结束后再编辑或删除网站")
 	}
 	if view.Task != nil && view.Task.State == "running" && view.Task.Request.Protocol == "website" {
 		return problem(409, "website_deployment_busy", "网站部署正在执行，请等待结束后再编辑或删除网站")

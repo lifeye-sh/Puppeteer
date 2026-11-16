@@ -7,5 +7,6 @@ prepare = _impl["prepare"]
 enroll_graphics = _impl["enroll_graphics"]
 enroll_operations = _impl["enroll_operations"]
 migrate_application_paths = _impl["migrate_application_paths"]
+enroll_upgrade = _impl["enroll_upgrade"]
 if __name__ == "__main__":
     _impl["main"]()

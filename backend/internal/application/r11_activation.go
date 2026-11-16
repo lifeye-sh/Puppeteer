@@ -3,8 +3,9 @@ package application
 import (
 	"context"
 	"encoding/hex"
-	"puppeteer/backend/internal/platform/runtimeprofile"
+	"log/slog"
 	"os"
+	"puppeteer/backend/internal/platform/runtimeprofile"
 	"time"
 )
 
@@ -24,8 +25,22 @@ func (a *App) StartOperationalServices(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-tick.C:
-				p, e := runtimeprofile.Read(os.Getenv("NT_RUNTIME_PROFILE"))
-				if e != nil || !p.WritesEnabled || p.RestoreID != a.config.RestoreID || p.DatabaseURL != a.config.DatabaseURL || p.MFAKey != hex.EncodeToString(a.config.EncryptionKey) || p.VaultKey != hex.EncodeToString(a.config.VaultKey) {
+				if !a.activationReady() {
+					continue
+				}
+				if a.config.UpgradeStartup {
+					initial, cancel := context.WithTimeout(ctx, 20*time.Second)
+					err := a.InitializeBackupRecovery(initial)
+					if err == nil {
+						err = a.RecoverFiles(initial)
+					}
+					cancel()
+					if err != nil {
+						slog.Error("upgrade activation initialization failed; business remains frozen")
+						continue
+					}
+				}
+				if ctx.Err() != nil || !a.activationReady() {
 					continue
 				}
 				start()
@@ -34,4 +49,18 @@ func (a *App) StartOperationalServices(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (a *App) activationReady() bool {
+	if runtimeprofile.UpgradeHeld() {
+		return false
+	}
+	p, e := runtimeprofile.Read(os.Getenv("NT_RUNTIME_PROFILE"))
+	// New installations have no runtime override until their first restore.
+	// Upgrade activation may use the original environment; restore activation
+	// must still wait for the explicitly committed matching runtime profile.
+	if a.config.UpgradeStartup && os.IsNotExist(e) {
+		p, e = runtimeprofile.FromEnvironment()
+	}
+	return e == nil && p.WritesEnabled && p.RestoreID == a.config.RestoreID && p.DatabaseURL == a.config.DatabaseURL && p.MFAKey == hex.EncodeToString(a.config.EncryptionKey) && p.VaultKey == hex.EncodeToString(a.config.VaultKey)
 }

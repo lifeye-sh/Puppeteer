@@ -52,19 +52,21 @@ func main() {
 		slog.Error("runtime profile unavailable")
 		os.Exit(1)
 	}
+	upgradeStartup := runtimeprofile.UpgradeHeld()
+	frozen := !profile.WritesEnabled || upgradeStartup
 	localEntitlement, entitlementVerifier, err := loadEntitlements()
 	if err != nil {
 		slog.Error("invalid entitlement deployment configuration")
 		os.Exit(1)
 	}
-	app := application.New(p, application.Config{MP4OnDemand: os.Getenv("NT_MP4_ON_DEMAND") == "true", ResourceProfile: os.Getenv("NT_RESOURCE_PROFILE"), ManagedHTTPAddr: os.Getenv("NT_DEPLOY_MANAGED_HTTP_ADDR"), ManagedDeploymentProtocols: managedDeploymentProtocols(), DisabledDeploymentProtocols: map[string]bool{"mysql": os.Getenv("NT_DEPLOY_DISABLED_MYSQL") == "true", "postgres": os.Getenv("NT_DEPLOY_DISABLED_POSTGRES") == "true", "website": os.Getenv("NT_DEPLOY_DISABLED_WEBSITE") == "true", "ssh": os.Getenv("NT_DEPLOY_DISABLED_SSH") == "true"}, DeploySocket: os.Getenv("NT_DEPLOY_SOCKET"), DeployTokenFile: os.Getenv("NT_DEPLOY_TOKEN_FILE"), SecureCookies: os.Getenv("NT_ENV") == "production", EntitlementLocal: localEntitlement, EntitlementVerifier: entitlementVerifier, NativeSSHAddr: os.Getenv("NT_NATIVE_SSH_ADDR"), NativeSSHName: os.Getenv("NT_NATIVE_SSH_NAME"), PasskeyRPID: os.Getenv("NT_PASSKEY_RP_ID"), PasskeyOrigins: strings.Split(os.Getenv("NT_PASSKEY_ORIGINS"), ","), DatabaseProxyAddr: os.Getenv("NT_DATABASE_PROXY_ADDR"), PostgresProxyAddr: os.Getenv("NT_POSTGRES_PROXY_ADDR"), DatabaseProxyName: os.Getenv("NT_DATABASE_PROXY_NAME"), MP4URL: os.Getenv("NT_MP4_URL"), MP4Token: os.Getenv("NT_MP4_TOKEN"), MP4Directory: os.Getenv("NT_MP4_DIRECTORY"), RestoreDirectory: os.Getenv("NT_RESTORE_DIRECTORY"), RestoreID: profile.RestoreID, StartFrozen: !profile.WritesEnabled, BackupDirectory: os.Getenv("NT_BACKUP_DIRECTORY"), DatabaseURL: os.Getenv("NT_DATABASE_URL"), WebsitePublicPort: websitePort, RDPDriveEnabled: os.Getenv("NT_RDP_DRIVE_ENABLED") == "true", GuacdAddr: os.Getenv("NT_GUACD_ADDR"), GuacdRelayHost: os.Getenv("NT_GUACD_RELAY_HOST"), AllowedOrigins: strings.Split(origins, ","), AllowRequestOrigin: os.Getenv("NT_ALLOW_REQUEST_ORIGIN") == "true", EncryptionKey: key, VaultKey: vaultKey, CaptchaRequired: true})
+	app := application.New(p, application.Config{MP4OnDemand: os.Getenv("NT_MP4_ON_DEMAND") == "true", ResourceProfile: os.Getenv("NT_RESOURCE_PROFILE"), ManagedHTTPAddr: os.Getenv("NT_DEPLOY_MANAGED_HTTP_ADDR"), ManagedDeploymentProtocols: managedDeploymentProtocols(), DisabledDeploymentProtocols: map[string]bool{"mysql": os.Getenv("NT_DEPLOY_DISABLED_MYSQL") == "true", "postgres": os.Getenv("NT_DEPLOY_DISABLED_POSTGRES") == "true", "website": os.Getenv("NT_DEPLOY_DISABLED_WEBSITE") == "true", "ssh": os.Getenv("NT_DEPLOY_DISABLED_SSH") == "true"}, DeploySocket: os.Getenv("NT_DEPLOY_SOCKET"), DeployTokenFile: os.Getenv("NT_DEPLOY_TOKEN_FILE"), SecureCookies: os.Getenv("NT_ENV") == "production", EntitlementLocal: localEntitlement, EntitlementVerifier: entitlementVerifier, NativeSSHAddr: os.Getenv("NT_NATIVE_SSH_ADDR"), NativeSSHName: os.Getenv("NT_NATIVE_SSH_NAME"), PasskeyRPID: os.Getenv("NT_PASSKEY_RP_ID"), PasskeyOrigins: strings.Split(os.Getenv("NT_PASSKEY_ORIGINS"), ","), DatabaseProxyAddr: os.Getenv("NT_DATABASE_PROXY_ADDR"), PostgresProxyAddr: os.Getenv("NT_POSTGRES_PROXY_ADDR"), DatabaseProxyName: os.Getenv("NT_DATABASE_PROXY_NAME"), MP4URL: os.Getenv("NT_MP4_URL"), MP4Token: os.Getenv("NT_MP4_TOKEN"), MP4Directory: os.Getenv("NT_MP4_DIRECTORY"), RestoreDirectory: os.Getenv("NT_RESTORE_DIRECTORY"), RestoreID: profile.RestoreID, StartFrozen: frozen, UpgradeStartup: upgradeStartup, BackupDirectory: os.Getenv("NT_BACKUP_DIRECTORY"), DatabaseURL: os.Getenv("NT_DATABASE_URL"), WebsitePublicPort: websitePort, RDPDriveEnabled: os.Getenv("NT_RDP_DRIVE_ENABLED") == "true", GuacdAddr: os.Getenv("NT_GUACD_ADDR"), GuacdRelayHost: os.Getenv("NT_GUACD_RELAY_HOST"), AllowedOrigins: strings.Split(origins, ","), AllowRequestOrigin: os.Getenv("NT_ALLOW_REQUEST_ORIGIN") == "true", EncryptionKey: key, VaultKey: vaultKey, CaptchaRequired: true})
 	life, stopLife := context.WithCancel(context.Background())
 	defer stopLife()
 	if err = configureRecordedRDP(app); err != nil {
 		slog.Error("native RDP configuration failed", "error", err)
 		os.Exit(1)
 	}
-	if profile.WritesEnabled {
+	if !frozen {
 		keyCtx, keyCancel := context.WithTimeout(life, 10*time.Second)
 		err = app.InitializeBackupRecovery(keyCtx)
 		keyCancel()

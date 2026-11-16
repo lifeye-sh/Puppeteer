@@ -93,7 +93,7 @@ class Upgrade(unittest.TestCase):
    self.assertNotEqual(result.returncode,0)
    self.assertIn('Version must be an explicit',result.stderr)
 
- def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None, published=False, version=None):
+ def run_case(self, case='', check=False, proxy=False, repeat=False, managed=False, graphics=None, published=False, version=None, upgrade_stage=None):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td); deploy=root/'deploy'; config=deploy/'config'; config.mkdir(parents=True)
    original='PUPPETEER_SERVER_IMAGE=old-server\nPUPPETEER_WEB_IMAGE=old-web\nPUPPETEER_ORIGIN=https://custom.example\nPUPPETEER_GRAPHICS_IMAGE=custom-graphics\n'
@@ -106,7 +106,11 @@ class Upgrade(unittest.TestCase):
     target.write_text(SHIM);target.chmod(0o700)
    (deploy/'puppeteerctl').write_text('#!/usr/bin/env bash\nset -euo pipefail\nexec docker compose --env-file '+str(config/'production.env')+' -p puppeteer -f '+str(deploy/'compose.yaml')+' -f '+str(deploy/'custom.yaml')+' "$@"\n')
    (deploy/'puppeteerctl').chmod(0o700)
+   if upgrade_stage is not None:
+    state=config/'upgrade-state';state.mkdir()
+    (state/'upgrade.json').write_text('corrupted' if upgrade_stage=='corrupt' else json.dumps({'format':1,'stage':upgrade_stage}))
    if managed:
+    (config/'deployment-progress.conf').write_text('# prior progress route\n')
     (config/'deployd.json').write_text(json.dumps({'executor':{'Project':'puppeteer'}}))
     (deploy/'compose-managed.json').write_text(json.dumps({'services':{'server':{'image':'old-server','environment':{'KEEP':'secret'}},'web':{'image':'old-web'}}}))
    if graphics:
@@ -133,6 +137,12 @@ class Upgrade(unittest.TestCase):
    if repeat and result.returncode==0:
     result=subprocess.run(cmd,env=env,capture_output=True,text=True)
    log=calls.read_text(); actual=(config/'production.env').read_text()
+   if upgrade_stage is not None:
+    self.assertNotEqual(result.returncode,0)
+    self.assertIn('independent upgrade or recovery is pending',result.stderr)
+    self.assertEqual(actual,original)
+    self.assertEqual(log,'')
+    return
    self.assertEqual((config/'private-key').read_text(),'must-not-change')
    self.assertEqual((deploy/'compose.yaml').read_text(),'custom compose must remain')
    if not case or case in ('existing-proxy','auto-enroll','identity'):
@@ -206,5 +216,8 @@ class Upgrade(unittest.TestCase):
  def test_pull_failure(self): self.run_case('pull-failure')
  def test_backup_failure(self): self.run_case('backup-failure')
  def test_start_failure(self): self.run_case('start-failure')
+ def test_pending_upgrade_blocks_manual_upgrade(self):
+  for stage in ('queued','switching','committing','rolling_back','recovery_required','corrupt','succeeded'):
+   with self.subTest(stage=stage):self.run_case(upgrade_stage=stage)
 
 if __name__=='__main__': unittest.main()

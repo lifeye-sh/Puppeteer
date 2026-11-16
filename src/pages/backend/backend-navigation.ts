@@ -60,6 +60,7 @@ export const navigationGroups:NavigationGroup[] = [
   {path:'/monitoring',label:'监控与告警',permission:'identity.manage'},
   {path:'/tools',label:'链路诊断',permission:'identity.manage'},
   {path:'/system-event',label:'备份与恢复',permission:'backup.manage'},
+  {path:'/system-updates',label:'系统更新',accessAny:[{permission:'identity.manage',adminOnly:true}]},
  ]},
  {key:'configuration',label:'平台配置',pages:[
   {path:'/system-status',label:'配置总览'},

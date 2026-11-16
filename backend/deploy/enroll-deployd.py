@@ -11,6 +11,15 @@ import secrets
 
 PORTS = {"mysql": 13306, "postgres": 15432, "ssh": 2022, "website": 18443}
 
+def enroll_upgrade(model):
+    """Use the already enrolled, host-owned, read-only runtime directory."""
+    server = model.get("services", {}).get("server", {})
+    mounts = [v for v in server.get("volumes", []) if v.get("target") == "/run/puppeteer-deploy"]
+    if len(mounts) != 1 or mounts[0].get("type") != "bind" or mounts[0].get("read_only") is not True:
+        return False
+    server.setdefault("environment", {})["NT_UPGRADE_HOLD"] = "/run/puppeteer-deploy/upgrade-hold"
+    return True
+
 def migrate_application_paths(model):
     """Remount existing named data volumes at the current product root.
 
@@ -52,6 +61,18 @@ PROGRESS_CONFIG = """location ^~ /deployment-progress/ {
     limit_except GET { deny all; }
     access_log off;
     proxy_pass http://unix:/run/puppeteer-deploy/deployd.sock;
+    proxy_set_header Authorization "";
+    proxy_set_header Cookie "";
+    proxy_buffering off;
+    proxy_read_timeout 10s;
+    add_header Cache-Control "no-store" always;
+    add_header Referrer-Policy "no-referrer" always;
+}
+location ^~ /upgrade-progress/ {
+    limit_except GET { deny all; }
+    access_log off;
+    error_log /dev/null;
+    proxy_pass http://unix:/run/puppeteer-deploy/upgrade.sock;
     proxy_set_header Authorization "";
     proxy_set_header Cookie "";
     proxy_buffering off;
@@ -210,6 +231,7 @@ def prepare(model, root, docker):
     env = server.setdefault("environment", {})
     env["NT_DEPLOY_SOCKET"] = "/run/puppeteer-deploy/deployd.sock"
     env["NT_DEPLOY_TOKEN_FILE"] = "/run/secrets/deployd_token"
+    enroll_upgrade(model)
     migrate_application_paths(model)
     enroll_graphics(model)
     # Existing mappings are enrolled, but listener policy is not changed until an operation.

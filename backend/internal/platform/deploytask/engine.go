@@ -72,6 +72,11 @@ type Engine struct {
 	journalErr error
 }
 
+func (e *Engine) externallyBlocked() bool {
+	guard, ok := e.driver.(interface{ DeploymentBlocked() bool })
+	return ok && guard.DeploymentBlocked()
+}
+
 // Open requires an executor-owned, private state directory. The caller must
 // hold a process lock for its lifetime; a second daemon must not share it.
 func Open(ctx context.Context, dir string, driver Driver) (*Engine, error) {
@@ -92,6 +97,9 @@ func Open(ctx context.Context, dir string, driver Driver) (*Engine, error) {
 		}
 	}
 	if t := e.data.Task; t != nil && t.State == "running" {
+		if e.externallyBlocked() {
+			return nil, ErrBusy
+		}
 		priorStage := t.Stage
 		t.State, t.Stage = "failed", "interrupted"
 		t.Error = "executor restarted; operation interrupted before deployment"
@@ -194,7 +202,7 @@ func (e *Engine) Start(ctx context.Context, r Request) (Task, error) {
 	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if e.busy {
+	if e.busy || e.externallyBlocked() {
 		return Task{}, ErrBusy
 	}
 	if e.journalErr != nil {
@@ -277,7 +285,7 @@ func (e *Engine) Preflight(ctx context.Context, r Request) error {
 		return err
 	}
 	e.mu.Lock()
-	if e.busy {
+	if e.busy || e.externallyBlocked() {
 		e.mu.Unlock()
 		return ErrBusy
 	}
@@ -341,7 +349,7 @@ func (e *Engine) Report(stage string) error { return e.stage(stage, "running", "
 // Scheduled work shares the deployment gate; shutdown waits for it too.
 func (e *Engine) Maintain(ctx context.Context, work func(context.Context) error) error {
 	e.mu.Lock()
-	if e.busy || e.journalErr != nil {
+	if e.busy || e.journalErr != nil || e.externallyBlocked() {
 		e.mu.Unlock()
 		return ErrBusy
 	}

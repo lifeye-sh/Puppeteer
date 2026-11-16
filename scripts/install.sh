@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Puppeteer beta0.10, fresh Linux amd64 deployment. Never replaces existing secrets/data.
+# Puppeteer beta0.11, fresh Linux amd64 deployment. Never replaces existing secrets/data.
 set -Eeuo pipefail
 umask 077
 revision=fb81b37257b1d2ac7af8c7107780cf2a10f2bf8a
-version=beta0.10
+version=beta0.11
 install_dir=/opt/puppeteer
 project=puppeteer
 host_name=

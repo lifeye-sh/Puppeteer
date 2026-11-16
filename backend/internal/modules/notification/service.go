@@ -247,11 +247,11 @@ func (s *Service) Rules(ctx context.Context) ([]Rule, error) {
 	return out, rows.Err()
 }
 func (s *Service) SaveRule(ctx context.Context, v Rule) (string, error) {
-	if v.Name == "" || len(v.Name) > 100 || len(v.Events) == 0 || len(v.Events) > 12 || len(v.ChannelIDs) == 0 || len(v.ChannelIDs) > 20 || len(v.RecipientIDs) > 100 || (v.Mode != "requester" && v.Mode != "reviewers" && v.Mode != "specified") || (v.Mode == "specified" && len(v.RecipientIDs) == 0) {
+	if v.Name == "" || len(v.Name) > 100 || len(v.Events) == 0 || len(v.Events) > 15 || len(v.ChannelIDs) == 0 || len(v.ChannelIDs) > 20 || len(v.RecipientIDs) > 100 || (v.Mode != "requester" && v.Mode != "reviewers" && v.Mode != "specified") || (v.Mode == "specified" && len(v.RecipientIDs) == 0) {
 		return "", fault.Invalid
 	}
 	for _, event := range v.Events {
-		if event == "monitor.firing" || event == "monitor.recovered" {
+		if event == "monitor.firing" || event == "monitor.recovered" || event == "system.upgrade.prepared" || event == "system.upgrade.succeeded" || event == "system.upgrade.failed" {
 			if v.Mode != "specified" {
 				return "", fault.Invalid
 			}

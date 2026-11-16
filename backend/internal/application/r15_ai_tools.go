@@ -79,11 +79,23 @@ func (a *App) aiToolScope(r *http.Request, c ai.Conversation, name string) (asse
 		err = e
 		return
 	}
-	if !cfg.Enabled || !cfg.ReadonlyEnabled || c.ContextType == "" {
+	if !cfg.Enabled || !cfg.ReadonlyEnabled {
 		err = fault.Denied
 		return
 	}
 	policy = cfg.Version
+	if name == "system_update_status" {
+		if u.Type != "admin" {
+			err = fault.Denied
+			return
+		}
+		err = a.allowed(r.Context(), u, "identity.manage")
+		return
+	}
+	if c.ContextType == "" {
+		err = fault.Denied
+		return
+	}
 	aid := c.ContextID
 	if c.ContextType == "session" {
 		v, e := a.sessions.Get(r.Context(), c.ContextID)
@@ -190,7 +202,7 @@ func (a *App) aiToolPropose(w http.ResponseWriter, r *http.Request) error {
 	if d.Decode(&args) != nil {
 		return fault.Invalid
 	}
-	if (in.Name == "asset_inspect" || in.Name == "audit_commands") && (args.Command != "" || args.Path != "" || args.Content != "") {
+	if (in.Name == "asset_inspect" || in.Name == "audit_commands" || in.Name == "system_update_status") && (args.Command != "" || args.Path != "" || args.Content != "") {
 		return fault.Invalid
 	}
 	if in.Name == "session_command" && (args.Path != "" || args.Content != "") {
@@ -453,6 +465,33 @@ func (a *App) aiToolAction(w http.ResponseWriter, r *http.Request) error {
 func (a *App) aiExecuteAdapter(r *http.Request, v ai.Execution) (string, error) {
 	session := v.Arguments.SessionID
 	switch v.Name {
+	case "system_update_status":
+		u, e := a.require(r, "identity.manage")
+		if e != nil {
+			return "", e
+		}
+		if u.Type != "admin" {
+			return "", fault.Denied
+		}
+		m, e := a.updates()
+		if e != nil {
+			return "", e
+		}
+		out := map[string]any{"currentVersion": Release, "updates": m.View(Release), "managementPage": "/system-updates"}
+		_, raw, e := a.updateCall(r.Context(), "GET", "/v1/updates/task", nil)
+		if e == nil {
+			var response struct {
+				Task map[string]any `json:"task"`
+			}
+			if json.Unmarshal(raw, &response) == nil {
+				delete(response.Task, "progressToken")
+				out["task"] = response.Task
+			}
+		} else {
+			out["hostStatus"] = e.Error()
+		}
+		b, e := json.Marshal(out)
+		return string(b), e
 	case "asset_inspect":
 		u, e := a.authenticated(r)
 		if e != nil {

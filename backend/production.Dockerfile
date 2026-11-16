@@ -22,3 +22,5 @@ ENTRYPOINT ["/app/server"]
 LABEL io.puppeteer.mp4.ondemand="v1"
 
 LABEL io.puppeteer.database.budget="v1"
+LABEL io.puppeteer.upgrade.hold="v1"
+LABEL io.puppeteer.upgrade.layout="v1"

@@ -20,12 +20,27 @@ func Handler(lifetime context.Context, e *Engine, token string) (http.Handler, e
 	}
 	expected := sha256.Sum256([]byte(token))
 	mux := http.NewServeMux()
+	if source, ok := e.driver.(interface{ UpgradeHandler() http.Handler }); ok && source.UpgradeHandler() != nil {
+		mux.Handle("/v1/updates/", source.UpgradeHandler())
+	}
 	respond := func(w http.ResponseWriter, status int, value any) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
 		w.WriteHeader(status)
 		json.NewEncoder(w).Encode(value)
 	}
+	mux.HandleFunc("GET /v1/updates/inventory", func(w http.ResponseWriter, r *http.Request) {
+		source, ok := e.driver.(interface {
+			UpdateInventory(context.Context) UpdateInventory
+		})
+		if !ok {
+			respond(w, 501, map[string]string{"error": "当前执行器不支持更新预检"})
+			return
+		}
+		value := source.UpdateInventory(r.Context())
+		_, task := e.View()
+		respond(w, 200, map[string]any{"inventory": value, "busy": (task != nil && task.State == "running") || e.externallyBlocked()})
+	})
 	mux.HandleFunc("GET /v1/status", func(w http.ResponseWriter, r *http.Request) {
 		generation, task := e.View()
 		history := e.Tasks()
@@ -33,6 +48,7 @@ func Handler(lifetime context.Context, e *Engine, token string) (http.Handler, e
 			history[i].ProgressToken = ""
 		}
 		response := map[string]any{"generation": generation, "task": task, "version": 1, "history": history}
+		response["upgradeBlocked"] = e.externallyBlocked()
 		if source, ok := e.driver.(interface {
 			Operations(context.Context) map[string]OperationStatus
 		}); ok {

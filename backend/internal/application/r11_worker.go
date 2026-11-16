@@ -24,6 +24,10 @@ func (a *App) RunBackupMaintenance(ctx context.Context) {
 	poll := pollwait.New(time.Second, 15*time.Second)
 	var nextRetention time.Time
 	for poll.Wait(ctx, a.backupWake) {
+		if a.maintenance.Load() {
+			poll.Record(false)
+			continue
+		}
 		if e := a.tickBackupSchedule(ctx); e != nil && ctx.Err() == nil {
 			slog.Error("backup scheduler failed")
 		}
@@ -81,6 +85,11 @@ func (a *App) RunBackupOnce(parent context.Context) error {
 		return err
 	}
 	defer release()
+	// A host drain may reserve every slot while this worker waits. Do not
+	// claim or fail a queued backup if maintenance is still active on release.
+	if a.maintenance.Load() {
+		return nil
+	}
 	q := jobs.New(a.db)
 	j, e := q.Claim(parent, "backup.create")
 	if jobs.IsEmpty(e) {

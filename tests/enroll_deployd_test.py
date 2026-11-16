@@ -35,6 +35,13 @@ class EnrollmentTests(unittest.TestCase):
         self.assertEqual(model["services"]["web"]["image"], "web-pinned")
         self.assertEqual(config["executor"]["Files"], ["/opt/puppeteer/compose-managed.json"])
         self.assertEqual(len(model["services"]["server"]["volumes"]), 2)
+        self.assertEqual(model["services"]["server"]["environment"]["NT_UPGRADE_HOLD"], "/run/puppeteer-deploy/upgrade-hold")
+
+    def test_upgrade_hold_requires_read_only_host_mount(self):
+        for kind, readonly in [('volume', True), ('bind', False), ('bind', None)]:
+            model = {'services': {'server': {'volumes': [{'target': '/run/puppeteer-deploy', 'type': kind, 'read_only': readonly}]}}}
+            self.assertFalse(enroll.enroll_upgrade(model))
+            self.assertNotIn('NT_UPGRADE_HOLD', model['services']['server'].get('environment', {}))
     def test_duplicate_mapping_rejected(self):
         model = self.model()
         model["services"]["server"]["ports"] *= 2
