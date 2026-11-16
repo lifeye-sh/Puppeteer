@@ -31,4 +31,6 @@ sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.11
 
 独立 systemd/Docker/PostgreSQL 验收通过自动准备、维护窗口升级、执行器替换和独立 Nginx 进度查询；切换后强制终止升级进程，重启后验证数据库与应用文件成套恢复。测试不等同于物理服务器断电验收；磁盘耗尽等扩展故障演练及此前第二轮 10 小时混合负载复测不列为已完成。
 
+正式镜像发布后，使用远端固定摘要通过隔离 Linux/systemd 全组件新安装，以及 beta0.10 核心部署升级至 beta0.11。验证 schema 110、服务健康、执行器 active、自升级启动能力、冻结标记挂载及独立进度配置；升级另验证业务数据、配置密钥、命名卷及备份校验清单保留。测试仅将配置下载指向对应源码夹具，镜像拉取、安装、备份、升级和健康检查均实际执行，测试结束后清理独立容器和数据卷。
+
 镜像和实际摘要见[发布清单](dockerhub-beta0.11.json)。操作、授权、保留与恢复边界见[系统更新](../../docs/SYSTEM-UPDATES.md)、[一键安装](../../docs/ONE-CLICK-INSTALL.md)和[升级说明](../../docs/UPGRADE.md)。AI 全功能运维 Agent 仍属独立规划，本版仅增加更新状态只读工具。

@@ -1,0 +1,34 @@
+{
+  "product": "Puppeteer",
+  "version": "beta0.11",
+  "sourceCheckout": "030bbc5cb28c3c97c447c41d4e281d2a99a411bd",
+  "platform": "linux/amd64",
+  "schemaVersion": 110,
+  "capabilitiesRevision": 90,
+  "images": [
+    {
+      "component": "server",
+      "reference": "cloners/puppeteer-server:beta0.11",
+      "digest": "sha256:c91356f4f5813f9599b9a5510f2001a080cbd79e1d33d3b884e4ff6def5e093e",
+      "pinnedReference": "cloners/puppeteer-server@sha256:c91356f4f5813f9599b9a5510f2001a080cbd79e1d33d3b884e4ff6def5e093e"
+    },
+    {
+      "component": "web",
+      "reference": "cloners/puppeteer-web:beta0.11",
+      "digest": "sha256:2caa8969c0bb57eb6760043850f70c3abd1933b5c66365a0af575f8343f655bb",
+      "pinnedReference": "cloners/puppeteer-web@sha256:2caa8969c0bb57eb6760043850f70c3abd1933b5c66365a0af575f8343f655bb"
+    },
+    {
+      "component": "graphics",
+      "reference": "cloners/puppeteer-graphics:beta0.11",
+      "digest": "sha256:0b33baba21617ebec12eeaac1b1ae5bc24f1c709c96686ef730dd0dd1621e698",
+      "pinnedReference": "cloners/puppeteer-graphics@sha256:0b33baba21617ebec12eeaac1b1ae5bc24f1c709c96686ef730dd0dd1621e698"
+    },
+    {
+      "component": "renderer",
+      "reference": "cloners/puppeteer-renderer:beta0.11",
+      "digest": "sha256:46548727abc12d9b59fc76a17ca89027a6547bd197473ce8d723107e17fc4723",
+      "pinnedReference": "cloners/puppeteer-renderer@sha256:46548727abc12d9b59fc76a17ca89027a6547bd197473ce8d723107e17fc4723"
+    }
+  ]
+}
