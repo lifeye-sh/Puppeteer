@@ -1,6 +1,6 @@
 # 一条命令安装 Puppeteer
 
-> beta0.10 包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
+> beta0.10 新增恢复密钥自动生成和批量访问授权，并包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
 
 适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL、Python 3、flock、systemd；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
 
