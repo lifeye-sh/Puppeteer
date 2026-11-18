@@ -18,7 +18,7 @@ sudo docker version
 sudo docker compose version
 ```
 
-资源按启用组件分配：核心配置文档基线为 2 CPU / 4 GiB；启用图形和 MP4 后，模板额外允许图形服务使用 2 GiB、渲染器使用 2 GiB / 2 CPU，不能仍按核心配置预留容量。构建、镜像、数据库、录屏和备份均需磁盘空间，请同时检查 Docker 数据目录所在磁盘。容量实测范围见[容量基线](../deploy/production/capacity.md)。
+资源按启用组件分配：安装最低门槛为 2 CPU / Docker 实际可见内存 3.5 GiB，核心配置推荐基线为 2 CPU / 4 GiB；启用图形和 MP4 后，模板额外允许图形服务使用 2 GiB、渲染器使用 2 GiB / 2 CPU，不能仍按核心配置预留容量。构建、镜像、数据库、录屏和备份均需磁盘空间，请同时检查 Docker 数据目录所在磁盘。容量实测范围见[容量基线](../deploy/production/capacity.md)。
 
 准备一个解析到服务器的域名，例如 `puppeteer.example.com`，以及对应证书链和私钥。内网部署可使用内网 CA，但访问设备必须信任该 CA。本文域名、证书源文件路径均须替换为实际值。
 

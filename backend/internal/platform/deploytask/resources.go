@@ -191,12 +191,12 @@ func (e ComposeExecutor) resourcePreflight(ctx context.Context, raw []byte, r Re
 		NCPU          int
 		DockerRootDir string
 	}
-	// Allow kernel-reserved RAM on machines sold as 4/8/16 GiB.
+	// Use the same Docker-visible floor as installation for the light profile.
 	if err != nil || json.Unmarshal(info, &host) != nil {
 		return errors.New("无法读取 Docker 主机资源")
 	}
-	if host.MemTotal < int64(p.HostMiB)*95/100<<20 || host.NCPU < p.CPUs {
-		return fmt.Errorf("%s 档位预检需要至少 %d 核及约 %d GiB 内存", p.Name, p.CPUs, p.HostMiB/1024)
+	if host.MemTotal < int64(p.MinimumHostMiB())<<20 || host.NCPU < p.CPUs {
+		return fmt.Errorf("%s 档位预检需要至少 %d 核及 Docker 可见内存 %d MiB；当前 %d 核、%d MiB", p.Name, p.CPUs, p.MinimumHostMiB(), host.NCPU, host.MemTotal>>20)
 	}
 	var m composeModel
 	_ = json.Unmarshal(raw, &m)

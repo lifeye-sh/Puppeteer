@@ -80,8 +80,17 @@ if [[ -n $cert || -n $key ]]; then
   [[ $cert_pub == "$key_pub" ]] || die 'Certificate and unencrypted private key do not match'
 fi
 docker compose version >/dev/null || die 'Install Docker Compose v2 first'
-read -r os cpus memory < <(docker info --format '{{.OSType}} {{.NCPU}} {{.MemTotal}}')
-[[ $os == linux ]] && ((cpus >= 2 && memory >= 4294967296)) || die 'Docker needs Linux containers, >=2 CPUs and >=4 GiB memory'
+docker_info=$(docker info --format '{{.OSType}} {{.NCPU}} {{.MemTotal}}') || die 'Cannot query Docker daemon; check that Docker is running and accessible'
+read -r os cpus memory extra <<< "$docker_info"
+[[ $cpus =~ ^[0-9]{1,6}$ && $memory =~ ^[0-9]{1,18}$ && -z $extra ]] || die 'Docker returned invalid CPU/memory information; run docker info to inspect the daemon'
+cpus=$((10#$cpus)); memory=$((10#$memory))
+detected="OS=$os CPUs=$cpus Memory=$((memory/1024/1024)) MiB ($memory bytes)"
+[[ $os == linux ]] || die "Docker must use Linux containers; detected $detected"
+((cpus >= 2)) || die "Docker needs at least 2 CPUs; detected $detected"
+# Match the light profile's exact visible-memory floor; no reserve discount.
+# MemTotal is daemon capacity, not currently free RAM.
+minimum_memory=$((3584*1024*1024))
+((memory >= minimum_memory)) || die "Docker needs at least 3.5 GiB memory (3584 MiB reported); detected $detected"
 docker_root=$(docker info --format '{{.DockerRootDir}}')
 [[ $docker_root != /var/snap/* ]] || die 'Snap Docker daemon detected; use supported Docker Engine without changing existing deployment files or deleting volumes'
 [[ -z $(docker ps -aq --filter "label=com.docker.compose.project=$project") ]] || die 'Compose project already has containers'

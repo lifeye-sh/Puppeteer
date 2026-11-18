@@ -2,7 +2,9 @@
 
 > beta0.11 新增系统更新中心、网页自升级及维护窗口自动升级，保留恢复密钥管理和批量授权，并包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
 
-适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL、Python 3、flock、systemd；无需 Node.js、Git 或编译工具。Docker须可用且至少分配2CPU/4GiB；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
+适用于已安装 **Docker Engine 和 Docker Compose v2 的 Linux amd64** 服务器。还需系统提供 Bash、curl、OpenSSL、Python 3、flock、systemd；无需 Node.js、Git 或编译工具。Docker 须可用，至少 2 CPU、实际可见内存 3.5 GiB，推荐 4 GiB 或更多；图形和MP4需要额外资源，磁盘需容纳镜像、数据库及录屏。
+
+安装预检使用 Docker 守护进程报告的 `OSType`、`NCPU` 和 `MemTotal`，不是当前空闲内存。安装与轻量资源档位的内存下限统一为 **3584 MiB（3.5 GiB，3758096384 字节）**，不再额外扣除内核保留比例；例如 `3822956544` 字节可通过容量检查。此门槛不是完整负载稳定性保证，3.5 GiB 整机验收尚未完成。清理缓存或增加 swap 不会增大 `MemTotal`。可执行 `docker info --format 'OS={{.OSType}} CPUs={{.NCPU}} MemoryBytes={{.MemTotal}}'` 核对；旧版脚本需更新后才使用新门槛。
 
 当前安装脚本固定 server、web、graphics 和 renderer 为 `beta0.11` 的发布摘要（schema 110、能力版本 90），包含自动部署执行器。见[镜像说明](../deploy/production/beta0.11.md)。已有安装请使用本文的升级入口，不要重复运行安装器。
 

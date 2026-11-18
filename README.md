@@ -34,7 +34,7 @@ sudo bash install-puppeteer.sh --host 192.168.1.100
 
 完成后访问 `https://服务器IP/setup` 创建管理员，无预置账号或密码。默认生成自签名 HTTPS 证书；证书、端口和管理命令见[一键安装说明](docs/ONE-CLICK-INSTALL.md)。新安装默认配置绑定本机的 MySQL/PostgreSQL 代理端口，远程访问配置见安装说明。
 
-资源档位提供 2 核/4 GiB、4 核/8 GiB、8 核/16 GiB 的部署预算目标，不是固定并发容量承诺。桌面分辨率、录屏及备份负载会影响实际资源需求，见[资源优化与验收边界](docs/RESOURCE-OPTIMIZATION.md)。
+安装及轻量档最低要求为 2 核、Docker 实际可见内存 3.5 GiB。资源档位提供 2 核/4 GiB、4 核/8 GiB、8 核/16 GiB 的部署预算目标，不是固定并发容量承诺。桌面分辨率、录屏及备份负载会影响实际资源需求，见[资源优化与验收边界](docs/RESOURCE-OPTIMIZATION.md)。
 
 ## 已有部署升级
 

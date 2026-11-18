@@ -22,6 +22,15 @@ func Lookup(name string) (Profile, error) {
 	return Profile{}, errors.New("资源档位必须为 light、standard 或 performance")
 }
 
+// MinimumHostMiB is the Docker-visible memory floor, not free memory.
+// Light admits 3.5 GiB exactly; larger profiles retain their kernel allowance.
+func (p Profile) MinimumHostMiB() int {
+	if p.Name == "light" {
+		return 3584
+	}
+	return p.HostMiB * 95 / 100
+}
+
 // Unset preserves one export plus one backup worker.
 func HeavyLimit(name string) int {
 	if name == "" {

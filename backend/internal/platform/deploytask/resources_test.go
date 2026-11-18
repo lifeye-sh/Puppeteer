@@ -4,11 +4,49 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestResourcePreflightVisibleMemoryFloor(t *testing.T) {
+	var doc map[string]any
+	_ = json.Unmarshal(resourceFixture(t), &doc)
+	delete(doc["services"].(map[string]any), "mp4-renderer")
+	for _, tc := range []struct {
+		name   string
+		memory int64
+		cpus   int
+		pass   bool
+	}{
+		{"light", 3758096384, 2, true},
+		{"light", 3822956544, 2, true},
+		{"light", 3758096383, 2, false},
+		{"light", 3221225472, 2, false},
+		{"light", 3758096384, 1, false},
+		{"standard", 7782 << 20, 4, true},
+		{"standard", (7782 << 20) - 1, 4, false},
+		{"performance", 15564 << 20, 8, true},
+		{"performance", (15564 << 20) - 1, 8, false},
+	} {
+		t.Run(fmt.Sprintf("%s-%d-%d", tc.name, tc.memory, tc.cpus), func(t *testing.T) {
+			e := fixtureExecutor(t, fmt.Sprintf(`case "$1" in
+info) echo '{"MemTotal":%d,"NCPU":%d}';;
+image) echo v1;;
+*) exit 1;;
+esac`, tc.memory, tc.cpus))
+			err := e.resourcePreflight(context.Background(), jsonValue(doc), Request{Protocol: "resources", Enabled: true, ResourceProfile: tc.name})
+			if (err == nil) != tc.pass {
+				t.Fatalf("pass=%v, err=%v", tc.pass, err)
+			}
+			if !tc.pass && !strings.Contains(err.Error(), "Docker 可见内存") {
+				t.Fatalf("unexpected failure: %v", err)
+			}
+		})
+	}
+}
 
 func resourceFixture(t *testing.T) []byte {
 	t.Helper()

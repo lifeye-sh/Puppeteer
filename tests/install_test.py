@@ -31,17 +31,23 @@ if name=='docker' and a[0]=='info' and 'SecurityOptions' in a[-1]:
 if name=='apparmor_parser':
  with open(os.environ['DRIVE_CALLS'],'a') as f:f.write(' '.join(a)+'\n')
 if name=='docker' and a[0]=='info':
- print('linux 4 8589934592' if '.OSType' in a[-1] else '/var/lib/docker')
+ if '.OSType' in a[-1] and os.environ.get('DOCKER_INFO_FAIL'):sys.exit(1)
+ print(os.environ.get('DOCKER_INFO','linux 4 8589934592') if '.OSType' in a[-1] else '/var/lib/docker')
 """
 @unittest.skipUnless(os.name=='posix' and os.geteuid()==0,'Linux root container required')
 class Install(unittest.TestCase):
- def run_install(self, extra, enabled=True, bind='127.0.0.1', auto=False):
+ def run_install(self, extra, enabled=True, bind='127.0.0.1', auto=False, info='linux 4 8589934592', failure=None, info_fail=False):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td);bins=root/'bin';bins.mkdir();deploy=root/'deployment'
    for name in ['docker','curl','df','openssl','systemctl']:
     p=bins/name;p.write_text(SHIM);p.chmod(0o700)
-   env=dict(os.environ,PATH=str(bins)+':'+os.environ['PATH'],AUTO_ENROLL='1' if auto else '')
+   env=dict(os.environ,PATH=str(bins)+':'+os.environ['PATH'],AUTO_ENROLL='1' if auto else '',DOCKER_INFO=info,DOCKER_INFO_FAIL='1' if info_fail else '')
    proc=subprocess.run(['bash',str(SCRIPT),'--core','--dir',str(deploy),'--host','db.example.com']+extra,env=env,capture_output=True,text=True)
+   if failure:
+    self.assertNotEqual(proc.returncode,0)
+    self.assertIn(failure,proc.stderr)
+    self.assertFalse(deploy.exists(),'Failed preflight must not create deployment')
+    return
    self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
    self.assertEqual((deploy/'auto-enrolled').exists(),auto)
    wrapper=(deploy/'puppeteerctl').read_text()
@@ -78,4 +84,15 @@ class Install(unittest.TestCase):
  def test_defaults(self):self.run_install([])
  def test_remote_bind(self):self.run_install(['--database-proxy-bind','0.0.0.0'],bind='0.0.0.0')
  def test_disable(self):self.run_install(['--no-database-proxy'],enabled=False)
+ def test_three_point_five_gib_and_reported_host_are_accepted(self):
+  self.run_install([],info='linux 2 3758096384')
+  self.run_install([],info='linux 2 3822956544')
+  self.run_install([],info='linux 2 4294967296')
+ def test_hardware_failures_report_the_specific_limit(self):
+  for info,reason in [('linux 2 3758096383','at least 3.5 GiB'),('linux 2 3221225472','at least 3.5 GiB'),('linux 2 2147483648','Memory=2048 MiB'),('linux 1 8589934592','at least 2 CPUs'),('windows 4 8589934592','Linux containers')]:
+   with self.subTest(info=info):self.run_install([],info=info,failure=reason)
+ def test_invalid_or_unavailable_docker_info_is_rejected(self):
+  for info in ['', 'linux missing 8589934592','linux 2 8589934592 unexpected']:
+   with self.subTest(info=info):self.run_install([],info=info,failure='invalid CPU/memory information')
+  self.run_install([],info_fail=True,failure='Cannot query Docker daemon')
 if __name__=='__main__':unittest.main()

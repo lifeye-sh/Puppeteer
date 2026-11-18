@@ -34,7 +34,7 @@ sudo bash install-puppeteer.sh --host 192.168.1.100
 
 Open `https://YOUR_SERVER_IP/setup` to create the administrator. There are no preset credentials. The installer generates a self-signed HTTPS certificate and initially binds database proxy ports to loopback. See [installation](docs/ONE-CLICK-INSTALL.md) for certificates, ports and management commands.
 
-Resource profiles target budgets of 2 CPU/4 GiB, 4 CPU/8 GiB and 8 CPU/16 GiB. These are engineering budgets, not certified concurrency guarantees. See [resource optimization](docs/RESOURCE-OPTIMIZATION.md) for workload assumptions and validation limits.
+Installation and the light profile require at least 2 CPUs and 3.5 GiB of Docker-visible memory. Resource profiles target budgets of 2 CPU/4 GiB, 4 CPU/8 GiB and 8 CPU/16 GiB. These are engineering budgets, not certified concurrency guarantees. See [resource optimization](docs/RESOURCE-OPTIMIZATION.md) for workload assumptions and validation limits.
 
 ## Upgrade an existing installation
 
