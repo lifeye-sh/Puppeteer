@@ -2,7 +2,7 @@
 # Puppeteer beta0.11, fresh Linux amd64 deployment. Never replaces existing secrets/data.
 set -Eeuo pipefail
 umask 077
-revision=030bbc5cb28c3c97c447c41d4e281d2a99a411bd
+revision=cc1032dec57ce468d86f5f5e117f40209a995344
 version=beta0.12
 install_dir=/opt/puppeteer
 project=puppeteer
@@ -211,10 +211,10 @@ PUPPETEER_CONFIG_DIR=$config
 PUPPETEER_ORIGIN=$origin
 PUPPETEER_BIND=$bind
 PUPPETEER_HTTPS_PORT=$port
-PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:c91356f4f5813f9599b9a5510f2001a080cbd79e1d33d3b884e4ff6def5e093e
-PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:2caa8969c0bb57eb6760043850f70c3abd1933b5c66365a0af575f8343f655bb
-PUPPETEER_GRAPHICS_IMAGE=cloners/puppeteer-graphics@sha256:0b33baba21617ebec12eeaac1b1ae5bc24f1c709c96686ef730dd0dd1621e698
-PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:46548727abc12d9b59fc76a17ca89027a6547bd197473ce8d723107e17fc4723
+PUPPETEER_SERVER_IMAGE=cloners/puppeteer-server@sha256:d0c3a23525b35b08593e760c4e65d6bf92894cf3afa740be5bdbc97b6fe9a7dd
+PUPPETEER_WEB_IMAGE=cloners/puppeteer-web@sha256:bb73be21c77d7e0708adefc0a05f0ef142223122d1bb54660516b757be12b665
+PUPPETEER_GRAPHICS_IMAGE=cloners/puppeteer-graphics@sha256:cd88689a99b18aa4c7fd817c81c16b5d3222d1c5e091c539a6e96cd6f73cb6b0
+PUPPETEER_RENDERER_IMAGE=cloners/puppeteer-renderer@sha256:6cd3004cb085632578b80c3264fe630c64da7def36a1d889a3cdb75c95bd8fad
 ENV
 printf '#!/usr/bin/env bash\nset -euo pipefail\nexec docker compose --env-file %q -p %q -f %q ' "$config/production.env" "$project" "$install_dir/compose.yaml" > "$install_dir/puppeteerctl"
 if (( ! core )); then printf '%s %q ' '-f' "$install_dir/services.yaml" >> "$install_dir/puppeteerctl"; fi
