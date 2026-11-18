@@ -2,13 +2,13 @@
 
 Puppeteer 是基于 Go、React 和 PostgreSQL 的远程运维与审计平台，统一管理资产、远程连接、数据库与网站访问、授权审批、录屏审计、备份和部署任务。
 
-[English](README-en.md) · [项目概览](docs/PROJECT-OVERVIEW.md) · [发布版本](https://github.com/lifeye-sh/Puppeteer/releases/tag/beta0.11) · [安装说明](docs/ONE-CLICK-INSTALL.md)
+[English](README-en.md) · [项目概览](docs/PROJECT-OVERVIEW.md) · [发布版本](https://github.com/lifeye-sh/Puppeteer/releases/tag/beta0.12) · [安装说明](docs/ONE-CLICK-INSTALL.md)
 
 ## 当前版本
 
-**beta0.11 测试版**，Linux amd64，数据库 schema 110、能力版本 90。server、web、graphics、renderer 四个组件镜像已发布，安装和升级脚本固定各组件摘要。
+**beta0.12 测试版**，Linux amd64，数据库 schema 110、能力版本 90。server、web、graphics、renderer 四个组件镜像已发布，安装和升级脚本固定各组件摘要。
 
-本版新增系统更新中心、管理员确认的网页自升级、自动准备镜像及维护窗口自动升级，包含签名校验、预检、独立进度、配套备份与失败恢复。自动升级默认关闭。详见[发布说明](deploy/production/beta0.11.md)、[镜像清单](deploy/production/dockerhub-beta0.11.json)和[系统更新说明](docs/SYSTEM-UPDATES.md)。
+本版将安装及轻量资源档位的最低内存统一为 Docker 实际可见的 3.5 GiB，并细化预检失败原因。保留 beta0.11 的签名系统更新、自升级和默认关闭的自动升级。详见[发布说明](deploy/production/beta0.12.md)、[镜像清单](deploy/production/dockerhub-beta0.12.json)和[系统更新说明](docs/SYSTEM-UPDATES.md)。
 
 ## 主要功能
 
@@ -42,8 +42,8 @@ sudo bash install-puppeteer.sh --host 192.168.1.100
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/upgrade.sh -o upgrade-puppeteer.sh
-sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.11 --check
-sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.11
+sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.12 --check
+sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.12
 ```
 
 升级会中断已有连接。beta0.10 及更早安装需要先执行这次脚本升级，接入新版宿主机执行器、冻结配置和独立进度入口；之后在 **系统运维 → 系统更新** 管理未来版本。
@@ -56,7 +56,7 @@ sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.11
 
 服务部署先预检，再执行并显示进度；只检查端口占用及部署依赖，不修改防火墙、云安全组或 DNS。普通容器启动成功不等于执行器已接入，也不等于公网可达。
 
-beta0.11 已通过实际发布镜像的隔离 Linux/systemd 全组件新安装及 beta0.10 升级验证；自升级验证覆盖维护窗口、执行器替换、独立进度和切换中断后的配套恢复。物理服务器断电、目标环境 AppArmor 及第二轮 10 小时混合负载复测不列为已完成，具体证据见发布说明。
+beta0.12 已通过实际发布镜像的隔离 Linux/systemd 全组件新安装及 beta0.10 升级验证；自升级验证覆盖维护窗口、执行器替换、独立进度和切换中断后的配套恢复。物理服务器断电、目标环境 AppArmor 及第二轮 10 小时混合负载复测不列为已完成，具体证据见发布说明。
 
 ## 文档导航
 

@@ -1,6 +1,6 @@
 # Puppeteer 项目概览
 
-更新日期：2026-11-17。当前发布 beta0.11 测试版，Linux amd64，数据库 schema 110、能力版本 90。
+更新日期：2026-11-18。当前发布 beta0.12 测试版，Linux amd64，数据库 schema 110、能力版本 90。
 
 ## 项目定位
 
@@ -26,14 +26,14 @@ Puppeteer 将远程运维的资产、身份、授权、连接、执行和审计�
 
 | 组件 | 职责 | 部署方式 |
 | --- | --- | --- |
-| server | Go API、鉴权、审计、连接与后台任务，镜像同时包含 CLI 和部署执行器 | `cloners/puppeteer-server:beta0.11` |
-| web | React 管理界面、Nginx HTTPS 入口及进度路由 | `cloners/puppeteer-web:beta0.11` |
-| graphics | guacd 图形连接组件，支持网页 RDP/VNC | `cloners/puppeteer-graphics:beta0.11` |
-| renderer | MP4 渲染与导出 | `cloners/puppeteer-renderer:beta0.11` |
+| server | Go API、鉴权、审计、连接与后台任务，镜像同时包含 CLI 和部署执行器 | `cloners/puppeteer-server:beta0.12` |
+| web | React 管理界面、Nginx HTTPS 入口及进度路由 | `cloners/puppeteer-web:beta0.12` |
+| graphics | guacd 图形连接组件，支持网页 RDP/VNC | `cloners/puppeteer-graphics:beta0.12` |
+| renderer | MP4 渲染与导出 | `cloners/puppeteer-renderer:beta0.12` |
 | PostgreSQL | 业务数据、授权、审计及任务记录 | 标准生产部署使用内部 PostgreSQL 18 |
 | 宿主机执行器 | 在受管 Linux 主机执行部署预检、配置应用与独立升级任务 | 一键安装或升级登记 systemd 服务 |
 
-安装与升级使用[发布清单](../deploy/production/dockerhub-beta0.11.json)中的固定摘要。图形与渲染组件按部署需求启停；网页 RDP 不要求原生 RDP Worker，内部组件端口不等于需要开放的公网入口。
+安装与升级使用[发布清单](../deploy/production/dockerhub-beta0.12.json)中的固定摘要。图形与渲染组件按部署需求启停；网页 RDP 不要求原生 RDP Worker，内部组件端口不等于需要开放的公网入口。
 
 Go 模块为 `puppeteer/backend`；前端位于 `src`，后端位于 `backend`，生产 Compose 位于 `deploy/production`。应用数据目录为 `/var/lib/puppeteer`；`NT_*` 环境变量与 `nt` CLI 作为稳定接口保留。
 
@@ -57,6 +57,6 @@ beta0.11 已通过前端构建、相关回归、真实 PostgreSQL 集成，以�
 
 ## 文档与发布维护
 
-当前版本以 [VERSION](../VERSION)、[发布元数据](../deploy/production/source-release.json)和[GitHub Release](https://github.com/lifeye-sh/Puppeteer/releases/tag/beta0.11)为准。R01–R17 文档保留历史设计和验收证据，不能仅凭历史阶段名称判断当前支持范围。
+当前版本以 [VERSION](../VERSION)、[发布元数据](../deploy/production/source-release.json)和[GitHub Release](https://github.com/lifeye-sh/Puppeteer/releases/tag/beta0.12)为准。R01–R17 文档保留历史设计和验收证据，不能仅凭历史阶段名称判断当前支持范围。
 
 发布需同步源码版本、四个组件镜像与摘要清单、安装升级脚本、文档、GitHub 标签及 Release，最后发布签名更新索引。索引当前默认有效期 30 天，续期也需要递增序号并重新签名，私钥不得进入源码或镜像。详见[发布索引维护](SYSTEM-UPDATES.md#发布索引维护)。

@@ -2,13 +2,13 @@
 
 Puppeteer is a remote operations and auditing platform built with Go, React and PostgreSQL. It brings together assets, remote sessions, database and website access, approvals, recordings, backups and deployment tasks.
 
-[简体中文](README.md) · [Project overview (Chinese)](docs/PROJECT-OVERVIEW.md) · [Release](https://github.com/lifeye-sh/Puppeteer/releases/tag/beta0.11)
+[简体中文](README.md) · [Project overview (Chinese)](docs/PROJECT-OVERVIEW.md) · [Release](https://github.com/lifeye-sh/Puppeteer/releases/tag/beta0.12)
 
 ## Current release
 
-**beta0.11**, a beta release for Linux amd64, uses database schema 110 and capability revision 90. Matching server, web, graphics and renderer images are published with pinned digests.
+**beta0.12**, a beta release for Linux amd64, uses database schema 110 and capability revision 90. Matching server, web, graphics and renderer images are published with pinned digests.
 
-This release adds signed update discovery, administrator-confirmed self-upgrades, automatic image preparation and authorized maintenance-window upgrades. Upgrades run independently on the host, with preflight checks, progress reporting, paired backups and recovery. Automatic installation is disabled by default. See the [release notes](deploy/production/beta0.11.md), [image manifest](deploy/production/dockerhub-beta0.11.json) and [system update guide](docs/SYSTEM-UPDATES.md).
+This release sets the installation and light-profile minimum to 3.5 GiB of Docker-visible memory and reports specific preflight failures. It retains signed self-updates from beta0.11; automatic installation remains disabled by default. See the [release notes](deploy/production/beta0.12.md), [image manifest](deploy/production/dockerhub-beta0.12.json) and [system update guide](docs/SYSTEM-UPDATES.md).
 
 ## Features
 
@@ -42,8 +42,8 @@ Use the upgrade script for existing managed installations; do not rerun the inst
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/upgrade.sh -o upgrade-puppeteer.sh
-sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.11 --check
-sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.11
+sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.12 --check
+sudo bash upgrade-puppeteer.sh --dir /opt/puppeteer --version beta0.12
 ```
 
 Upgrades interrupt active connections while preserving keys, named data volumes and component enablement. beta0.10 and earlier installations need this script upgrade once to install the host executor, upgrade-hold configuration and independent progress endpoint. Future releases can then be managed under **系统运维 → 系统更新**.
@@ -56,7 +56,7 @@ Browser RDP uses guacd. Enable Remote Desktop on the target Windows machine, cre
 
 Deployment automation checks ports and dependencies, then reports persistent progress and failures. It does not manage host firewalls, cloud security groups or DNS. A running container alone does not prove executor enrollment or public reachability.
 
-Actual beta0.11 images passed isolated Linux/systemd fresh installation and upgrade from beta0.10. Self-upgrade verification includes scheduled upgrades, executor replacement, independent progress and paired recovery after interrupted switching. Physical power-loss tests, target-host AppArmor checks and the second 10-hour mixed-load validation are not claimed as complete.
+Actual beta0.12 images passed isolated Linux/systemd fresh installation and upgrade from beta0.10. Self-upgrade verification includes scheduled upgrades, executor replacement, independent progress and paired recovery after interrupted switching. Physical power-loss tests, target-host AppArmor checks and the second 10-hour mixed-load validation are not claimed as complete.
 
 ## Documentation and development
 

@@ -2,7 +2,7 @@
 
 > beta0.11 新增系统更新中心、网页自升级及维护窗口自动升级，保留恢复密钥管理和批量授权，并包含资源档位、流式 MP4、按需渲染、转换质量、数据库预算及空闲退避，详见 [资源优化与运行方式](RESOURCE-OPTIMIZATION.md)。安装和升级使用同版本服务端、前端、渲染器及执行器；第二轮 10 小时稳定性复测尚未完成。
 
-适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.11`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
+适用于 `scripts/install.sh` 创建的 Linux amd64 部署。默认安装目录 `/opt/puppeteer`，通过原有 `puppeteerctl` 自动沿用项目名及 Compose 叠加文件。当前镜像升级默认目标为 `beta0.12`（schema 110、能力版本 90）。支持从 rc11 升级并自动接入部署执行器；r17-rc12 保留为源码标签，没有镜像清单。不要从 schema 110 回退到 rc11。
 
 ## 执行
 
@@ -17,7 +17,7 @@ sudo bash upgrade-puppeteer.sh
 自定义安装目录或显式指定已发布版本：
 
 ```bash
-sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.11
+sudo bash upgrade-puppeteer.sh --dir /opt/my-puppeteer --version beta0.12
 ```
 
 依赖 Docker Compose v2、curl、Python 3、tar、flock 和常用 Linux 工具，需要 root。目标版本必须提供 `deploy/production/dockerhub-版本.json` 清单。当前脚本支持 beta主版本.次版本（如 beta0.11）及历史 r17-rcN 版本，不支持降低数据库 schema 版本；不适用于无法识别布局的手工安装或开发 Compose 部署。
