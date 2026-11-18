@@ -28,7 +28,9 @@ bash repair-el7-libseccomp.sh --apply
 bash repair-el7-libseccomp.sh --finish-install
 ```
 
-此步骤沿用原 `puppeteerctl` 启动服务，检查健康，再从固定 beta0.12 服务镜像取出官方接管助手，完成宿主机部署执行器接管。只有服务及执行器健康后才写入 `installed-version`。它不是已有部署的升级入口，不生成新凭据、不删除卷；若安装已经标记完成，使用原 `puppeteerctl` 管理。
+此步骤先确认 runc 已加载 libseccomp 2.6.1，然后通过原 `puppeteerctl` 单独强制重建 PostgreSQL 容器，保留原有数据卷，等待数据库健康后再启动其余服务。仅升级动态库不会更新已有容器的 seccomp 过滤器，普通 `up` 可能继续复用旧容器。数据库仍不健康时打印最新日志并停止。随后检查应用健康，从固定 beta0.12 服务镜像取出官方接管助手，完成宿主机部署执行器接管。只有服务及执行器健康后才写入 `installed-version`。它不是已有部署的升级入口，不生成新凭据、不删除卷；若安装已经标记完成，使用原 `puppeteerctl` 管理。
+
+如果 `--apply` 已成功、临时 initdb 已通过，但旧版 `--finish-install` 立即报告 PostgreSQL 不健康，重新下载此脚本并仅运行 `--finish-install` 即可。无需再次激活兼容库或重新运行安装器。
 
 ## 撤销
 

@@ -28,12 +28,20 @@ if [[ $mode == --finish-install ]]; then
  [[ ! -e /opt/puppeteer/installed-version && ! -L /opt/puppeteer/installed-version ]] || die 'Installation already marked complete; use puppeteerctl for normal management'
  project=$("$ctl" config --format json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["services"]["server"]["image"] == "cloners/puppeteer-server@sha256:d0c3a23525b35b08593e760c4e65d6bf92894cf3afa740be5bdbc97b6fe9a7dd", "Unexpected server image"; print(d["name"])')
  [[ $project == puppeteer ]] || die 'Finish helper is restricted to the default puppeteer project'
+ runc --version | grep -q '^libseccomp: 2\.6\.1$' || die 'Run --apply successfully before finishing installation'
+ echo '[1/3] Recreating PostgreSQL with the active runtime library; existing volumes are retained'
+ if ! "$ctl" up -d --no-deps --no-build --force-recreate --wait --wait-timeout 240 postgres; then
+  "$ctl" logs --tail=80 postgres >&2 || true
+  die 'PostgreSQL is not healthy; installation remains incomplete. Existing volumes and configuration are retained.'
+ fi
+ echo '[2/3] Starting the remaining services and checking health'
  "$ctl" up -d --no-build --wait --wait-timeout 240
  "$ctl" exec -T server /app/nt health
  server=$("$ctl" ps -q server)
  [[ $server =~ ^[a-f0-9]{64}$ ]] || die 'Expected one server container'
  expected=cloners/puppeteer-server@sha256:d0c3a23525b35b08593e760c4e65d6bf92894cf3afa740be5bdbc97b6fe9a7dd
  [[ $(docker inspect "$server" --format '{{.Config.Image}}') == "$expected" ]] || die 'Finish helper is restricted to the published beta0.12 server image'
+ echo '[3/3] Completing deployment executor enrollment'
  if [[ ! -e /opt/puppeteer/config/deployd.json ]]; then
   helpers=/opt/puppeteer/config/deployment-helpers
   [[ ! -L $helpers ]] || die 'Unexpected helper symlink'
