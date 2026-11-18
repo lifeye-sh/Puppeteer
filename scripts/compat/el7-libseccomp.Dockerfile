@@ -1,0 +1,4 @@
+FROM registry-1.docker.io/library/centos:7@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
+RUN printf '[vault-base]\nname=CentOS 7 vault\nbaseurl=https://vault.centos.org/7.9.2009/os/x86_64/\nenabled=1\ngpgcheck=1\ngpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7\n' > /etc/yum.repos.d/puppeteer-vault.repo && yum --disablerepo='*' --enablerepo=vault-base -y install gcc make gperf tar gzip binutils libseccomp && yum clean all
+COPY libseccomp-2.6.1.tar.gz /build/
+RUN cd /build && echo '501f66c667225d53791b97e1d7cf85ab764c297d04881f60f38f451c4b0ee1be  libseccomp-2.6.1.tar.gz' | sha256sum -c - && tar -xzf libseccomp-2.6.1.tar.gz && cd libseccomp-2.6.1 && ./configure --prefix=/opt/puppeteer-compat/libseccomp-2.6.1 --libdir=/opt/puppeteer-compat/libseccomp-2.6.1/lib --disable-static --disable-python && make -j2 && make check && make install

@@ -187,3 +187,7 @@ beta0.10 起提供此功能。新版本后端在可写启动阶段自动生成�
 ```
 
 如果已出现管理脚本、已安装标记或生产环境文件，应先核查当前安装阶段，不能使用上面的首次安装恢复步骤。历史 beta0.12 标签及 Release 附件保持原样；此兼容修复从主分支安装器获取。
+
+## EL7 初始化写入失败
+
+若 PostgreSQL 初始化写 `postmaster.pid` 和 `pg_wal/xlogtemp` 返回 `Operation not permitted`，且宿主机为 EL7、runc 动态链接旧 libseccomp，可按[EL7 运行时兼容说明](EL7-RUNTIME-COMPATIBILITY.md)先验证再修复。不要通过删除卷、关闭 seccomp 或重跑全新安装来处理。
