@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 umask 077
 revision=030bbc5cb28c3c97c447c41d4e281d2a99a411bd
-version=beta0.11
+version=beta0.12
 install_dir=/opt/puppeteer
 project=puppeteer
 host_name=

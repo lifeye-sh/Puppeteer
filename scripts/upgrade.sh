@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 umask 077
 install_dir=/opt/puppeteer
-version=beta0.11
+version=beta0.12
 check_only=0
 enable_database_proxy=0
 database_host=
