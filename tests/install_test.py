@@ -1,5 +1,6 @@
 """Isolated install.sh flow with fake Docker/network/crypto commands, no Docker socket."""
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -18,6 +19,10 @@ if name=='df':print('Filesystem 1024-blocks Used Available Capacity Mounted on\n
 if name=='openssl':
  if a[0]=='rand':print('a'*64)
  if a[0]=='req':
+  if '-addext' in a:sys.exit('unsupported option: -addext')
+  if os.environ.get('TLS_FAIL'):sys.exit('fixture certificate generation failure')
+  if os.environ.get('REAL_OPENSSL'):os.execv(os.environ['REAL_OPENSSL'],[os.environ['REAL_OPENSSL'],*a])
+  assert '-config' in a and '-extensions' in a
   Path(a[a.index('-keyout')+1]).write_text('fixture key')
   Path(a[a.index('-out')+1]).write_text('fixture cert')
 if name=='docker' and '/app/puppeteer-deployd' in a and 'test' in a: sys.exit(0 if os.environ.get('AUTO_ENROLL') else 1)
@@ -80,6 +85,37 @@ class Install(unittest.TestCase):
     self.assertIn('-r '+str(profile),(root/'calls').read_text())
    finally:
     profile.unlink(missing_ok=True)
+ def test_real_tls_extensions_and_visible_failure(self):
+  for host in ['db.example.com','192.168.1.170']:
+   for fail in [False,True]:
+    with self.subTest(host=host,fail=fail), tempfile.TemporaryDirectory() as td:
+     root=Path(td);bins=root/'bin';bins.mkdir();deploy=root/'deployment'
+     for name in ['docker','curl','df','openssl','systemctl']:
+      p=bins/name;p.write_text(SHIM);p.chmod(0o700)
+     real=shutil.which('openssl');self.assertTrue(real)
+     env=dict(os.environ,PATH=str(bins)+':'+os.environ['PATH'],REAL_OPENSSL=real,TLS_FAIL='1' if fail else '',AUTO_ENROLL='')
+     proc=subprocess.run(['bash',str(SCRIPT),'--core','--dir',str(deploy),'--host',host],env=env,capture_output=True,text=True)
+     if fail:
+      self.assertNotEqual(proc.returncode,0)
+      self.assertIn('fixture certificate generation failure',proc.stderr)
+      self.assertIn('TLS certificate generation failed',proc.stderr)
+      self.assertTrue((deploy/'config/secrets/vault_key').exists())
+      self.assertTrue((deploy/'config/tls-generation.log').exists())
+      self.assertFalse((deploy/'puppeteerctl').exists())
+      self.assertNotIn('a'*64,proc.stdout+proc.stderr)
+     else:
+      self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
+      certificate=deploy/'config/tls/server.crt';key=deploy/'config/tls/server.key'
+      value=subprocess.check_output([real,'x509','-in',str(certificate),'-noout','-text'],text=True)
+      self.assertIn('DNS:'+host if host[0].isalpha() else 'IP Address:'+host,value)
+      self.assertIn('CA:FALSE',value)
+      self.assertIn('TLS Web Server Authentication',value)
+      cert_pub=subprocess.check_output([real,'x509','-in',str(certificate),'-noout','-pubkey'])
+      key_pub=subprocess.check_output([real,'pkey','-in',str(key),'-pubout'])
+      self.assertEqual(cert_pub,key_pub)
+      self.assertEqual(key.stat().st_mode & 0o777,0o400)
+      self.assertFalse((deploy/'config/tls-request.cnf').exists())
+      self.assertFalse((deploy/'config/tls-generation.log').exists())
  def test_automatic_enrollment(self):self.run_install([],auto=True)
  def test_defaults(self):self.run_install([])
  def test_remote_bind(self):self.run_install(['--database-proxy-bind','0.0.0.0'],bind='0.0.0.0')

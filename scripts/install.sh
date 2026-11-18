@@ -109,7 +109,7 @@ fi
 origin="https://$host_name"
 [[ $port == 443 ]] || origin+=":$port"
 mkdir -m 700 "$install_dir"
-trap 'printf "Installation interrupted. Files retained in %s; no volumes were deleted. Review the error above. If puppeteerctl exists, use it to retry startup.\n" "$install_dir" >&2' ERR
+trap 'status=$?; printf "Installation interrupted at line %s (exit %s). Files retained in %s; no volumes were deleted. Review the error above. If puppeteerctl exists, use it to retry startup.\n" "$LINENO" "$status" "$install_dir" >&2' ERR
 printf '[1/5] Downloading pinned deployment configuration\n'
 for file in compose.yaml services.yaml nginx.conf; do
   curl --fail --show-error --silent --location --retry 3 --connect-timeout 20 \
@@ -199,10 +199,25 @@ if [[ -n $cert ]]; then
   install -o 101 -g 101 -m 400 "$cert" "$config/tls/server.crt"
   install -o 101 -g 101 -m 400 "$key" "$config/tls/server.key"
 else
-  openssl req -x509 -newkey rsa:3072 -sha256 -nodes -days 365 \
+  # Use an extension configuration for compatibility with OpenSSL without -addext.
+  cat > "$config/tls-request.cnf" <<TLSCONF
+[req]
+prompt = no
+distinguished_name = subject
+[subject]
+CN = $host_name
+[server_cert]
+subjectAltName = $san
+basicConstraints = critical,CA:FALSE
+extendedKeyUsage = serverAuth
+TLSCONF
+  if ! openssl req -x509 -newkey rsa:3072 -sha256 -nodes -days 365 \
     -keyout "$config/tls/server.key" -out "$config/tls/server.crt" \
-    -subj "/CN=$host_name" -addext "subjectAltName=$san" \
-    -addext 'basicConstraints=critical,CA:FALSE' -addext 'extendedKeyUsage=serverAuth' 2>/dev/null
+    -config "$config/tls-request.cnf" -extensions server_cert 2>"$config/tls-generation.log"; then
+    cat "$config/tls-generation.log" >&2
+    die "TLS certificate generation failed. Existing files retained in $install_dir; details: $config/tls-generation.log"
+  fi
+  rm -f "$config/tls-request.cnf" "$config/tls-generation.log"
   chmod 400 "$config"/tls/*
   chown 101:101 "$config"/tls/*
 fi

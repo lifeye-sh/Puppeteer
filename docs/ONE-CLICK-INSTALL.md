@@ -164,3 +164,26 @@ WAL 首次启用会自动构建固定 PG18 镜像并重建 PostgreSQL，须安�
 ## 自动恢复密钥（beta0.10）
 
 beta0.10 起提供此功能。新版本后端在可写启动阶段自动生成未配置的备份恢复密钥，初始化失败会阻止启动；无需增加安装参数、挂载或手工命令。已有公钥与历史密钥保留，重复启动不会重新生成。管理员可在“备份与恢复 → 备份策略”下载恢复私钥或重新生成，请将下载的私钥保存在服务器之外。详见[备份与恢复说明](backend/implementation/backup-restore.md#页面与身份验证)。
+
+## 安装在生成 TLS 时中断
+
+旧版安装器使用 `openssl req -addext`，OpenSSL 1.0.2 不支持该选项，并且旧脚本隐藏了该命令的错误输出。主分支安装器已改用 `-config` / `-extensions`，生成 IP 或域名 SAN；失败时显示 OpenSSL 错误并保留 `config/tls-generation.log`。这是安装器热修复，继续使用 beta0.12 固定摘要镜像，无需替换系统 OpenSSL。证书参数依据 [OpenSSL 1.0.2 req 文档](https://docs.openssl.org/1.0.2/man1/req/)。
+
+若首次安装明确停在 `[2/5]`，且尚无 `puppeteerctl`、`installed-version` 和 `config/production.env`，可先将失败目录完整保留到随机命名的备份目录，再下载主分支脚本重装。下方检查不通过会停止，不会覆盖已有部署；不要删除数据卷或输出 secrets 内容。命令适用于默认目录，在 root shell 中执行，替换示例 IP：
+
+```bash
+(
+  set -e
+  test -d /opt/puppeteer
+  test ! -e /opt/puppeteer/puppeteerctl
+  test ! -e /opt/puppeteer/installed-version
+  test ! -e /opt/puppeteer/config/production.env
+  saved=$(mktemp -d /opt/puppeteer-incomplete.XXXXXX)
+  mv -- /opt/puppeteer "$saved/"
+  printf '失败目录已保留在 %s/puppeteer\n' "$saved"
+  curl -fsSL https://raw.githubusercontent.com/lifeye-sh/Puppeteer/main/scripts/install.sh -o install-puppeteer.sh
+  bash install-puppeteer.sh --host 192.168.1.170
+)
+```
+
+如果已出现管理脚本、已安装标记或生产环境文件，应先核查当前安装阶段，不能使用上面的首次安装恢复步骤。历史 beta0.12 标签及 Release 附件保持原样；此兼容修复从主分支安装器获取。
